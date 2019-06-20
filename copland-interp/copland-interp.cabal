@@ -8,9 +8,9 @@ cabal-version: 1.12
 
 name:           copland-interp
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/ampetz/copland-interp#readme>
-homepage:       https://github.com/ampetz/copland-interp#readme
-bug-reports:    https://github.com/ampetz/copland-interp/issues
+description:    Please see the README on GitHub at https://github.com/ku-sldg/haskell-am 
+homepage:       https://github.com/ku-sldg/haskell-am
+bug-reports:    https://github.com/ku-sldg/haskell-am/issues
 author:         Adam Petz
 maintainer:     ampetz@ku.edu
 copyright:      ITTC, University of Kansas
