@@ -1,0 +1,123 @@
+{-  Experimental communication primitives and infrastructure for evaluation of remote attestation protocols.
+
+  Author: Adam Petz
+  Date:  11/18/2018, 5/13/2019
+-}
+
+{-# LANGUAGE ScopedTypeVariables #-}
+
+module CommImpl where
+
+import Copland
+import MonadCop
+import CryptoImpl (doRNG)
+
+import Control.Concurrent.STM
+import qualified Data.Map as M
+import qualified Data.Aeson as DA (decodeStrict, encode)
+import qualified Data.ByteString.Lazy as BL (toStrict)
+import qualified Data.ByteString as B (null)
+import Control.Monad.Reader
+import Control.Monad.State
+import qualified JsonCopland as JC (jsonToFile)
+import qualified System.Directory as SD (removeFile)
+import System.IO.Error hiding (catch)
+import Control.Exception (throwIO, catch)
+
+import qualified Network.Socket as NS
+import qualified Network.Socket.ByteString as NBS
+
+
+
+
+
+
+{-  Send an attestation request
+    Params:
+      pTo- intended recipient of request
+      t-   term for remote entity to execute
+      e-   initial evidence supplied to remote entity
+    Returns: message id used in request -}     
+sendReq :: NS.Socket -> Pl -> T -> Ev -> COP ()
+sendReq conn pTo t e = do
+  logc "inside doSendReq"
+  pFrom <- asks me
+  namesFrom <- asks nameServer
+  logc $ "pTo: " ++ (show pTo)
+  --nextMID <- liftIO $ doRNG
+  let rm = (RequestMessage pTo pFrom namesFrom t e)
+  let messageBits = DA.encode rm
+  logc $ "sending doSendReq: " ++ (show rm)
+  logc $ "JSON Request: " ++ (show messageBits)
+
+
+  let jsonReqInFile = "../demoOutput/jsonReqIn.hs"
+      
+  liftIO $ SD.removeFile jsonReqInFile `catch` handleExists
+  liftIO $ JC.jsonToFile rm jsonReqInFile
+
+  
+  liftIO $ NBS.sendAll conn (BL.toStrict messageBits)
+  --return nextMID
+
+
+    where handleExists e
+            | isDoesNotExistError e = return ()
+            | otherwise = throwIO e
+
+{-  Send a response to an attestation request
+    Params:
+      mid- message id (should match message id from corresponding request)
+      pTo- intended recipient of response
+      e-   resulting evidence gathered  -}
+sendResp :: NS.Socket -> Pl -> Pl -> Ev -> IO ()
+sendResp conn pFrom pTo e = do
+  --pFrom <- asks me
+  let rm = (ResponseMessage pTo pFrom e)
+  let messageBits = DA.encode rm
+  {-logc $ "sending doSendResp: " ++ (show rm)
+  logc $ "JSON Response: " ++ (show messageBits) -}
+  --putStrLn $ "JSON Response: " ++ (show messageBits)
+  NBS.sendAll conn (BL.toStrict messageBits)
+
+{-  Receive an attestation response
+    Params:
+      goodMid-   expected message id (from corresponding request id)
+      goodPfrom- expected source place
+    Returns:  evidence from response message  -}
+receiveResp :: NS.Socket -> Pl -> IO ResponseMessage
+receiveResp conn goodPfrom = do
+  --logc "inside doRecieveResponse"
+  
+  --p <- asks me
+  msg <- NBS.recv conn 1024
+  let (val :: Maybe ResponseMessage) = DA.decodeStrict msg
+  case val of
+      Nothing -> error $ "weird message received: " ++ (show msg)
+      Just res -> do
+        -- TODO: check mid here?  May be obsolete with socket connection?
+        let jsonRespOutFile = "../demoOutput/jsonRespOut.hs"
+        SD.removeFile jsonRespOutFile `catch` handleExists
+        JC.jsonToFile res jsonRespOutFile
+        return res
+
+    where handleExists e
+            | isDoesNotExistError e = return ()
+            | otherwise = throwIO e
+                          
+{-  Receive an attestation request.
+    Params:  None (for now, act as a server and respond to all requests)
+    Returns (pieces of request message)
+      -message id
+      -place
+      -protocol term
+      -initial evidence -}   
+receiveReq :: NS.Socket -> IO RequestMessage
+receiveReq conn = do
+  --logc "inside doRecieveRequest"
+
+  msg <-  NBS.recv conn 1024
+  let (val :: Maybe RequestMessage) = DA.decodeStrict msg
+  case val of
+   Nothing -> error $ "weird message received: " ++ (show msg)
+   Just res -> return res
