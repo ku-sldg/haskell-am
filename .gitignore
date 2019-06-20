@@ -20,5 +20,4 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
-demoOutput/*
 copland-interp/stack.yaml.lock
