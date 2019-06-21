@@ -17,8 +17,9 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a GitHub is
 ### QuickStart Guide
 1) Install Haskell Stack (via instructions at the link above)
 1) Clone the haskell-am source repository (git clone https://github.com/ku-sldg/haskell-am.git)
-1) In the top-level of that repository:  type `make run` 
+1) In the top-level of that repository:  type `make` 
     * NOTE:  this may take a while (TODO: time estimate) the first time due to the Haskell dependencies.
+1) Type `make run`
 1) Successful installation/execution will include output that ends with something like "Evidence Result:" followed by a pretty-printed concrete evidence value (the result of executing a hard-coded protocol).  See the Examples section below for a description of what `make run` does.  
 
 * This will use a default key for signing (located at `keys/key0.txt`) by _**temporarily**_ setting the `COPLAND_BUILD` environment variable.  See the [Advanced Configuration](#advanced-configuration) section for instructions on setting this variable (or the custom `COPLAND_KEY` variable) more permanently for development/deployment purpuses.
