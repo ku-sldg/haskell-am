@@ -3,9 +3,12 @@
 ## Overview
 ---
 
-TODO: overview text.  
+The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the execution of attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a prototype implementation of the Copland semantics, along with capabilities for generating nonces, sequencing execution of multiple Copland phrases, and performing appraisal on the resulting evidence.  There is ongoing work to implement similar Attestation Managers in other language environments([Copland Software](https://ku-sldg.github.io/copland/software.html)), and the [JSON exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) facilitates communication between these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype implementation serves as a first step and testing ground towards that goal.
 
-Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a GitHub issue.
+<!---
+[Orchestrating Layered Attestations](https://ku-sldg.github.io/copland///resources/copland-post-2019.pdf)  --->
+
+Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub issue](https://github.com/ku-sldg/haskell-am/issues).
 
 ## Installation
 ---
@@ -18,7 +21,7 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a GitHub is
 1) Install Haskell Stack (via instructions at the link above)
 1) Clone the haskell-am source repository (git clone https://github.com/ku-sldg/haskell-am.git)
 1) In the top-level of that repository:  type `make` 
-    * NOTE:  this may take a while (TODO: time estimate) the first time due to the Haskell dependencies.
+    * NOTE:  this may take a while (~20-30 minutes) the first time due to the Haskell dependencies.
 1) Type `make run`
 1) Successful installation/execution will include output that ends with something like "Evidence Result:" followed by a pretty-printed concrete evidence value (the result of executing a hard-coded protocol).  See the Examples section below for a description of what `make run` does.  
 
@@ -33,7 +36,7 @@ The Haskell AM project is organized as three logically distinct executables:
 1)  Attestation Manager Client (Appraiser Client)
 1)  Datatype/JSON Generator and Translator
 
-These executables share common libraries(see Source Files section below TODO:link to Source Files).  Their purpose and usage are described individually in the following sections.
+These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
 
 ---
 
@@ -44,7 +47,7 @@ An Attestation Server handles requests from clients that ask it to interpret a C
 *  Note:  The Attestation Server may also act as an Attestation Client.  When it encounters an AT term in a Copland phrase it must itself send a request to the place specified.  
 *  The `-r ADDRESS` command line option specifies a specific port where the server should listen for connections.  If ommited, a random available port is selected.
 *  In the `RequestMessage` a client includes a mapping from Place to Address where Address is currently a port string.  This tells the server the intended Address of each Place it encounters in the Copland phrase.
-*  A full description of the Request/Response Messages handled by the server and their JSON representations is here:  (TODO: link to json schema document).
+*  A full description of the Request/Response Messages handled by the server and their JSON representations is included in this document:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 *  Type `make helpserver` for a complete description of Attestation Server command line options.
 
 ---
@@ -82,7 +85,7 @@ There are two primary functions of the Generator/Translator:
 
 It is meant to be useful for testing against implementations outside of the Haskell language.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.
 
-* You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate (respectively):  RequestMessage, ResponseMessage, Copland Term, Copland Evidence.  These datatypes and their JSON representations are described here:  (TODO:  link to doc)
+* You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate (respectively):  RequestMessage, ResponseMessage, Copland Term, Copland Evidence.  These datatypes and their JSON representations are described here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 *  The `-n N` option will generate N random things of the type you specify and output them newline-separated(output location determined by `-o` option).
 *  If the `-d` option is set, the OUTPUT will be the Haskell algebraic datatype representation.  Otherwise the OUTPUT will be the JSON representation.
 *  If the `-n N` option is NOT set or if N==0, it becomes a translator to/from JSON and the ADT representations.  The input representation is always the opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT representation (and vice-versa if `-d` is NOT set).
@@ -124,9 +127,9 @@ All Haskell source files are within the stack project directory:  `copland-inter
 * GenMain.hs:  Main module for Generator/Translator.
     * Generates random well-formed datatypes and JSON objects that are relevant during attestation.  Also acts as an oracle for bi-directional translation between datatypes and their JSON representation.
 * CoplandLang.hs:  Copland language definition-  terms and concrete evidence.
-    * Implements language specification here (TODO: update link): [Copland Language spec](https://github.com/ku-sldg/CAPTools/blob/master/doc/copland/copland_core.pdf).
+    * Implements language specification from here: [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 * JsonCopland.hs:  _ToJSON_/_FromJSON_ instances for Copland language and other attestation-relevant datatypes.
-    * Implements data exchange format here (TODO: update link): [Copland JSON spec](https://github.com/ku-sldg/CAPTools/blob/master/doc/copland/copland_core.pdf).
+    * Implements data exchange format from here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
     * Implemented via Haskell's Aeson library for JSON parsing.
 * DisplayCopland.hs:  Pretty-printing for protocol terms and evidence.
     * Uses:  http://hackage.haskell.org/package/prettyprinter-1.2.1
@@ -162,7 +165,9 @@ All Haskell source files are within the stack project directory:  `copland-inter
 
 ### `make run`
 
-`make run` executes the Appraiser Client with the `-w` and `-a` options.  Since we do *not* provide a custom Copland phrase to execute with the `-t FILENAME` option, it instead executes the following hard-coded computation in the AM(Attestation Manager) monad:
+`make run` executes the following command:  `cd copland-interp ; stack exec -- copland-app-exe -w -a`.  This runs the Appraiser Client with the `-w` and `-a` options.  `stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `copland-app-exe` is the name we associated with the the Appraiser Client executable in the stack project cabal file(`copland-interp/copland-interp.cabal`).  The `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.  
+  
+Note that since we do *not* provide a custom Copland phrase to execute with the `-t FILENAME` option, it instead executes the following hard-coded computation in the AM(Attestation Manager) monad:
 
 ```haskell
 am_proto_1 :: AM Ev
@@ -179,13 +184,13 @@ am_proto_1 = do
     
 ```  
 
-This describes a simple attestation protocol that first generates a nonce(am_genNonce), then passes that nonce as initial evidence to the execution of a Copland phrase named `proto1`(am_runCOP proto1 n).  `proto1` starts with an AT request to Place 1 to perform the remaining measurement actions.  Upon receiving the request, Place 1 copies the nonce, measures the file "target.txt" (hashes its contents), bundles these two items, and finally signs the bundle before sending it back to the client.  A complete description of the Copland language and its semantics can be found here: (TODO: link to orchestrating layered attestations paper).  Upon receiving this evidence, the client performs appraisal and outputs the result.
+This describes a typical attestation protocol that first generates a nonce(am_genNonce), then passes that nonce as initial evidence to the execution of a Copland phrase named `proto1`(am_runCOP proto1 n).  `proto1` starts with an AT request to Place 1 to perform some measurement actions.  Upon receiving the request, Place 1 copies the nonce, measures the file "target.txt" (hashes its contents), bundles these two items, and finally signs the bundle before sending it back to the client.  A complete description of the Copland language and its semantics can be found here: [Orchestrating Layered Attestations](https://ku-sldg.github.io/copland///resources/copland-post-2019.pdf).  Upon receiving this evidence, the client performs appraisal and outputs the result.
   
-The `-a` option tells the client to perform appraisal on the resulting evidence.  Currently appraisal is written as an ad-hoc function in Haskell so that it can only appraise evidence produced by the `proto1` protocol above.  The `-w` option is crucial here because it configures and spawns the attestation server thread for Place 1 before sending the initial request.  If we omit the `-w` option we would have to 1) use the `-n FILENAME` option to specify a Place -> Address mapping that includes an entry for Place 1, and 2) start a server at that same Address manually before sending the request.
+The `-a` option tells the client to perform appraisal on the resulting evidence.  Currently appraisal is written as an ad-hoc function in Haskell so that it can only appraise evidence produced by the `proto1` protocol above.  The `-w` option is crucial here because it configures and spawns an attestation server thread for Place 1 before sending the initial request.  If we omit the `-w` option we would have to 1) use the `-n FILENAME` option to specify a Place -> Address mapping that includes an entry for Place 1, and 2) start a server at that same Address manually before sending the request.
 
 ### `make term`
 
-`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t` option allows the user to execute a custom Copland phrase given in the input file ../t.hs.  Note:  only the term at the TOP of the file is read as input.  As specified, the t.hs file must appear in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile and provide their own fully qualified path to the input file.  Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.  Terms must be valid Haskell ADTs of type `T`, defined in CoplandLang.hs (TODO: put link).
+`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t` option allows the user to execute a custom Copland phrase given in the input file ../t.hs.  Note:  only the term at the TOP of the file is read as input.  As specified, the t.hs file must appear in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile and provide their own fully qualified path to the input file.  Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.  Terms must be valid Haskell ADTs of type `T`, defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).
 
 ---
 

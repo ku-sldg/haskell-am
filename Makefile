@@ -9,33 +9,14 @@ DFAS := copland-interp\:exe\:copland-gen-exe
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
 
-help:
-	@cd copland-interp ; stack exec -- copland-server-exe --help ;
-	@echo "" ; echo "" ; echo "" ;
-	@cd copland-interp ; stack exec -- copland-app-exe --help ;
-	@echo "" ; echo "" ; echo "" ;
-	@cd copland-interp ; stack exec -- copland-gen-exe --help ;
+run:
+	cd copland-interp ; stack exec -- copland-app-exe -w -a
 
-helpclient:
-	@cd copland-interp ; stack exec -- copland-app-exe --help ;
+runSim:
+	cd copland-interp ; stack exec -- copland-app-exe -s -w -v
 
-helpserver:
-	@cd copland-interp ; stack exec -- copland-server-exe --help ;
-
-helpgen:
-	cd copland-interp ; stack exec -- copland-gen-exe --help
-
-ghci:
-	cd copland-interp ; stack ghci --main-is ${FSDA}
-
-ghciserv:
-	cd copland-interp ; stack ghci --main-is ${ASDF}
-
-ghciapp:
-	cd copland-interp ; stack ghci --main-is ${FDSA}
-
-ghcigen:
-	cd copland-interp ; stack ghci --main-is ${DFAS}
+term:
+	cd copland-interp ; stack exec -- copland-app-exe -w -t ../t.hs
 
 attack:
 	./modTarget.sh
@@ -53,9 +34,6 @@ gen:
 genj:
 	cd copland-interp ; stack exec -- copland-gen-exe -n 1 -t
 
-gent:
-	cd copland-interp ; stack exec -- copland-gen-exe -n 1 -t -o "fout.hs" -d
-
 #Input Copland terms(-t) as datatypes from stdin, write JSON to stdout
 geni:
 	cd copland-interp ; stack exec -- copland-gen-exe -t
@@ -72,38 +50,33 @@ genf:
 genff:
 	cd copland-interp ; stack exec -- copland-gen-exe -t -i ../fout.txt -o ../fin.hs -d
 
+#Start an Attestation Server at a random available port
 server:
 	@cd copland-interp ; stack exec -- copland-server-exe
-
+#Same as make server, but server runs in simulation mode
 serversim:
 	@cd copland-interp ; stack exec -- copland-server-exe -s
 
-app:
-	cd copland-interp ; stack exec -- copland-app-exe -n ../names.txt -s
-
-appreal:
+names:
 	cd copland-interp ; stack exec -- copland-app-exe -n ../names.txt
 
-file:
-	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs -s
+namesSim:
+	cd copland-interp ; stack exec -- copland-app-exe -n ../names.txt -s
 
-filereal:
+file:
 	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs
 
-filerealnames:
-	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs -n ../names.txt -j
+fileSim:
+	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs -s
 
-filefakenames:
+fileNames:
+	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs -n ../names.txt
+
+fileNamesSim:
 	cd copland-interp ; stack exec -- copland-app-exe -t ../t.hs -e ../ev.hs -n ../names.txt -s
 
-fakenames:
-	cd copland-interp ; stack exec -- copland-app-exe -e ../ev.hs -n ../names.txt -s
-
-client:
-	cd copland-interp ; stack exec -- copland-interp-exe -t ../t.hs -e ../ev.hs -c -r "3000" -n ../names.txt
-
 pzero:
-	cd copland-interp ; stack exec -- copland-interp-exe -t ../t.hs -e ../ev.hs -v -r "3000" -n ../names.txt
+	cd copland-interp ; stack exec -- copland-server-exe -r "3000"
 
 pone:
 	cd copland-interp ; stack exec -- copland-server-exe -r "3001"
@@ -111,26 +84,33 @@ pone:
 ptwo:
 	cd copland-interp ; stack exec -- copland-server-exe -r "3002"
 
-out:
-	cd copland-interp ; stack exec -- copland-interp-exe -t ../t.hs -e ../ev.hs -o ../res.txt -s
+ghci:
+	cd copland-interp ; stack ghci --main-is ${FSDA}
 
-outreal:
-	cd copland-interp ; stack exec -- copland-interp-exe -t ../t.hs -e ../ev.hs -o ../res.txt
+ghciserv:
+	cd copland-interp ; stack ghci --main-is ${ASDF}
 
-run:
-	cd copland-interp ; stack exec -- copland-app-exe -w -a
+ghciapp:
+	cd copland-interp ; stack ghci --main-is ${FDSA}
 
-runSim:
-	cd copland-interp ; stack exec -- copland-app-exe -s -w -v
+ghcigen:
+	cd copland-interp ; stack ghci --main-is ${DFAS}
 
-term:
-	cd copland-interp ; stack exec -- copland-app-exe -w -t ../t.hs
+help:
+	@cd copland-interp ; stack exec -- copland-server-exe --help ;
+	@echo "" ; echo "" ; echo "" ;
+	@cd copland-interp ; stack exec -- copland-app-exe --help ;
+	@echo "" ; echo "" ; echo "" ;
+	@cd copland-interp ; stack exec -- copland-gen-exe --help ;
 
-names:
-	cd copland-interp ; stack exec -- copland-app-exe -s -n "../names.txt"
+helpclient:
+	@cd copland-interp ; stack exec -- copland-app-exe --help ;
 
-namest:
-	cd copland-interp ; stack exec -- copland-app-exe -s -n "../names.txt" -t ../t.hs
+helpserver:
+	@cd copland-interp ; stack exec -- copland-server-exe --help ;
+
+helpgen:
+	cd copland-interp ; stack exec -- copland-gen-exe --help
 
 clean:	
 	cd ./copland-interp/ ; stack clean --verbosity silent
