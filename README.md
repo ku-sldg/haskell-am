@@ -38,8 +38,8 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 
 The Haskell AM project is organized as three logically distinct executables:
 
-1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server-(attestation-server))
-1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-(appraiser-client))
+1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server-%28attestation-server%29)
+1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-%28appraiser-client%29)
 1)  [Datatype/JSON Generator and Translator](#datatype//json-generator-and-translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
