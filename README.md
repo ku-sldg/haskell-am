@@ -38,15 +38,15 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 
 The Haskell AM project is organized as three logically distinct executables:
 
-1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server-(attestation-server))
-1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-(appraiser-client))
-1)  [Datatype/JSON Generator and Translator](#datatype//json-generator-and-translator)
+1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server\-attestation-server)
+1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-%28appraiser-client%29)
+1)  [Datatype/JSON Generator and Translator](#datatype/-json-generator-and-translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
 
 ---
 
-### Copland Interpreter Server (Attestation Server)
+### Copland Interpreter Server-Attestation Server
 
 An Attestation Server handles requests from clients that ask it to interpret a Copland phrase.
 
@@ -54,13 +54,14 @@ An Attestation Server handles requests from clients that ask it to interpret a C
 *  The `-r ADDRESS` command line option specifies a specific port where the server should listen for connections.  If ommited, a random available port is selected.
 *  In the `RequestMessage` a client includes a mapping from Place to Address where Address is currently a port string.  This tells the server the intended Address of each Place it encounters in the Copland phrase.
 *  A full description of the Request/Response Messages handled by the server and their JSON representations is included in this document:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
+*  The main module for the Attestation Server is [ServerMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ServerMain.hs)
 *  Type `make helpserver` for a complete description of Attestation Server command line options.
 
 ---
 
-### Attestation Manager Client (Appraiser Client)
+### Attestation Manager Client-Appraiser Client
 
-The Attestation Manager Client can generate nonces, sequence exection of multiple Copland phrases, gather evidence results, provide evidence results as initial evidence to other Copland phrase executions, and perform appraisal over evidence.  It is responsible for sending the first request during an attestation protocol run, and also performs the final appraisal.
+The Appraiser Client can generate nonces, sequence exection of multiple Copland phrases, gather evidence results, provide evidence results as initial evidence to other Copland phrase executions, and perform appraisal over evidence.  It is responsible for sending the first request during an attestation protocol run, and also performs the final appraisal.
 
 *  The `-w` option spawns attestation servers as separate background threads before performing the client actions.  This option is useful for testing purposes-  it alleviates the hassle of configuring and starting each Attestation Server as its own executable.  The appropriate number of servers (and at appropriate addresses) are spawned based on the protocol terms involved (and the custom name mapping if provided via the  `-n` option).
 *  The `-n FILENAME` option allows specifying the mapping from Place to Address in a file.  The format is newline-separated strings of the form:  \<Place\>:\<Address\>, where \<Place\> is a place identifier(now a number) and \<Address\> is an address string (now just a port number, but may become more sophisticated).  An example file might look something like:
@@ -77,12 +78,13 @@ The Attestation Manager Client can generate nonces, sequence exection of multipl
 *  The `-v` option specifies that spawned servers should run in simulation mode.  This option only has effect if `-w` is also set.
 *  The `-t FILENAME` and `-e FILENAME` command line options are a convenient way to specify execution of a *single* Copland phrase and initial evidence.
 *  If the `-t` option is empty or omitted, a hard-coded protocol written as a computation in the AM monad will run instead.
+*  The main module for the Appraisal Client is [ClientMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ClientMain.hs)
 *  Type `make helpclient` for a complete description of Appraiser Client command line options.
 
 
 ---
 
-### Datatype/JSON Generator and Translator
+### Datatype-JSON Generator and Translator
 
 There are two primary functions of the Generator/Translator:
 
@@ -98,6 +100,7 @@ It is meant to be useful for testing against implementations outside of the Hask
 * `-i FILENAME` is an optional input file (stdIn if omitted)
 * `-o FILENAME` is an optional output file (stdOut if omitted)
 *  Note:  input and output terms are always newline separated.
+*  The main module for the Generator and Translator is [GenMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/GenMain.hs)
 *  Type `make helpgen` for a complete description of the Generator/Translator command line options.
 
 ## Advanced Configuration
