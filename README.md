@@ -38,15 +38,15 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 
 The Haskell AM project is organized as three logically distinct executables:
 
-1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server\-attestation-server)
-1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client\-appraiser-client)
-1)  [Datatype/JSON Generator and Translator](#datatype\-json-generator-and-translator)
+1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server-attestation-server)
+1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-appraiser-client)
+1)  [Datatype/JSON Generator and Translator](#datatypejson-generator-and-translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
 
 ---
 
-### Copland Interpreter Server-Attestation Server
+### Copland Interpreter Server (Attestation Server)
 
 An Attestation Server handles requests from clients that ask it to interpret a Copland phrase.
 
@@ -59,7 +59,7 @@ An Attestation Server handles requests from clients that ask it to interpret a C
 
 ---
 
-### Attestation Manager Client-Appraiser Client
+### Attestation Manager Client (Appraiser Client)
 
 The Appraiser Client can generate nonces, sequence exection of multiple Copland phrases, gather evidence results, provide evidence results as initial evidence to other Copland phrase executions, and perform appraisal over evidence.  It is responsible for sending the first request during an attestation protocol run, and also performs the final appraisal.
 
@@ -84,7 +84,7 @@ The Appraiser Client can generate nonces, sequence exection of multiple Copland 
 
 ---
 
-### Datatype-JSON Generator and Translator
+### Datatype/JSON Generator and Translator
 
 There are two primary functions of the Generator/Translator:
 
