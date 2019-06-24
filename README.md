@@ -3,7 +3,13 @@
 ## Overview
 ---
 
-The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the execution of attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a prototype implementation of the Copland semantics, along with capabilities for generating nonces, sequencing execution of multiple Copland phrases, and performing appraisal on the resulting evidence.  There is ongoing work to implement similar Attestation Managers in other language environments([Copland Software](https://ku-sldg.github.io/copland/software.html)), and the [JSON exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) facilitates communication between these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype implementation serves as a first step and testing ground towards that goal.
+The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the execution of attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a prototype implementation of the Copland semantics that includes the following additional capabilities:  
+
+1) generating and managing nonces
+1) sequencing execution of multiple Copland protocol phrases 
+1) performing appraisal on the resulting evidence bundles  
+
+We have ongoing work to implement similar Attestation Managers in other language environments([Copland Software](https://ku-sldg.github.io/copland/software.html)), and our [JSON message exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) facilitates communication between these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype serves as a first step and testing ground towards that goal.
 
 <!---
 [Orchestrating Layered Attestations](https://ku-sldg.github.io/copland///resources/copland-post-2019.pdf)  --->
