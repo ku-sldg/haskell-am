@@ -130,7 +130,8 @@ toRemote pTo t e = do
       sock' <- liftIO $ Comm.client_resolve_open_localhost pString
       return (sock')
 
-    mid <- sendReq mSock pTo t e
+    nameMap <- asks nameServer
+    mid <- liftIO $ sendReq mSock pTo pMe nameMap t e
     ResponseMessage _ _ resEv <- liftIO $ receiveResp mSock pTo
     liftIO $ close mSock
     logc $ "Returning evidence result: " ++ (show resEv)

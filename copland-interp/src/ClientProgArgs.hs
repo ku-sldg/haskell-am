@@ -14,7 +14,7 @@ module ClientProgArgs where
 import Copland
 
 import Options.Applicative
-import Data.Monoid ((<>))
+--import Data.Monoid ((<>))
 
 getClientOptions = do
   options <- execParser opts

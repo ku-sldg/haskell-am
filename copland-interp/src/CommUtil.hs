@@ -4,8 +4,6 @@
   Date:  06/014/2019
 -}
 
-
-
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module CommUtil where
@@ -13,15 +11,11 @@ module CommUtil where
 import Copland
 
 import Network.Socket as NS hiding (recv)
-import qualified Data.Map as M
 import Text.Read(readMaybe)
 import Control.Exception (bracket)
 import Control.Monad(replicateM)
---import System.Environment (lookupEnv)
-import qualified Control.Concurrent as CC (forkIO, threadDelay)
+import qualified Data.Map as M
 
-
-  
 resolve port = do
         let hints = defaultHints {
                 addrFlags = [AI_PASSIVE]

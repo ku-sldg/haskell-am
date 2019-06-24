@@ -1,7 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
 module StringConstants where
-
-import Data.Text (Text)
 
 {----------- CONSTANT STRINGS -----------}
 
@@ -69,24 +66,3 @@ brsStr = "BRS"
 
 brpStr :: String
 brpStr = "BRP"
-
-{--- JSON tag strings ---}
-{- Every JSON object representing an Alegbraic Datatype
-   has three members:
-   1) typeStr-maps to the datatype name string (e.g. "T" or "Ev").
-   2) nameStr-maps to the constructor name string (e.g. "KIM" or "USM").
-   3) dataStr-maps to a JSON object that holds the arguments for
-        that particular constructor(members of that object will
-        differ from constructor to constructor).  -}
-
-{- Datatype -}
-typeStr :: Text
-typeStr = "type"
-
-{- Constructor -}
-nameStr :: Text
-nameStr = "name"
-
-{- Constructor arguments -}
-dataStr :: Text
-dataStr = "data"

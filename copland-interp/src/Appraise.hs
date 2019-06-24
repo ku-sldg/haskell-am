@@ -1,29 +1,13 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+--{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 module Appraise where
 
 import Copland
-import qualified CryptoImpl as CI (doSign, doHashFile)
-import MonadCop (lookupSecretKeyBytes, COP)
---import qualified Interp as I (lookupSecretKeyBytes)
---import qualified CommImpl as COM (logc)
---import qualified Interp as I (encodeEv)
 
-
-import qualified Data.Binary as BI (decode)
-import System.Environment (lookupEnv)
-import System.Directory (getDirectoryContents)
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL (fromStrict)
-import qualified Crypto.Nonce as CN
---import qualified Data.ByteString.Base64 as B64
 import qualified Data.Map as M
-
-import qualified Crypto.Hash.SHA256 as H (hash)
---import Data.ByteArray.Encoding (convertToBase, Base (Base64))
-import Crypto.Sign.Ed25519
+import Crypto.Sign.Ed25519 (SecretKey(..), toPublicKey, verify)
 
 type GoldenUsmMap = M.Map (ASP_ID,Pl,[ARG]) BS
-
 type GoldenKimMap = M.Map (ASP_ID,Pl,[ARG]) BS
 
 goldenUsms :: IO GoldenUsmMap
@@ -128,53 +112,3 @@ appraise aNonceMap me priKeyBits e =
 
 
   _ -> return (False,"appraise not implemented")
-
-
-
-
-
-{-
-doNonce :: IO (B.ByteString)
-doNonce = do
-  g <- CN.new
-  n <- CN.nonce128 g
-  return n
-
-doHash :: B.ByteString -> B.ByteString
-doHash bs = H.hash bs {-convertToBase Base64 (hashWith SHA256 bs)-}
-
-doHashFile :: String -> IO (B.ByteString)
-doHashFile s = do
-  fileContent <- B.readFile s
-  return $ doHash fileContent
-
-lookupSecretKey :: IO (B.ByteString)
-lookupSecretKey = do
-  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
-  maybeKeysPath  <- lookupEnv "COPLAND_KEY"
-  let keyPath =
-        case maybeKeysPath of
-        Just kp -> kp
-        Nothing ->
-          case maybeBuildPath of
-           Just s -> s ++ "/copland-interp/src/keys/key0.txt"
-           Nothing ->
-             error "Missing both COPLAND_BUILD(for default key) and COPLAND_KEY(for custom key) environment variables.  Must have one or the other to identify a signing key."
-
-  bs <- B.readFile keyPath
-  return bs
-
-  
-  {-case p of
-   0 -> B.readFile $ keyPath ++ "key0.txt"
-   1 -> B.readFile $ keyPath ++ "key1.txt"
-   2 -> B.readFile $ keyPath ++ "key2.txt"
-   _ -> do putStrLn $ "Key non-existent for place: " ++ (show p)
-           bs <- B.readFile $ keyPath ++ "key2.txt"
-           return bs -}
-                              
-doSign :: B.ByteString -> IO (B.ByteString)
-doSign msg = do
-  sk <- lookupSecretKey
-  return (unSignature (dsign (SecretKey sk) msg)) {-(B64.encode (unSignature (dsign (SecretKey sk) msg)))-}
--}

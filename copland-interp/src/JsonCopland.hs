@@ -44,6 +44,7 @@ showJSON x = TIO.putStrLn . T.decodeUtf8 $ (encode x)
 
 {----------- HELPER/SUB-PARSER FUNCTIONS -----------}
 
+{-
 {- Takes datatype name, constructor name, constructor args object.
    Returns corresponding object. -}
 buildOb :: String -> String -> Value -> Value
@@ -52,7 +53,7 @@ buildOb tName cName dataOb =
            nameStr .= cName,
            dataStr .= dataOb
          ]
-
+-}
 {- Translates splitting function ADT to its integer representation -}
 spToInt :: SP -> Int
 spToInt sp =

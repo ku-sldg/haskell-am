@@ -12,52 +12,41 @@ import Copland
 import MonadCop
 import CryptoImpl (doRNG)
 
-import Control.Concurrent.STM
-import qualified Data.Map as M
-import qualified Data.Aeson as DA (decodeStrict, encode)
-import qualified Data.ByteString.Lazy as BL (toStrict)
-import qualified Data.ByteString as B (null)
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified JsonCopland as JC (jsonToFile)
-import qualified System.Directory as SD (removeFile)
 import System.IO.Error hiding (catch)
 import Control.Exception (throwIO, catch)
-
+import qualified Data.Aeson as DA (decodeStrict, encode)
+import qualified Data.ByteString.Lazy as BL (toStrict)
+import qualified JsonCopland as JC (jsonToFile)
+import qualified System.Directory as SD (removeFile)
 import qualified Network.Socket as NS
 import qualified Network.Socket.ByteString as NBS
-
-
-
-
-
+import qualified Data.Map as M(Map)
 
 {-  Send an attestation request
     Params:
       pTo- intended recipient of request
+      pFrom- requester place
       t-   term for remote entity to execute
       e-   initial evidence supplied to remote entity
     Returns: message id used in request -}     
-sendReq :: NS.Socket -> Pl -> T -> Ev -> COP ()
-sendReq conn pTo t e = do
-  logc "inside doSendReq"
-  pFrom <- asks me
-  namesFrom <- asks nameServer
-  logc $ "pTo: " ++ (show pTo)
+sendReq :: NS.Socket -> Pl -> Pl -> M.Map Pl Address -> T -> Ev -> IO ()
+sendReq conn pTo pFrom namesFrom t e = do
+  --logc "inside doSendReq"
+  --logc $ "pTo: " ++ (show pTo)
   --nextMID <- liftIO $ doRNG
   let rm = (RequestMessage pTo pFrom namesFrom t e)
   let messageBits = DA.encode rm
-  logc $ "sending doSendReq: " ++ (show rm)
-  logc $ "JSON Request: " ++ (show messageBits)
+  --logc $ "sending doSendReq: " ++ (show rm)
+  --logc $ "JSON Request: " ++ (show messageBits)
 
 
   let jsonReqInFile = "../demoOutput/jsonReqIn.hs"
       
-  liftIO $ SD.removeFile jsonReqInFile `catch` handleExists
-  liftIO $ JC.jsonToFile rm jsonReqInFile
+  SD.removeFile jsonReqInFile `catch` handleExists
+  JC.jsonToFile rm jsonReqInFile
 
   
-  liftIO $ NBS.sendAll conn (BL.toStrict messageBits)
+  NBS.sendAll conn (BL.toStrict messageBits)
   --return nextMID
 
 
