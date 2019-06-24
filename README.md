@@ -38,9 +38,9 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 
 The Haskell AM project is organized as three logically distinct executables:
 
-1)  Copland Interpreter Server (Attestation Server)
-1)  Attestation Manager Client (Appraiser Client)
-1)  Datatype/JSON Generator and Translator
+1)  [Copland Interpreter Server (Attestation Server)](#Copland-Interpreter-Server-(Attestation-Server))
+1)  [Attestation Manager Client (Appraiser Client)](#Attestation-Manager-Client-(Appraiser-Client))
+1)  [Datatype/JSON Generator and Translator](#Datatype/JSON-Generator-and-Translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
 
@@ -170,6 +170,7 @@ All Haskell source files are within the stack project directory:  `copland-inter
 ---
 
 ### `make run`
+---
 
 `make run` executes the following command:  `cd copland-interp ; stack exec -- copland-app-exe -w -a`.  This runs the Appraiser Client with the `-w` and `-a` options.  `stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `copland-app-exe` is the name we associated with the the Appraiser Client executable in the stack project cabal file(`copland-interp/copland-interp.cabal`).  The `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.  
   
@@ -195,6 +196,7 @@ This describes a typical attestation protocol that first generates a nonce(am_ge
 The `-a` option tells the client to perform appraisal on the resulting evidence.  Currently appraisal is written as an ad-hoc function in Haskell so that it can only appraise evidence produced by the `proto1` protocol above.  The `-w` option is crucial here because it configures and spawns an attestation server thread for Place 1 before sending the initial request.  If we omit the `-w` option we would have to 1) use the `-n FILENAME` option to specify a Place -> Address mapping that includes an entry for Place 1, and 2) start a server at that same Address manually before sending the request.
 
 ### `make term`
+---
 
 `make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t` option allows the user to execute a custom Copland phrase given in the input file ../t.hs.  Note:  only the term at the TOP of the file is read as input.  As specified, the t.hs file must appear in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile and provide their own fully qualified path to the input file.  Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.  Terms must be valid Haskell ADTs of type `T`, defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).
 
