@@ -14,7 +14,6 @@ module ServerProgArgs where
 import Copland
 
 import Options.Applicative
-import Data.Monoid ((<>))
 
 getServerOptions = do
   options <- execParser opts

@@ -5,30 +5,21 @@
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module GenCopland where
 
 import Copland
 import QcCopland
 
-import qualified Data.ByteString.Lazy as BL (appendFile, append, readFile, ByteString, writeFile, putStrLn, getContents)
-import Test.QuickCheck
-import Data.Aeson --hiding (decode)
+import Test.QuickCheck (Gen, generate)
+import Data.Aeson (ToJSON, FromJSON, encode, decode)
 import Data.Maybe (fromJust)
-import qualified Data.ByteString.Lazy.Char8 as C (split,putStrLn,lines)
-import qualified Data.Binary as BI (decode)
 import Text.Read(readMaybe)
-import qualified System.Directory as SD (removeFile)
 import Control.Exception
 import System.IO.Error hiding (catch)
-
-{-
-mainGen :: IO ()
-mainGen = do
-  termsJsonToFile termFile numToFile
-  evsJsonToFile evFile numToFile
--}
+import qualified Data.ByteString.Lazy as BL (appendFile, append, readFile, ByteString, writeFile, putStrLn, getContents)
+import qualified System.Directory as SD (removeFile)
+import qualified Data.ByteString.Lazy.Char8 as C (putStrLn,lines)
 
 appendJsonToFile :: (ToJSON a, FromJSON a,Read a,Show a) => FilePath -> Bool -> a -> IO ()
 appendJsonToFile fp b t = do

@@ -8,27 +8,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module CryptoImpl where
 
---import System.Environment (lookupEnv)
+import Crypto.Sign.Ed25519 (createKeypair, sign, toPublicKey, verify, SecretKey(..))
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as CH (pack)
 import qualified Crypto.Nonce as CN
---import qualified Data.ByteString.Base64 as B64
-
 import qualified Crypto.Hash.SHA256 as H (hash)
---import Data.ByteArray.Encoding (convertToBase, Base (Base64))
-import Crypto.Sign.Ed25519
-
-import Crypto.RNG
-
-doRNG :: IO (B.ByteString)
-doRNG = do
-  rngState <- newCryptoRNGState
-  bytes <- randomBytesIO 16 rngState
-  return bytes
-
-{-doRNGnum :: IO Int
-doRNGnum = do
-  val <- randomR (0,1000000)
-  return val -}
 
 doNonce :: IO (B.ByteString)
 doNonce = do
@@ -37,7 +21,7 @@ doNonce = do
   return n
 
 doHash :: B.ByteString -> B.ByteString
-doHash bs = H.hash bs {-convertToBase Base64 (hashWith SHA256 bs)-}
+doHash bs = H.hash bs
 
 doHashFile :: String -> IO (B.ByteString)
 doHashFile s = do
@@ -48,6 +32,13 @@ doSign :: B.ByteString -> B.ByteString -> IO (B.ByteString)
 doSign priKeyBits msg = do
   --sk <- lookupSecretKey
   return $ sign (SecretKey priKeyBits) msg --(unSignature (dsign (SecretKey sk) msg)) {-(B64.encode (unSignature (dsign (SecretKey sk) msg)))-}
+
+
+doFakeUsm i p = CH.pack $ "u" ++ (show i) ++ "at" ++ (show p)
+doFakeKim i q p = CH.pack $ "k" ++ (show i) ++ "_" ++ (show q) ++ "at" ++ (show p)
+doFakeSign p = (CH.pack ((show p) ++ "sig"))
+doFakeHash p = (CH.pack ((show p) ++ "hash"))
+doFakeNonce p = (CH.pack ((show p) ++ "nonce"))
 
 test :: IO ()
 test = do

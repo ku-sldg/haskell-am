@@ -12,36 +12,18 @@
 module Interp where
 
 import Copland
-import CryptoImpl (doNonce, doSign, doHash, doHashFile)
+import CryptoImpl (doNonce, doSign, doHash, doHashFile, doFakeNonce, doFakeSign, doFakeHash, doFakeUsm, doFakeKim)
 import Comm
 import MonadCop
-import qualified Appraise as APP
-import qualified ClientProgArgs as PA (Client_Options)
 import qualified ServerProgArgs as SA (Server_Options(..))
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as CH (pack)
-import qualified Data.ByteString.Lazy as BL
-import qualified Control.Concurrent as CC (threadDelay)
-import qualified Data.Map as M --(empty)
+import Control.Monad (forever, void)
 import Control.Monad.Trans.Reader(asks, ask, runReaderT)
 import Control.Monad.Trans(liftIO)
-import Control.Monad.State
-import Control.DeepSeq(force, deepseq)
-import Control.Exception (evaluate)
 import Control.Parallel (pseq)
-import Control.Concurrent.Forkable (forkIO)
---import Control.Concurrent (forkIO)
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
-import qualified Network.Socket as NS (Socket, accept)
-
---import Control.Concurrent (forkFinally)
-import qualified Control.Exception as E
-import Control.Monad (unless, forever, void)
---import qualified Data.ByteString as S
-import Network.Socket hiding (recv)
-import Network.Socket.ByteString (recv, sendAll)
-import Data.Aeson (decodeStrict)
+import qualified Network.Socket as NS (Socket, accept, close)
+import qualified Data.Map as M
 
 {-  Main interp function that interprets protocol terms and initial evidence.
     Params:
@@ -127,13 +109,13 @@ toRemote pTo t e = do
    else do
     mSock <- do
       pString <- getTheirSock pTo
-      sock' <- liftIO $ Comm.client_resolve_open_localhost pString
+      sock' <- liftIO $ client_resolve_open_localhost pString
       return (sock')
 
     nameMap <- asks nameServer
     mid <- liftIO $ sendReq mSock pTo pMe nameMap t e
     ResponseMessage _ _ resEv <- liftIO $ receiveResp mSock pTo
-    liftIO $ close mSock
+    liftIO $ NS.close mSock
     logc $ "Returning evidence result: " ++ (show resEv)
     return resEv
 
@@ -141,7 +123,7 @@ toRemote pTo t e = do
     Params:
       conn- connection handle (Socket) to the client
       opts- server config options provided as command-line arguments  -}
-fromRemote :: Socket -> SA.Server_Options -> IO ()
+fromRemote :: NS.Socket -> SA.Server_Options -> IO ()
 fromRemote conn opts = do
   (RequestMessage pTo pFrom names t e) <- receiveReq conn
   --error $ (show names)
@@ -149,7 +131,7 @@ fromRemote conn opts = do
   e' <- run_interp t e env
   --putStrLn $ "evidence gathered: " ++ (show e')
   sendResp conn pTo pFrom e'
-  close conn
+  NS.close conn
 
 {-  Convenience function that runs interp over a Copland term and initial
     evidence, in a specified COP environment, with an empty initial state,
@@ -166,7 +148,7 @@ interpUSM i args = do
   case sim of
    True -> do
      p <- asks me
-     return $ CH.pack $ "u" ++ (show i) ++ "at" ++ (show p)
+     return $ doFakeUsm i p
    False -> 
      case i of
      1 -> if ((length args) == 0)
@@ -184,7 +166,7 @@ interpKIM i q args = do
   case sim of
    True -> do
      p <- asks me
-     return $ CH.pack $ "k" ++ (show i) ++ "at" ++ (show p)
+     return $ doFakeKim i q p
    False -> 
      case i of
      1 ->
@@ -208,7 +190,7 @@ signEv ev = do
            do
              p <- asks me
              --let p = fst p'
-             return (CH.pack ((show p) ++ "sig"))
+             return $ doFakeSign p
          else
            do
              let bs = encodeEv ev
@@ -218,6 +200,8 @@ signEv ev = do
              return sig
   return sig
 
+
+
 hashEv :: Ev -> COP BS
 hashEv e = do
   simulation <- asks simulation
@@ -226,12 +210,14 @@ hashEv e = do
            do
              p <- asks me
              --let p = fst p'
-             return (CH.pack ((show p) ++ "hash"))
+             return $ doFakeHash p
          else
            do
              let bs = encodeEv e
              return $ doHash bs
   return h
+
+
 
 genNonce :: COP BS
 genNonce = do
@@ -240,12 +226,14 @@ genNonce = do
          then
            do
              p <- asks me
-             return (CH.pack ((show p) ++ "nonce"))
+             return $ doFakeNonce p
          else
            do
              b <- liftIO $ doNonce
              return $ b
   return b
+
+
 
 splitEv :: SP -> Ev -> Ev
 splitEv sp e =
@@ -297,20 +285,3 @@ getNameMap fileName pls = do
        nm <- readNameMap fileName
        --spawn_the_servers nm
        return nm
-
-
-
-{-
-{-  TODO:  do we need these abstractions?  -}
-sendReq :: Socket -> Pl -> T -> Ev -> COP ()
-sendReq = doSendReq
-
-receiveReq :: Socket -> IO RequestMessage
-receiveReq = doReceiveReq
-
-sendResp :: Socket -> Pl -> Pl -> Ev -> IO ()
-sendResp = doSendResp
-
-receiveResp :: Socket -> Pl -> IO ResponseMessage
-receiveResp = doReceiveResp
--}

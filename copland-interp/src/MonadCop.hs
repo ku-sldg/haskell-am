@@ -3,22 +3,17 @@
    Author: Adam Petz
    Date:  11/08/2018
 -}
-{-# LANGUAGE ScopedTypeVariables #-}
+--{-# LANGUAGE ScopedTypeVariables #-}
 
 module MonadCop where
 
 import Copland
 import qualified ServerProgArgs as SA
-import CommUtil
 
 import Control.Monad.Reader
+import System.Environment (lookupEnv)
 import qualified Data.ByteString as B (ByteString, readFile)
 import qualified Data.Map as M
-import System.Directory
-import Control.Monad.Trans(liftIO)
-import System.Environment (lookupEnv)
-
-
 
 {-  The Copland Monad  -}
 type COP = ReaderT Cop_Env IO

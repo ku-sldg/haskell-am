@@ -4,7 +4,7 @@
   Date:  06/14/2019
 -}
 
-{-# LANGUAGE StandaloneDeriving, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module DisplayCopland where
 
@@ -43,6 +43,8 @@ instance Show T where
   showsPrec _ = renderShowS . layoutPretty defaultLayoutOptions . pretty
 -}
 
+
+prettyT :: T -> String
 prettyT = renderString . layoutPretty defaultLayoutOptions . pretty
 
 --prettyT s = prettyT' 

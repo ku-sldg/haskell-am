@@ -10,12 +10,11 @@ module QcCopland where
 
 import Copland
 
-import Test.QuickCheck
-import qualified Data.ByteString as B (empty)
+import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, sized, oneof, frequency)
+import Control.Monad(replicateM)
 import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.Binary as BI (encode)
 import qualified Data.Map as M
-import Control.Monad(replicateM)
 
 {----- Shared qc -----}
 maxPl :: Pl

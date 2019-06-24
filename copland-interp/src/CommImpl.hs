@@ -9,8 +9,6 @@
 module CommImpl where
 
 import Copland
-import MonadCop
-import CryptoImpl (doRNG)
 
 import System.IO.Error hiding (catch)
 import Control.Exception (throwIO, catch)

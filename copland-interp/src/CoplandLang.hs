@@ -11,11 +11,10 @@
 
 module CoplandLang where
 
-import GHC.Generics
+import GHC.Generics (Generic)
 import qualified Data.ByteString as B (ByteString, append, empty)
 import qualified Data.Binary as BI (Binary)
-import Control.DeepSeq
-import qualified Data.Map as M
+import qualified Data.Map as M (Map)
 
 {-  Identify Places (protocol participants)  -}
 type Pl = Int
@@ -62,13 +61,14 @@ data Ev
   deriving (Generic,Eq, Read, Show)
 
 instance BI.Binary Ev where
-instance NFData Ev where
+--instance NFData Ev where
 
 
 {-------- Comm Types --------}
 --Abstract Address type for concrete Addresses (i.e. IP:port string).
 type Address = String
 
+--Attestation Request Message
 data RequestMessage = RequestMessage
                       { toPlace :: Pl,
                         fromPlace :: Pl,
@@ -76,7 +76,8 @@ data RequestMessage = RequestMessage
                         reqTerm :: T,
                         reqEv :: Ev
                       } deriving (Show,Read,Generic)
-                                 
+
+--Attestation Response Message
 data ResponseMessage = ResponseMessage
                       { respToPlace :: Pl,
                         respFromPlace :: Pl,

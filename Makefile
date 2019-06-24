@@ -1,10 +1,9 @@
 SHELL := /bin/bash
 export COPLAND_BUILD=${CURDIR}
 
-ASDF := copland-interp\:exe\:copland-interp-exe
-FSDA := copland-interp\:exe\:copland-server-exe
-FDSA := copland-interp\:exe\:copland-app-exe
-DFAS := copland-interp\:exe\:copland-gen-exe
+SERV := copland-interp\:exe\:copland-server-exe
+APP := copland-interp\:exe\:copland-app-exe
+GEN := copland-interp\:exe\:copland-gen-exe
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
@@ -85,16 +84,16 @@ ptwo:
 	cd copland-interp ; stack exec -- copland-server-exe -r "3002"
 
 ghci:
-	cd copland-interp ; stack ghci --main-is ${FSDA}
+	cd copland-interp ; stack ghci --main-is ${SERV}
 
 ghciserv:
-	cd copland-interp ; stack ghci --main-is ${ASDF}
+	cd copland-interp ; stack ghci --main-is ${SERV}
 
 ghciapp:
-	cd copland-interp ; stack ghci --main-is ${FDSA}
+	cd copland-interp ; stack ghci --main-is ${APP}
 
 ghcigen:
-	cd copland-interp ; stack ghci --main-is ${DFAS}
+	cd copland-interp ; stack ghci --main-is ${GEN}
 
 help:
 	@cd copland-interp ; stack exec -- copland-server-exe --help ;

@@ -9,22 +9,17 @@ module MonadAM where
 
 import Copland
 import CryptoImpl as CI (doNonce)
-import Interp (interp)
+import Interp (interp,getNameMap)
 import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath)
 import ClientProgArgs (getClientOptions, Client_Options(..))
-import Interp(getNameMap)
 
 import Control.Monad.Reader
 import Control.Monad.State
-import Control.Concurrent.STM
 import qualified Data.ByteString as B (ByteString, readFile, empty)
 import qualified Data.Map as M
-import System.Directory
-import Control.Monad.Trans(liftIO)
 
 {-  The Attestation Manager Monad  -}
 type AM = ReaderT AM_Env (StateT AM_St IO)
-
 
 {-  Read-only environment used during protocol execution.
     Contains:

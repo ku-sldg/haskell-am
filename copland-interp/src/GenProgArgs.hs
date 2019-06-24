@@ -14,7 +14,6 @@ module GenProgArgs where
 import Copland
 
 import Options.Applicative
-import Data.Monoid ((<>))
 
 getGenOptions = do
   options <- execParser opts

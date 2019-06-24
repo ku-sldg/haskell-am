@@ -9,31 +9,20 @@
   Date:  11/06/2018
 -}
 
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
-
+{-# LANGUAGE OverloadedStrings #-}
 module JsonCopland where
 
 import CoplandLang
-import DisplayCopland
-import StringConstants
-import CryptoImpl
 
-import qualified Data.ByteString as B (empty, ByteString)
-import qualified Data.ByteString.Lazy as BL (toStrict)
-import qualified Data.ByteString.Char8 as BSC (unpack, pack)
 import Data.Aeson
-import Data.Aeson.Types (Parser)
-import Data.Text
-import qualified Data.ByteString.Base16 as B16 (encode,decode)
-import qualified Data.Text.Encoding as DTE (decodeUtf8, encodeUtf8)
-
-import qualified Data.Text.Lazy.IO as TIO (putStrLn,appendFile)
-import qualified Data.Text.Lazy.Encoding as T
-
-import qualified Data.Binary as BI(encode)
-import qualified System.Directory as SD (removeFile)
 import Control.Exception
 import System.IO.Error hiding (catch)
+import qualified Data.ByteString as B (ByteString)
+import qualified Data.ByteString.Base16 as B16 (encode,decode)
+import qualified Data.Text.Encoding as DTE (decodeUtf8, encodeUtf8)
+import qualified Data.Text.Lazy.IO as TIO (putStrLn,appendFile)
+import qualified Data.Text.Lazy.Encoding as T
+import qualified System.Directory as SD (removeFile)
 
 jsonToFile :: ToJSON a => a -> FilePath -> IO ()
 jsonToFile x fp = (TIO.appendFile fp) . T.decodeUtf8 $ (encode x)
@@ -44,16 +33,6 @@ showJSON x = TIO.putStrLn . T.decodeUtf8 $ (encode x)
 
 {----------- HELPER/SUB-PARSER FUNCTIONS -----------}
 
-{-
-{- Takes datatype name, constructor name, constructor args object.
-   Returns corresponding object. -}
-buildOb :: String -> String -> Value -> Value
-buildOb tName cName dataOb =
-  object [ typeStr .= tName,
-           nameStr .= cName,
-           dataStr .= dataOb
-         ]
--}
 {- Translates splitting function ADT to its integer representation -}
 spToInt :: SP -> Int
 spToInt sp =
@@ -71,7 +50,6 @@ intToSp i =
 
 decodeSP :: Int -> Int -> (SP,SP)
 decodeSP l r = ((intToSp l),(intToSp r))
-
 
 {- Adapted from example here:  https://stackoverflow.com/questions/37054889/sending-receiving-binary-data-in-aeson -}
 instance ToJSON B.ByteString where

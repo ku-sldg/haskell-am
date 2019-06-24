@@ -8,36 +8,23 @@
 
 module Main where
 
-import Copland hiding (main')
-import MonadCop
+import Copland
+import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath)
 import MonadAM
-import Interp
-import Comm
+import Interp (spawn_the_servers, getNameMap)
+import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
-import ServerProgArgs (getServerOptions, Server_Options(..))
-import qualified JsonCopland as JC (jsonToFile)
-import qualified Appraise as APP (appraise, appraiseUsm)
+import qualified Appraise as APP (appraiseUsm)
 import qualified CryptoImpl as CI (doHashFile)
-import GenCopland
 
-import qualified Data.Map as M
-import Control.Concurrent.STM
-import qualified Control.Concurrent as CC (forkIO, threadDelay)
-import qualified Control.Concurrent.Thread as CCT (forkIO, result, Result)
-import qualified GHC.Conc.Sync as GCS (ThreadId)
-import Control.Monad.State
-import Control.Monad.Reader
+import Control.Monad.Trans(liftIO)
 import Data.List(union)
-import qualified Data.ByteString as B (empty, writeFile)
-import qualified System.Directory as SD (removeFile)
-
-
-import Control.Exception
-import System.IO.Error hiding (catch)
-import Prelude hiding (catch)
 import Text.Read(readMaybe)
-
 import Crypto.Sign.Ed25519 (SecretKey(..), verify, toPublicKey)
+import qualified Data.Map as M
+import qualified Control.Concurrent as CC (threadDelay)
+import qualified Data.ByteString as B (empty, writeFile)
+
 
 main :: IO ()
 main = do
