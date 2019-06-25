@@ -61,12 +61,6 @@ genNameMap = do
   numNames <- choose (0,maxNumNames)
   l <- replicateM numNames genPlAddr
   return (M.fromList l)
-  
-
-{-
-instance Arbitrary Address where
-  arbitrary = sized $ \n -> genAddress
--}
 
 {---------- Messages qc ----------}
 
@@ -79,6 +73,9 @@ genReqMessage n = do
   e <- genEv n
   return $ RequestMessage p q m t e
 
+instance Arbitrary ResponseMessage where
+  arbitrary = sized $ \n -> genRespMessage (rem n 25)
+  
 genRespMessage :: Int -> Gen ResponseMessage
 genRespMessage n = do
   p <- genPl
@@ -86,6 +83,9 @@ genRespMessage n = do
   e <- genEv n
   return $ ResponseMessage p q e
 
+instance Arbitrary RequestMessage where
+  arbitrary = sized $ \n -> genReqMessage (rem n 25)
+  
 {---------- Term qc ----------}
 
 instance Arbitrary T where
@@ -95,18 +95,13 @@ genTerm :: Int -> Gen T
 genTerm n =
   case n of 0 ->
               do
-                term <- oneof [genKIM, genUSM, {-genNONCE,-} genHSH, genSIG]
+                term <- oneof [genKIM, genUSM, genHSH, genSIG]
                 return term
             _ -> do
               term <-
                 oneof [genLN (n-1), genBRs (n-1), genBRp (n-1),
-                       genAT (n-1), genKIM, genUSM, {-genNONCE,-} genHSH, genSIG]
+                       genAT (n-1), genKIM, genUSM, genHSH, genSIG]
               return term
-
-{-
-genNONCE :: Gen T
-genNONCE = do
-  return (NONCE) -}
 
 genSIG :: Gen T
 genSIG = do
@@ -185,8 +180,8 @@ genEv n =
 
 genBS :: Gen BS
 genBS = do
-  e <- genPl --(genTerm 5)
-  let bits = BI.encode e
+  p <- genPl
+  let bits = BI.encode p
   return (BL.toStrict bits)
 
 genMt :: Gen Ev

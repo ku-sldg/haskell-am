@@ -88,18 +88,18 @@ The Appraiser Client can generate nonces, sequence exection of multiple Copland 
 
 There are two primary functions of the Generator/Translator:
 
-1)  Generate random well-formed datatypes and JSON objects relevant to our Attestation Manager
-2)  Translate to/from datatpyes and their JSON representation
+1)  Generate random well-formed Haskell ADTs(Abstract Data Types) and JSON objects relevant to our Attestation Manager
+2)  Translate to/from ADTs and their JSON representation
 
-It is meant to be useful for testing against implementations outside of the Haskell language.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.
+It is meant to be useful for testing against implementations outside of the Haskell ecosystem.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.  The Haskell ADT definitions are here:  [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).  A formal description of the ADTs and their JSON representations is here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 
-* You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate (respectively):  RequestMessage, ResponseMessage, Copland Term, Copland Evidence.  These datatypes and their JSON representations are described here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
-*  The `-n N` option will generate N random things of the type you specify and output them newline-separated(output location determined by `-o` option).
-*  If the `-d` option is set, the OUTPUT will be the Haskell algebraic datatype representation.  Otherwise the OUTPUT will be the JSON representation.
-*  If the `-n N` option is NOT set or if N==0, it becomes a translator to/from JSON and the ADT representations.  The input representation is always the opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT representation (and vice-versa if `-d` is NOT set).
-* `-i FILENAME` is an optional input file (stdIn if omitted)
-* `-o FILENAME` is an optional output file (stdOut if omitted)
-*  Note:  input and output terms are always newline separated.
+* You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate:  RequestMessage, ResponseMessage, Copland Term, or Copland Evidence.
+*  If the `-d` option is set, the OUTPUT will be the Haskell ADT representation.  Otherwise the OUTPUT will be the JSON representation.
+*  Generator Mode:  The `-n N` option will generate N random things of the type you specify and output them newline-separated.
+*  Translator Mode:  If the `-n N` option is NOT set (or if N==0), the executable becomes a translator to/from JSON and the ADT representations.  The input representation is always opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT (and vice-versa if `-d` is NOT set).
+* `-i FILENAME` optional input file (stdIn if omitted)
+* `-o FILENAME` optional output file (stdOut if omitted)
+*  **NOTE**:  input and output terms are always newline-separated.
 *  The main module for the Generator and Translator is [GenMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/GenMain.hs)
 *  Type `make helpgen` for a complete description of the Generator/Translator command line options.
 
