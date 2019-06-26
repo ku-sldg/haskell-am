@@ -51,7 +51,7 @@ These executables share common libraries(see [Source Files](#Source-Files) secti
 An Attestation Server handles requests from clients that ask it to interpret a Copland phrase.
 
 *  Note:  The Attestation Server may also act as an Attestation Client.  When it encounters an AT term in a Copland phrase it must itself send a request to the place specified.  
-*  The `-r ADDRESS` command line option specifies a specific port where the server should listen for connections.  If ommited, a random available port is selected.
+*  `-r ADDRESS` specifies ADDRESS as the port where the server should listen for connections.  If ommited, a random available port is selected.
 *  In the `RequestMessage` a client includes a mapping from Place to Address where Address is currently a port string.  This tells the server the intended Address of each Place it encounters in the Copland phrase.
 *  A full description of the Request/Response Messages handled by the server and their JSON representations is included in this document:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 *  The main module for the Attestation Server is [ServerMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ServerMain.hs)
@@ -63,20 +63,20 @@ An Attestation Server handles requests from clients that ask it to interpret a C
 
 The Appraiser Client can generate nonces, sequence exection of multiple Copland phrases, gather evidence results, provide evidence results as initial evidence to other Copland phrase executions, and perform appraisal over evidence.  It is responsible for sending the first request during an attestation protocol run, and also performs the final appraisal.
 
-*  The `-w` option spawns attestation servers as separate background threads before performing the client actions.  This option is useful for testing purposes-  it alleviates the hassle of configuring and starting each Attestation Server as its own executable.  The appropriate number of servers (and at appropriate addresses) are spawned based on the protocol terms involved (and the custom name mapping if provided via the  `-n` option).
-*  The `-n FILENAME` option allows specifying the mapping from Place to Address in a file.  The format is newline-separated strings of the form:  \<Place\>:\<Address\>, where \<Place\> is a place identifier(now a number) and \<Address\> is an address string (now just a port number, but may become more sophisticated).  An example file might look something like:
+*  `-w` spawns attestation servers as separate background threads before performing the client actions.  This option is useful for testing purposes-  it alleviates the hassle of configuring and starting each Attestation Server as its own executable.  The appropriate number of servers (and at appropriate addresses) are spawned based on the protocol terms involved (and the custom name mapping if provided via the  `-n` option).
+*  `-n FILENAME` allows specifying a mapping from Place to Address in the file FILENAME.  The format of the file must be newline-separated strings of the form:  \<Place\>:\<Address\>, where \<Place\> is a place identifier(a number) and \<Address\> is an address string (now just a port number, but may become more sophisticated).  An example mapping in a file looks like:
     ```
     0:3000  
     1:3001 
     2:3002  
     ```
 
-    The appraiser client will package and forward this mapping in its requests to the attestation servers so that they share a notion of the Place->Address association.   If the `-n` option is omitted, random available ports are assigned to each Place involved. 
+    The appraiser client will package and forward this mapping in its requests to the attestation servers so that they share a notion of the Place->Address association.   If `-n` is omitted, random available ports are assigned to each Place involved. 
 
-    NOTE:  You may only omit the `-n` option when the `-w` is set.  This is because it only makes sense to randomly generate server ports when the appraiser client is also responsible for spawning the server threads.  When `-w` is NOT set the user is responsible for manually configuring and starting attestation servers at appropriate Addresses according to the name mapping provided via `-n`.
+    NOTE:  You may only omit `-n` when `-w` is set.  This is because it only makes sense to randomly generate server ports when the appraiser client is also responsible for spawning the server threads.  When `-w` is NOT set the user is responsible for manually configuring and starting attestation servers at appropriate Addresses according to the name mapping provided via `-n`.
 
-*  The `-v` option specifies that spawned servers should run in simulation mode.  This option only has effect if `-w` is also set.
-*  The `-t FILENAME` and `-e FILENAME` command line options are a convenient way to specify execution of a *single* Copland phrase and initial evidence.
+*  `-v` option specifies that spawned servers should run in simulation mode.  This option only has effect if `-w` is also set.
+*  `-t FILENAME1` and `-e FILENAME2` are a convenient way to specify execution of a *single* Copland phrase and initial evidence.
 *  If the `-t` option is empty or omitted, a hard-coded protocol written as a computation in the AM monad will run instead.
 *  The main module for the Appraisal Client is [ClientMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ClientMain.hs)
 *  Type `make helpclient` for a complete description of Appraiser Client command line options.
@@ -94,12 +94,12 @@ There are two primary functions of the Generator/Translator:
 It is meant to be useful for testing against implementations outside of the Haskell ecosystem.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.  The Haskell ADT definitions are here:  [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).  A formal description of the ADTs and their JSON representations is here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
 
 * You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate:  RequestMessage, ResponseMessage, Copland Term, or Copland Evidence.
-*  If the `-d` option is set, the OUTPUT will be the Haskell ADT representation.  Otherwise the OUTPUT will be the JSON representation.
-*  Generator Mode:  The `-n N` option will generate N random things of the type you specify and output them newline-separated.
-*  Translator Mode:  If the `-n N` option is NOT set (or if N==0), the executable becomes a translator to/from JSON and the ADT representations.  The input representation is always opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT (and vice-versa if `-d` is NOT set).
+*  If `-d` is set, the OUTPUT will be the Haskell ADT representation.  Otherwise the OUTPUT will be the JSON representation.
+*  Generator Mode:  `-n N` will generate N random things of the type you specify and output them newline-separated.
+*  Translator Mode:  If `-n N` is NOT set (or if N==0), the executable becomes a translator to/from JSON and the ADT representations.  The input representation is always opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT (and vice-versa if `-d` is NOT set).
 * `-i FILENAME` optional input file (stdIn if omitted)
 * `-o FILENAME` optional output file (stdOut if omitted)
-*  **NOTE**:  input and output terms are always newline-separated.
+*  **NOTE**:  input and output terms/JSON are always newline-separated.
 *  The main module for the Generator and Translator is [GenMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/GenMain.hs)
 *  Type `make helpgen` for a complete description of the Generator/Translator command line options.
 
@@ -121,8 +121,8 @@ Some advanced configuration will be necessary during development, when working i
 * See the Makefile(in this directory) for commented working examples of command line option combinations.
 * One useful option is -s for "simulation mode".  Simulation mode fakes real measurement and cryptographic operations, and is meant for testing/quick feedback about the protocol control flow (and the structure of resulting evidence).
 ### Development Flow/Hints
-*  After permantently setting one of the preceding environment variables, the easiest strategy for an interactive development style is via the `make ghci` command.  It uses the `stack ghci` feature to load a familar ghci environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details. 
-*  Because `stack ghci` only allows loading one Main module at a time, we need three separate commands that respond to source changes in each of the Main modules: `make ghciserv`(ServerMain.hs), `make ghciapp`(AppMain.hs), `make ghcigen`(GenMain.hs).  `make ghci` is the same as `make ghciserv` and should respond to all source changes besides to the other two Main modules.  If you've changed code in multiple Main modules, a safe bet is to simply type `make`(an alias for `stack build`).  However, this will not give you a REPL loop and usually takes quite a bit longer(10-20 seconds) than re-loading a ghci session--so I tend to use it sparingly (i.e. before I deploy the whole thing for an end-to-end test run).
+*  After permantently setting one of the preceding environment variables, the easiest strategy for an interactive development style is via the `make ghci` command.  It invokes the `stack ghci` feature to load a familar ghci environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details. 
+*  Because `stack ghci` only allows loading one Main module at a time, we need three separate commands that respond to changes in each of the Main module source files: `make ghciserv`(ServerMain.hs), `make ghciapp`(AppMain.hs), `make ghcigen`(GenMain.hs).  `make ghci` is the same as `make ghciserv` and responds to all source changes in the shared libraries(changes to any source file except ClientMain.hs or GenMain.hs).  If you've changed code in multiple Main modules, a safe bet is to simply type `make`(an alias for `stack build`).  However, this will not give you a REPL loop and usually takes quite a bit longer(10-20 seconds) than re-loading a ghci session--so I tend to use it sparingly (i.e. before deploying everything for an end-to-end test run).
 
 ## Source Files
 ---
@@ -175,7 +175,7 @@ All Haskell source files are within the stack project directory:  `copland-inter
 ### `make run`
 ---
 
-`make run` executes the following command:  `cd copland-interp ; stack exec -- copland-app-exe -w -a`.  This runs the Appraiser Client with the `-w` and `-a` options.  `stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `copland-app-exe` is the name we associated with the the Appraiser Client executable in the stack project cabal file(`copland-interp/copland-interp.cabal`).  The `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.  
+`make run` executes the following command:  `cd copland-interp ; stack exec -- copland-app-exe -w -a`.  This runs the Appraiser Client with the `-w` and `-a` options.  `stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `copland-app-exe` is the name we associated with the the Appraiser Client executable in the stack project cabal file(`copland-interp/copland-interp.cabal`).  `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.  
   
 Note that since we do *not* provide a custom Copland phrase to execute with the `-t FILENAME` option, it instead executes the following hard-coded computation in the AM(Attestation Manager) monad:
 
@@ -201,7 +201,10 @@ The `-a` option tells the client to perform appraisal on the resulting evidence.
 ### `make term`
 ---
 
-`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t` option allows the user to execute a custom Copland phrase given in the input file ../t.hs.  Note:  only the term at the TOP of the file is read as input.  As specified, the t.hs file must appear in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile and provide their own fully qualified path to the input file.  Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.  Terms must be valid Haskell ADTs of type `T`, defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).
+`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t ../t.hs` option executes a custom Copland phrase provided in the file t.hs in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile to replace ../t.hs with their own fully qualified path to the input file or additionally provide custom ininitial evidence via the `-e FILENAME` option (`Mt` evidence is the default).  Input terms and evidence must be valid Haskell ADTs of type `T` and `Ev` respectively (both defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs)).
+
+* Note:  only the term at the TOP of the file is read as input.
+* Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.
 
 ---
 
