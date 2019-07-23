@@ -93,15 +93,13 @@ instance Arbitrary T where
   
 genTerm :: Int -> Gen T
 genTerm n =
-  case n of 0 ->
-              do
-                term <- oneof [genKIM, genUSM, genHSH, genSIG]
-                return term
-            _ -> do
-              term <-
-                oneof [genLN (n-1), genBRs (n-1), genBRp (n-1),
-                       genAT (n-1), genKIM, genUSM, genHSH, genSIG]
-              return term
+  let base_gen = oneof [genKIM, genUSM, genHSH, genSIG] in
+  case n of 0 -> base_gen
+            _ -> frequency $ [(n,genAT (n-1)),
+                              (n,genLN (n-1)),
+                              (n,genBRs (n-1)),
+                              (n,genBRp (n-1)),
+                              (1,base_gen)]
 
 genSIG :: Gen T
 genSIG = do
@@ -160,23 +158,18 @@ instance Arbitrary Ev where
   
 genEv :: Int -> Gen Ev
 genEv n =
-  case n of 0 ->
-              do
-                term <- oneof [genMt]
-                return term
-            _ -> do
+  case n of 0 -> oneof [genMt]
+            _ ->
               let r = 1
-                  p = 2
-              term <-
-                frequency [(r,(genSS (n-1))),
-                           (r,(genPP (n-1))),
-                           (r,(genN (n-1))),
-                           (r,(genG (n-1))),
-                           (r,(genK (n-1))),
-                           (r,(genU (n-1))),
-                           (p,genH),
-                           (p,genMt)]
-              return term
+                  p = 2 in
+              frequency [(r,(genSS (n-1))),
+                         (r,(genPP (n-1))),
+                         (r,(genN (n-1))),
+                         (r,(genG (n-1))),
+                         (r,(genK (n-1))),
+                         (r,(genU (n-1))),
+                         (p,genH),
+                         (p,genMt)]
 
 genBS :: Gen BS
 genBS = do

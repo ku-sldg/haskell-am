@@ -90,11 +90,17 @@ encodeEv :: Ev -> BS
 encodeEv e =
   case e of
   Mt -> B.empty
-  U _ _ _ bs _ -> bs
-  K _ _ _ _ bs _ -> bs
+  U _ _ _ bs e' ->
+    let e1bs = (encodeEv e') in
+        (B.append e1bs bs)
+  K _ _ _ _ bs e' ->
+    let e1bs = (encodeEv e') in
+        (B.append e1bs bs)
   G _ _ bs -> bs
   H _ bs -> bs
-  N _ _ bs _ -> bs
+  N _ _ bs e' ->
+    let e1bs = (encodeEv e') in
+        (B.append e1bs bs)
   SS e1 e2 ->
     let e1bs = (encodeEv e1) in
     let e2bs = (encodeEv e2) in

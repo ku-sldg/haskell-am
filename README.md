@@ -201,9 +201,9 @@ The `-a` option tells the client to perform appraisal on the resulting evidence.
 ### `make term`
 ---
 
-`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t ../t.hs` option executes a custom Copland phrase provided in the file t.hs in the top-level directory of the repo(the ../ is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile to replace ../t.hs with their own fully qualified path to the input file or additionally provide custom ininitial evidence via the `-e FILENAME` option (`Mt` evidence is the default).  Input terms and evidence must be valid Haskell ADTs of type `T` and `Ev` respectively (both defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs)).
+`make term` executes the appraiser client with the `-w` and `-t ../t.hs` options.  The `-t ../t.hs` option executes a custom Copland phrase provided in the file `t.hs` in the top-level directory of the repo(the `../` is necessary because the executable runs in the context of the stack project which is one directory deep).  The user can of course tweak the command from the Makefile to replace `../t.hs` with their own fully qualified path to the input file or additionally provide custom ininitial evidence via the `-e FILENAME` option (`Mt` evidence is the default).  Input terms and evidence must be valid Haskell ADTs of type `T` and `Ev` respectively (both defined in [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs)).
 
-* Note:  only the term at the TOP of the file is read as input.
+* Note:  only the term at the TOP LINE of the input file is read as input.
 * Using a .hs file extension for the input file and an editor that supports Haskell syntax highlighting is useful if you are constructing Copland terms by hand.
 
 ---
