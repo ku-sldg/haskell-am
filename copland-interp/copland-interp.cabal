@@ -8,7 +8,7 @@ cabal-version: 1.12
 
 name:           copland-interp
 version:        0.1.0.0
-description:    Please see the README on GitHub at https://github.com/ku-sldg/haskell-am 
+description:    Please see the README on GitHub at https://github.com/ku-sldg/haskell-am
 homepage:       https://github.com/ku-sldg/haskell-am
 bug-reports:    https://github.com/ku-sldg/haskell-am/issues
 author:         Adam Petz
@@ -26,7 +26,7 @@ source-repository head
 
 library
   exposed-modules:
-      Copland, CoplandLang, JsonCopland, CryptoImpl, CommImpl, Interp, QcCopland, GenCopland, StringConstants, DisplayCopland, ClientProgArgs, ServerProgArgs, GenProgArgs, Appraise, MonadCop, MonadAM, CommUtil, Comm
+      Copland, CoplandLang, JsonCopland, CryptoImpl, CommImpl, Interp, QcCopland, GenCopland, StringConstants, DisplayCopland, ClientProgArgs, ServerProgArgs, GenProgArgs, Appraise, MonadCop, MonadAM, CommUtil, Comm, CoplandInstr, ExecCopland, MonadVM, UDcore
   other-modules:
       Paths_copland_interp
   hs-source-dirs:
@@ -113,6 +113,28 @@ executable copland-gen-exe
               , containers
               , bytestring
               , directory
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable connection-server-exe
+  main-is: ConnectionServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
               , ed25519
               --, courier
   default-language: Haskell2010

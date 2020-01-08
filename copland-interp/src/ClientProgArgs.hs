@@ -34,7 +34,8 @@ data Client_Options = Client_Options
     optSpawnSim :: Bool,
     optSpawnDebug :: Bool,
     optNames :: FilePath,
-    optApp :: Bool
+    optApp :: Bool,
+    optCompile :: Bool
   } deriving (Show)
 
 opts :: ParserInfo Client_Options
@@ -42,9 +43,9 @@ opts = info (popts <**> helper)
   ( fullDesc
   <> progDesc "Options for a client that sends requests to Copland interpreter servers and performs appraisal."
   <> header "Copland interpreter client" )
-       
+
 popts :: Parser Client_Options
-popts = Client_Options <$> tinput <*> output <*> einput <*> {-uinput <*> -} simulation <*> provision <*> jsonOutput <*> debug <*> spawn <*> spawnSim <*> spawnDebug <*> names <*> appr
+popts = Client_Options <$> tinput <*> output <*> einput <*> {-uinput <*> -} simulation <*> provision <*> jsonOutput <*> debug <*> spawn <*> spawnSim <*> spawnDebug <*> names <*> appr <*> compileTerm
 
 tinput :: Parser FilePath
 tinput = strOption
@@ -76,7 +77,7 @@ uinput = switch
   <> short 'u'
   <> help "Ask user to input a Copland term and initial evidence interactively." )
 -}
-   
+
 simulation :: Parser Bool
 simulation = switch
    ( long "sim"
@@ -124,7 +125,7 @@ appr = switch
    ( long "appraise"
   <> short 'a'
   <> help "Perform appraisal on the resulting evidence" )
-   
+
 names :: Parser FilePath
 names = strOption
   (  long "namesFile"
@@ -132,3 +133,9 @@ names = strOption
   <> metavar "FILENAME"
   <> value ""
   <> help "Read mapping from places to names from Input file FILENAME" )
+
+compileTerm :: Parser Bool
+compileTerm = switch
+   ( long "compile"
+  <> short 'c'
+  <> help "Compile copland term, and execute the generated sequence of copland instructions" )

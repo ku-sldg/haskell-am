@@ -11,11 +11,21 @@ all:	./copland-interp/copland-interp.cabal
 run:
 	cd copland-interp ; stack exec -- copland-app-exe -w -a
 
+run1:
+	cd copland-interp ; stack exec -- copland-app-exe -w -n ../names.txt
+
+
+startCS:
+	cd copland-interp ; stack exec connection-server-exe
+
 runSim:
 	cd copland-interp ; stack exec -- copland-app-exe -s -w -v
 
 term:
 	cd copland-interp ; stack exec -- copland-app-exe -w -t ../t.hs
+
+termCompiled:
+	cd copland-interp ; stack exec -- copland-app-exe -w -compile -t ../t.hs
 
 attack:
 	./modTarget.sh
@@ -111,7 +121,7 @@ helpserver:
 helpgen:
 	cd copland-interp ; stack exec -- copland-gen-exe --help
 
-clean:	
+clean:
 	cd ./copland-interp/ ; stack clean --verbosity silent
 	./repairTarget.sh
 
