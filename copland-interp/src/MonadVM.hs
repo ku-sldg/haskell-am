@@ -33,6 +33,7 @@ data  Vm_st = Vm_st { st_ev :: Ev
                     , st_store :: M.Map Natural Ev
                     , st_index :: Int
                     , st_serverSocket :: String
+                    , st_sigSocket :: String             
                     }
 
 emptyState = Vm_st { st_ev = Mt
@@ -40,9 +41,10 @@ emptyState = Vm_st { st_ev = Mt
                    , st_store = M.empty
                    , st_index = 0
                    , st_serverSocket = ""
+                   , st_sigSocket = ""                    
                    }
 
-initialState ev socketPathname = emptyState { st_ev = ev, st_serverSocket = socketPathname}
+initialState ev socketPathname sigPathname = emptyState { st_ev = ev, st_serverSocket = socketPathname, st_sigSocket = sigPathname}
 
 type VM = StateT Vm_st COP
 
@@ -91,3 +93,9 @@ get_serverSocket :: VM String
 get_serverSocket = do
   s <- get
   return $ st_serverSocket s
+
+{- should be just "asks sigSocket", when sigSocket is moved to the Environment -}
+get_sigSocket :: VM String
+get_sigSocket = do
+  s <- get
+  return $ st_sigSocket s

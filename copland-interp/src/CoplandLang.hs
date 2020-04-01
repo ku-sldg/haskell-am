@@ -83,6 +83,16 @@ data ResponseMessage = ResponseMessage
                         respFromPlace :: Pl,
                         respEv :: Ev
                       } deriving (Show,Read,Generic)
+
+--Attestation Request Message
+data SigRequestMessage = SigRequestMessage
+                      { evBits :: BS
+                      } deriving (Show,Read,Generic)
+
+--Attestation Response Message
+data SigResponseMessage = SigResponseMessage
+                      { sigBits :: BS
+                      } deriving (Show,Read,Generic)
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}

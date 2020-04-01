@@ -37,6 +37,7 @@ build_comp i = do
                  usmResult <- invokeUSM i args
                  put_ev $ U i args myplace usmResult e
     Sign -> do
+           --liftIO $ error "sig body"
            signature <- (signEv e)
            put_ev (G myplace e signature)
     Hash -> put_ev $ H myplace (hashEv e)
@@ -70,12 +71,26 @@ hashEv e =
       doHash $ encodeEv e
 
 signEv :: Ev -> VM BS
-signEv e =
+signEv e = do
+  connectionServerSocket <- get_sigSocket
+  --pFrom <- lift $ asks me
+  --namesFrom <- lift $ asks nameServer
+  liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt)
+      where dispatchAt s = do
+              let evBits = BL.toStrict (DA.encode e)
+              let messageBits = DA.encode (SigRequestMessage evBits)
+              NBS.sendAll s (BL.toStrict messageBits)
+              (SigResponseMessage sigBits) <- getSigResp s
+              return sigBits
+
+  {-
   let bs = encodeEv e
   in
     do
       privKeyBits <- lift $ lookupSecretKeyBytes
       return $ bs -- privKeyBits
+-}
+  
 
 invokeUSM :: ASP_ID -> [ARG] -> VM BS
 invokeUSM asp args = do
@@ -126,6 +141,17 @@ getCommResp s = do
       Just res -> do
         return res
 
+{-  Receive an attestation response
+    Returns:  evidence from response message  -}
+getSigResp :: Socket -> IO SigResponseMessage
+getSigResp s = do
+  msg <- NBS.recv s 1024
+  let (val :: Maybe SigResponseMessage) = DA.decodeStrict msg
+  case val of
+      Nothing -> error $ "weird message received: " ++ (show msg)
+      Just res -> do
+        return res
+
 lookupUDsocketPath :: IO FilePath
 lookupUDsocketPath = do
   maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
@@ -141,6 +167,21 @@ lookupUDsocketPath = do
              error "Missing both COPLAND_BUILD(for default path) and COPLAND_UD_SOCKET(for custom path) environment variables.  Must have one or the other to connect to the ConnectionServer."
   return socketPath
 
+lookupSIGsocketPath :: IO FilePath
+lookupSIGsocketPath = do
+  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
+  maybeSocketPath  <- lookupEnv "COPLAND_SIG_SOCKET"
+  socketPath <-
+        case maybeSocketPath of
+        Just p -> return p
+        Nothing ->
+          case maybeBuildPath of
+           Just s -> do
+             return $ s ++ "SIG"
+           Nothing ->
+             error "Missing both COPLAND_BUILD(for default path) and COPLAND_SIG_SOCKET(for custom path) environment variables.  Must have one or the other to connect to the SigServer."
+  return socketPath
+
 {- ************************************************************* -}
 
 run_vm :: [Instr] -> Vm_st -> Cop_Env -> IO Vm_st
@@ -152,5 +193,8 @@ run_vm_t t e m = do
   opts <- liftIO $ getClientOptions
   cop_env <- liftIO $ build_AM_Env opts m
   udSocketPath <- lookupUDsocketPath
-  res <- liftIO $ run_vm (instr_compiler t) (initialState e udSocketPath) cop_env
+  sigSocketPath <- lookupSIGsocketPath
+  let instrs = (instr_compiler t)
+  --error $ show instrs
+  res <- liftIO $ run_vm (instrs) (initialState e udSocketPath sigSocketPath) cop_env
   return $ st_ev res

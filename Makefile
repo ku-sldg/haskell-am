@@ -4,6 +4,7 @@ export COPLAND_BUILD=${CURDIR}
 SERV := copland-interp\:exe\:copland-server-exe
 APP := copland-interp\:exe\:copland-app-exe
 GEN := copland-interp\:exe\:copland-gen-exe
+SIG := copland-interp\:exe\:sig-server-exe
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
@@ -17,6 +18,9 @@ run1:
 
 startCS:
 	cd copland-interp ; stack exec connection-server-exe
+
+startSIG:
+	cd copland-interp ; stack exec sig-server-exe
 
 runSim:
 	cd copland-interp ; stack exec -- copland-app-exe -s -w -v
@@ -98,6 +102,9 @@ ghci:
 
 ghciserv:
 	cd copland-interp ; stack ghci --main-is ${SERV}
+
+ghcisig:
+	cd copland-interp ; stack ghci --main-is ${SIG}
 
 ghciapp:
 	cd copland-interp ; stack ghci --main-is ${APP}

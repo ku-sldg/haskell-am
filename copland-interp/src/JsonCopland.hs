@@ -127,6 +127,12 @@ instance FromJSON RequestMessage
 instance ToJSON ResponseMessage
 instance FromJSON ResponseMessage
 
+instance ToJSON SigRequestMessage
+instance FromJSON SigRequestMessage
+
+instance ToJSON SigResponseMessage
+instance FromJSON SigResponseMessage
+
 
 jsonOut :: T -> Ev -> Ev -> IO ()
 jsonOut t ev resEv = do
