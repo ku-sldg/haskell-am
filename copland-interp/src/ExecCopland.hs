@@ -8,7 +8,7 @@ import System.Environment (lookupEnv)
 
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL (toStrict)
-import qualified Data.Aeson as DA (decodeStrict, encode)
+import qualified Data.Aeson as DA (decodeStrict, encode, FromJSON)
 import Numeric.Natural
 import CryptoImpl (doNonce, doSign, doHash, doHashFile)
 import Crypto.Sign.Ed25519
@@ -80,7 +80,7 @@ signEv e = do
               let evBits = BL.toStrict (DA.encode e)
               let messageBits = DA.encode (SigRequestMessage evBits)
               NBS.sendAll s (BL.toStrict messageBits)
-              (SigResponseMessage sigBits) <- getSigResp s
+              (SigResponseMessage sigBits) <- getResponse s
               return sigBits
 
   {-
@@ -127,20 +127,33 @@ toRemote pTo q initEvidence = do
       where dispatchAt pFrom namesFrom s = do
               let messageBits = DA.encode (RequestMessage pTo pFrom namesFrom q initEvidence)
               NBS.sendAll s (BL.toStrict messageBits)
-              (ResponseMessage _ _ e') <- getCommResp s
+              (ResponseMessage _ _ e') <- getResponse s
               return e'
 
+{- Confirm the input is in valid form, and return the RequestMessage -}
+decodeGen :: DA.FromJSON a => BS -> IO a
+decodeGen msg = do
+          let val = DA.decodeStrict msg
+          case val of
+            Nothing -> error $ "weird message received: " ++ (show msg)
+            Just res -> return res
+            
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
-getCommResp :: Socket -> IO ResponseMessage
-getCommResp s = do
+getResponse :: DA.FromJSON a => Socket -> IO a
+getResponse s = do
   msg <- NBS.recv s 1024
+  decodeGen msg
+  
+  {-
   let (val :: Maybe ResponseMessage) = DA.decodeStrict msg
   case val of
       Nothing -> error $ "weird message received: " ++ (show msg)
       Just res -> do
         return res
+-}
 
+{-
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
 getSigResp :: Socket -> IO SigResponseMessage
@@ -151,7 +164,33 @@ getSigResp s = do
       Nothing -> error $ "weird message received: " ++ (show msg)
       Just res -> do
         return res
+-}
 
+data ServerType =
+  COMM
+  | SIGN
+
+lookupPath :: ServerType -> IO FilePath
+lookupPath v = do
+  let tag =
+        case v of
+        COMM -> "COMM"
+        SIGN -> "SIG"
+  let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
+  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
+  maybeSocketPath  <- lookupEnv $ custom_path
+  socketPath <-
+        case maybeSocketPath of
+        Just p -> return p
+        Nothing ->
+          case maybeBuildPath of
+           Just s -> do
+             return $ s ++ "UDS"
+           Nothing ->
+             error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
+  return socketPath
+
+{-
 lookupUDsocketPath :: IO FilePath
 lookupUDsocketPath = do
   maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
@@ -181,6 +220,7 @@ lookupSIGsocketPath = do
            Nothing ->
              error "Missing both COPLAND_BUILD(for default path) and COPLAND_SIG_SOCKET(for custom path) environment variables.  Must have one or the other to connect to the SigServer."
   return socketPath
+-}
 
 {- ************************************************************* -}
 
@@ -192,9 +232,9 @@ run_vm_t ::  T -> Ev -> M.Map Pl Address  -> IO (Ev)
 run_vm_t t e m = do
   opts <- liftIO $ getClientOptions
   cop_env <- liftIO $ build_AM_Env opts m
-  udSocketPath <- lookupUDsocketPath
-  sigSocketPath <- lookupSIGsocketPath
+  commSocketPath <- lookupPath COMM
+  sigSocketPath <- lookupPath SIGN
   let instrs = (instr_compiler t)
   --error $ show instrs
-  res <- liftIO $ run_vm (instrs) (initialState e udSocketPath sigSocketPath) cop_env
+  res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath) cop_env
   return $ st_ev res

@@ -15,6 +15,7 @@ module Main where
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as BL (toStrict)
+import qualified Data.ByteString as BS (ByteString)
 import Network.Socket hiding  (recv, sendAll)
 import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.Map as M
@@ -30,13 +31,40 @@ import Control.Concurrent
 -- this must change, soon ....
 main :: IO ()
 main = do
-  socketPathname <- lookupSIGsocketPath
-  runUnixDomainServer socketPathname doAt
+  socketPathname <- lookupPath SIGN
+  runUnixDomainServer socketPathname (handleSockBits doAt)
+
+handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
+handleSockBits f s = do
+  msg <- recv s 1024
+  resp <- f msg
+  sendAll s resp
 
 
+doAt :: BS.ByteString -> IO BS.ByteString
+doAt msg = do
+          --msg <- recv udSocket 1024
+          (SigRequestMessage eBits) <- decodeGen msg
+          
+{-
+          tcpSock <- getTheirSock pTo names
+          sendAll tcpSock msg
+          respMsg <- recv tcpSock 1024
+          let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
+          case val of
+              Nothing -> error $ "weird message received: " ++ (show respMsg)
+              Just res -> do
+                     sendAll udSocket respMsg
+-}
+          let sBits = eBits -- TODO sig algorithm here
+          let respMsg = DA.encode (SigResponseMessage sBits)
+          return (BL.toStrict respMsg)
+
+
+{-
 doAt udSocket = do
-          msg <- recv udSocket 1024
-          (SigRequestMessage eBits) <- decodeRequest msg
+          --msg <- recv udSocket 1024
+          (SigRequestMessage eBits) <- getResponse udSocket --decodeRequest msg
           
 {-
           tcpSock <- getTheirSock pTo names
@@ -51,9 +79,9 @@ doAt udSocket = do
           let sBits = eBits -- TODO sig algorithm here
           let respMsg = DA.encode (SigResponseMessage sBits) 
           sendAll udSocket (BL.toStrict respMsg)
+-}
 
-
-
+{-
 {- Confirm the input is in valid form, and return the RequestMessage -}
 decodeRequest :: BS -> IO SigRequestMessage
 decodeRequest msg = do
@@ -61,6 +89,7 @@ decodeRequest msg = do
           case val of
             Nothing -> error $ "weird message received: " ++ (show msg)
             Just res -> return res
+-}
 
 
 getTheirSock :: Pl -> M.Map Pl Address -> IO Socket

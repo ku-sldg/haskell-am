@@ -26,13 +26,13 @@ import Control.Concurrent
 -- this must change, soon ....
 main :: IO ()
 main = do
-  socketPathname <- lookupUDsocketPath
+  socketPathname <- lookupPath COMM
   runUnixDomainServer socketPathname doAt
 
 
 doAt udSocket = do
           msg <- recv udSocket 1024
-          (RequestMessage pTo pFrom names t e) <- decodeRequest msg
+          (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
           tcpSock <- getTheirSock pTo names
           sendAll tcpSock msg
           respMsg <- recv tcpSock 1024
@@ -42,7 +42,7 @@ doAt udSocket = do
               Just res -> do
                      sendAll udSocket respMsg
 
-
+{-
 {- Confirm the input is in valid form, and return the RequestMessage -}
 decodeRequest :: BS -> IO RequestMessage
 decodeRequest msg = do
@@ -50,7 +50,7 @@ decodeRequest msg = do
           case val of
             Nothing -> error $ "weird message received: " ++ (show msg)
             Just res -> return res
-
+-}
 
 getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
 getTheirSock pThem nameServer = do
