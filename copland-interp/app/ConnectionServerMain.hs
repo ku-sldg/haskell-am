@@ -11,6 +11,7 @@
 module Main where
 
 import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString as BS (ByteString)
 import Network.Socket hiding  (recv, sendAll)
 import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.Map as M
@@ -19,6 +20,7 @@ import Copland
 import CommUtil
 import UDcore
 import ExecCopland
+import ServerAppUtil (startServer)
 
 import Control.Concurrent
 
@@ -26,21 +28,37 @@ import Control.Concurrent
 -- this must change, soon ....
 main :: IO ()
 main = do
+  startServer COMM doAt
+
+  {-
   socketPathname <- lookupPath COMM
-  runUnixDomainServer socketPathname doAt
+  runUnixDomainServer socketPathname (handleSockBits doAt) -}
 
+handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
+handleSockBits f s = do
+  --error "handleSockBits"
+  msg <- recv s 1024
+  resp <- f msg
+  sendAll s resp
 
-doAt udSocket = do
-          msg <- recv udSocket 1024
+doAt msg {-udSocket-} = do
+          --msg <- recv udSocket 1024
+          --error "here"
           (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
           tcpSock <- getTheirSock pTo names
           sendAll tcpSock msg
           respMsg <- recv tcpSock 1024
+
+          -- TODO: decode here?  Or only on client side (since all we do is forward message)?
           let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
           case val of
               Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res -> do
-                     sendAll udSocket respMsg
+              Just res ->
+                return respMsg
+
+
+                {-do
+                     sendAll udSocket respMsg -}
 
 {-
 {- Confirm the input is in valid form, and return the RequestMessage -}

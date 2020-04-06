@@ -120,6 +120,7 @@ invokeKIM asp q args = do
 
 toRemote :: Pl -> T -> Ev -> VM Ev
 toRemote pTo q initEvidence = do
+  --error "here"
   connectionServerSocket <- get_serverSocket
   pFrom <- lift $ asks me
   namesFrom <- lift $ asks nameServer
@@ -153,19 +154,6 @@ getResponse s = do
         return res
 -}
 
-{-
-{-  Receive an attestation response
-    Returns:  evidence from response message  -}
-getSigResp :: Socket -> IO SigResponseMessage
-getSigResp s = do
-  msg <- NBS.recv s 1024
-  let (val :: Maybe SigResponseMessage) = DA.decodeStrict msg
-  case val of
-      Nothing -> error $ "weird message received: " ++ (show msg)
-      Just res -> do
-        return res
--}
-
 data ServerType =
   COMM
   | SIGN
@@ -189,6 +177,20 @@ lookupPath v = do
            Nothing ->
              error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
   return socketPath
+
+
+{-
+{-  Receive an attestation response
+    Returns:  evidence from response message  -}
+getSigResp :: Socket -> IO SigResponseMessage
+getSigResp s = do
+  msg <- NBS.recv s 1024
+  let (val :: Maybe SigResponseMessage) = DA.decodeStrict msg
+  case val of
+      Nothing -> error $ "weird message received: " ++ (show msg)
+      Just res -> do
+        return res
+-}
 
 {-
 lookupUDsocketPath :: IO FilePath

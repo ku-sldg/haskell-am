@@ -1,20 +1,16 @@
-{-  Executable that activates the SigServer.
-    Any attestation process requires that a (single) SigServer
+{-  Executable that activates the ConnectionServer.
+    Any attestation process requires that a (single) ConnectionServer
     already be active on the machine.
 
-  Original Author: Ed Komp
+  Author: Ed Komp
   Date:  12/4/2019
-
-  Adapted by:  Adam Petz
-  Date:  4/1/2020
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Main where
+module ServerAppUtil where
 
 import qualified Data.ByteString.Char8 as C
-import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.ByteString as BS (ByteString)
 import Network.Socket hiding  (recv, sendAll)
 import Network.Socket.ByteString (recv, sendAll)
@@ -24,77 +20,53 @@ import Copland
 import CommUtil
 import UDcore
 import ExecCopland
-import ServerAppUtil (startServer)
 
 import Control.Concurrent
 
 -- socketPathname is currently a global constant in the ConnectionServer module
 -- this must change, soon ....
-main :: IO ()
-main = do
-  --startServer SIGN doAt
-
-  
-  socketPathname <- lookupPath SIGN
-  runUnixDomainServer socketPathname (handleSockBits doAt)
+startServer :: ServerType -> (BS.ByteString -> IO BS.ByteString) -> IO ()
+startServer x f = do
+  --error "here"
+  socketPathname <- lookupPath x
+  runUnixDomainServer socketPathname (handleSockBits f)
 
 handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
 handleSockBits f s = do
+  --error "handleSockBits"
   msg <- recv s 1024
   resp <- f msg
   sendAll s resp
 
-
-doAt :: BS.ByteString -> IO BS.ByteString
-doAt msg = do
-          --msg <- recv udSocket 1024
-          (SigRequestMessage eBits) <- decodeGen msg
-          
 {-
+doAt msg {-udSocket-} = do
+          --msg <- recv udSocket 1024
+          --error "here"
+          (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
           tcpSock <- getTheirSock pTo names
           sendAll tcpSock msg
           respMsg <- recv tcpSock 1024
+
+          -- TODO: decode here?  Or only on client side (since all we do is forward message)?
           let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
           case val of
               Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res -> do
-                     sendAll udSocket respMsg
--}
-          let sBits = eBits -- TODO sig algorithm here
-          let respMsg = DA.encode (SigResponseMessage sBits)
-          return (BL.toStrict respMsg)
+              Just res ->
+                return respMsg
 
 
-{-
-doAt udSocket = do
-          --msg <- recv udSocket 1024
-          (SigRequestMessage eBits) <- getResponse udSocket --decodeRequest msg
-          
-{-
-          tcpSock <- getTheirSock pTo names
-          sendAll tcpSock msg
-          respMsg <- recv tcpSock 1024
-          let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
-          case val of
-              Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res -> do
-                     sendAll udSocket respMsg
+                {-do
+                     sendAll udSocket respMsg -}
 -}
-          let sBits = eBits -- TODO sig algorithm here
-          let respMsg = DA.encode (SigResponseMessage sBits) 
-          sendAll udSocket (BL.toStrict respMsg)
--}
-
 {-
 {- Confirm the input is in valid form, and return the RequestMessage -}
-decodeRequest :: BS -> IO SigRequestMessage
+decodeRequest :: BS -> IO RequestMessage
 decodeRequest msg = do
-          let (val :: Maybe SigRequestMessage) = DA.decodeStrict msg
+          let (val :: Maybe RequestMessage) = DA.decodeStrict msg
           case val of
             Nothing -> error $ "weird message received: " ++ (show msg)
             Just res -> return res
 -}
-
 
 getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
 getTheirSock pThem nameServer = do
