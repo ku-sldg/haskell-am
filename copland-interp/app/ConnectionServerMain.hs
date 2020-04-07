@@ -20,55 +20,26 @@ import Copland
 import CommUtil
 import UDcore
 import ExecCopland
-import ServerAppUtil (startServer)
+import ServerAppUtil (startServer, ServerType(COMM))
 
 import Control.Concurrent
 
--- socketPathname is currently a global constant in the ConnectionServer module
--- this must change, soon ....
 main :: IO ()
 main = do
   startServer COMM doAt
 
-  {-
-  socketPathname <- lookupPath COMM
-  runUnixDomainServer socketPathname (handleSockBits doAt) -}
+doAt msg = do
+  (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
+  tcpSock <- getTheirSock pTo names
+  sendAll tcpSock msg
+  respMsg <- recv tcpSock 1024
 
-handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
-handleSockBits f s = do
-  --error "handleSockBits"
-  msg <- recv s 1024
-  resp <- f msg
-  sendAll s resp
-
-doAt msg {-udSocket-} = do
-          --msg <- recv udSocket 1024
-          --error "here"
-          (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
-          tcpSock <- getTheirSock pTo names
-          sendAll tcpSock msg
-          respMsg <- recv tcpSock 1024
-
-          -- TODO: decode here?  Or only on client side (since all we do is forward message)?
-          let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
-          case val of
-              Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res ->
-                return respMsg
-
-
-                {-do
-                     sendAll udSocket respMsg -}
-
-{-
-{- Confirm the input is in valid form, and return the RequestMessage -}
-decodeRequest :: BS -> IO RequestMessage
-decodeRequest msg = do
-          let (val :: Maybe RequestMessage) = DA.decodeStrict msg
-          case val of
-            Nothing -> error $ "weird message received: " ++ (show msg)
-            Just res -> return res
--}
+  -- TODO: decode here?  Or only on client side (since all we do is forward message)?
+  let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
+  case val of
+   Nothing -> error $ "weird message received: " ++ (show respMsg)
+   Just res ->
+     return respMsg
 
 getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
 getTheirSock pThem nameServer = do

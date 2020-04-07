@@ -2,10 +2,16 @@
 
 module ExecCopland where
 
+import ServerAppUtil (lookupPath, ServerType(..))
+import Copland
+import ClientProgArgs
+import MonadCop
+import MonadAM
+import MonadVM
+import UDcore
+
 import Control.Monad.State.Lazy
 import Control.Monad.Trans.Reader(asks, ask, runReaderT)
-import System.Environment (lookupEnv)
-
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.Aeson as DA (decodeStrict, encode, FromJSON)
@@ -13,14 +19,6 @@ import Numeric.Natural
 import CryptoImpl (doNonce, doSign, doHash, doHashFile)
 import Crypto.Sign.Ed25519
 import Control.Monad.Trans(liftIO)
-
-import CoplandLang
-import CoplandInstr
-import ClientProgArgs
-import MonadCop
-import MonadAM
-import MonadVM
-import UDcore
 import Network.Socket
 import qualified Network.Socket.ByteString as NBS (recv, sendAll)
 
@@ -120,7 +118,6 @@ invokeKIM asp q args = do
 
 toRemote :: Pl -> T -> Ev -> VM Ev
 toRemote pTo q initEvidence = do
-  --error "here"
   connectionServerSocket <- get_serverSocket
   pFrom <- lift $ asks me
   namesFrom <- lift $ asks nameServer
@@ -130,14 +127,6 @@ toRemote pTo q initEvidence = do
               NBS.sendAll s (BL.toStrict messageBits)
               (ResponseMessage _ _ e') <- getResponse s
               return e'
-
-{- Confirm the input is in valid form, and return the RequestMessage -}
-decodeGen :: DA.FromJSON a => BS -> IO a
-decodeGen msg = do
-          let val = DA.decodeStrict msg
-          case val of
-            Nothing -> error $ "weird message received: " ++ (show msg)
-            Just res -> return res
             
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
@@ -145,84 +134,6 @@ getResponse :: DA.FromJSON a => Socket -> IO a
 getResponse s = do
   msg <- NBS.recv s 1024
   decodeGen msg
-  
-  {-
-  let (val :: Maybe ResponseMessage) = DA.decodeStrict msg
-  case val of
-      Nothing -> error $ "weird message received: " ++ (show msg)
-      Just res -> do
-        return res
--}
-
-data ServerType =
-  COMM
-  | SIGN
-
-lookupPath :: ServerType -> IO FilePath
-lookupPath v = do
-  let tag =
-        case v of
-        COMM -> "COMM"
-        SIGN -> "SIG"
-  let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
-  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
-  maybeSocketPath  <- lookupEnv $ custom_path
-  socketPath <-
-        case maybeSocketPath of
-        Just p -> return p
-        Nothing ->
-          case maybeBuildPath of
-           Just s -> do
-             return $ s ++ tag
-           Nothing ->
-             error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
-  return socketPath
-
-
-{-
-{-  Receive an attestation response
-    Returns:  evidence from response message  -}
-getSigResp :: Socket -> IO SigResponseMessage
-getSigResp s = do
-  msg <- NBS.recv s 1024
-  let (val :: Maybe SigResponseMessage) = DA.decodeStrict msg
-  case val of
-      Nothing -> error $ "weird message received: " ++ (show msg)
-      Just res -> do
-        return res
--}
-
-{-
-lookupUDsocketPath :: IO FilePath
-lookupUDsocketPath = do
-  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
-  maybeSocketPath  <- lookupEnv "COPLAND_UD_SOCKET"
-  socketPath <-
-        case maybeSocketPath of
-        Just p -> return p
-        Nothing ->
-          case maybeBuildPath of
-           Just s -> do
-             return $ s ++ "UDS"
-           Nothing ->
-             error "Missing both COPLAND_BUILD(for default path) and COPLAND_UD_SOCKET(for custom path) environment variables.  Must have one or the other to connect to the ConnectionServer."
-  return socketPath
-
-lookupSIGsocketPath :: IO FilePath
-lookupSIGsocketPath = do
-  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
-  maybeSocketPath  <- lookupEnv "COPLAND_SIG_SOCKET"
-  socketPath <-
-        case maybeSocketPath of
-        Just p -> return p
-        Nothing ->
-          case maybeBuildPath of
-           Just s -> do
-             return $ s ++ "SIG"
-           Nothing ->
-             error "Missing both COPLAND_BUILD(for default path) and COPLAND_SIG_SOCKET(for custom path) environment variables.  Must have one or the other to connect to the SigServer."
-  return socketPath
--}
 
 {- ************************************************************* -}
 

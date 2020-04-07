@@ -24,6 +24,14 @@ import qualified Data.Text.Lazy.IO as TIO (putStrLn,appendFile)
 import qualified Data.Text.Lazy.Encoding as T
 import qualified System.Directory as SD (removeFile)
 
+{- Confirm the input is in valid form, and return the value -}
+decodeGen :: FromJSON a => BS -> IO a
+decodeGen msg = do
+          let val = decodeStrict msg
+          case val of
+            Nothing -> error $ "weird message received: " ++ (show msg)
+            Just res -> return res
+            
 jsonToFile :: ToJSON a => a -> FilePath -> IO ()
 jsonToFile x fp = (TIO.appendFile fp) . T.decodeUtf8 $ (encode x)
 

@@ -13,6 +13,11 @@
 
 module Main where
 
+import Copland
+import CommUtil
+import UDcore
+import ServerAppUtil (startServer, ServerType(SIGN))
+
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.ByteString as BS (ByteString)
@@ -20,87 +25,15 @@ import Network.Socket hiding  (recv, sendAll)
 import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.Map as M
 import qualified Data.Aeson as DA (decodeStrict, encode)
-import Copland
-import CommUtil
-import UDcore
-import ExecCopland
-import ServerAppUtil (startServer)
-
 import Control.Concurrent
 
--- socketPathname is currently a global constant in the ConnectionServer module
--- this must change, soon ....
 main :: IO ()
 main = do
   startServer SIGN doAt
 
-  {-
-  socketPathname <- lookupPath SIGN
-  runUnixDomainServer socketPathname (handleSockBits doAt) -}
-
-handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
-handleSockBits f s = do
-  msg <- recv s 1024
-  resp <- f msg
-  sendAll s resp
-
-
 doAt :: BS.ByteString -> IO BS.ByteString
 doAt msg = do
-          --msg <- recv udSocket 1024
-          (SigRequestMessage eBits) <- decodeGen msg
-          
-{-
-          tcpSock <- getTheirSock pTo names
-          sendAll tcpSock msg
-          respMsg <- recv tcpSock 1024
-          let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
-          case val of
-              Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res -> do
-                     sendAll udSocket respMsg
--}
-          let sBits = eBits -- TODO sig algorithm here
-          let respMsg = DA.encode (SigResponseMessage sBits)
-          return (BL.toStrict respMsg)
-
-
-{-
-doAt udSocket = do
-          --msg <- recv udSocket 1024
-          (SigRequestMessage eBits) <- getResponse udSocket --decodeRequest msg
-          
-{-
-          tcpSock <- getTheirSock pTo names
-          sendAll tcpSock msg
-          respMsg <- recv tcpSock 1024
-          let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
-          case val of
-              Nothing -> error $ "weird message received: " ++ (show respMsg)
-              Just res -> do
-                     sendAll udSocket respMsg
--}
-          let sBits = eBits -- TODO sig algorithm here
-          let respMsg = DA.encode (SigResponseMessage sBits) 
-          sendAll udSocket (BL.toStrict respMsg)
--}
-
-{-
-{- Confirm the input is in valid form, and return the RequestMessage -}
-decodeRequest :: BS -> IO SigRequestMessage
-decodeRequest msg = do
-          let (val :: Maybe SigRequestMessage) = DA.decodeStrict msg
-          case val of
-            Nothing -> error $ "weird message received: " ++ (show msg)
-            Just res -> return res
--}
-
-
-getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
-getTheirSock pThem nameServer = do
-  let mString = M.lookup pThem nameServer
-  case mString of
-    Nothing -> error "my client error:  server port is not initialized in environment nameserver"
-    Just portString -> do
-                 addr <- clientResolve "127.0.0.1" portString
-                 clientOpen addr
+  (SigRequestMessage eBits) <- decodeGen msg
+  let sBits = eBits -- TODO sig algorithm here
+  let respMsg = DA.encode (SigResponseMessage sBits)
+  return (BL.toStrict respMsg)
