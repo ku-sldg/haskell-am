@@ -4,6 +4,9 @@
 
   Author: Ed Komp
   Date:  12/4/2019
+
+  Adapted by: Adam Petz
+  Date:  4/4/2020
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}

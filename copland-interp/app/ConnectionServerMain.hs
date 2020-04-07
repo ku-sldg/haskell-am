@@ -28,11 +28,11 @@ import Control.Concurrent
 -- this must change, soon ....
 main :: IO ()
 main = do
-  --startServer COMM doAt
+  startServer COMM doAt
 
-  
+  {-
   socketPathname <- lookupPath COMM
-  runUnixDomainServer socketPathname (handleSockBits doAt)
+  runUnixDomainServer socketPathname (handleSockBits doAt) -}
 
 handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
 handleSockBits f s = do

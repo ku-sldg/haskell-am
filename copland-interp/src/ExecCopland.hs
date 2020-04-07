@@ -173,7 +173,7 @@ lookupPath v = do
         Nothing ->
           case maybeBuildPath of
            Just s -> do
-             return $ s ++ "UDS"
+             return $ s ++ tag
            Nothing ->
              error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
   return socketPath
