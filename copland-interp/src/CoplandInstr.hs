@@ -5,11 +5,9 @@ import CoplandLang
 
 data Instr
      = Copy
-     | Kmeas ASP_ID Pl [ARG]
      | Umeas ASP_ID [ARG]
      | Sign
      | Hash
-
      | Split SP SP
      | Joins
      | Joinp
@@ -23,8 +21,7 @@ instr_compiler :: T -> [Instr]
 instr_compiler t =
   case t of
     CPY -> [Copy]
-    KIM i p args -> [Kmeas i p args]
-    USM i args -> [Umeas i args]
+    ASP i args -> [Umeas i args]
     SIG -> [Sign]
     HSH -> [Hash]
     LN t1 t2 -> (instr_compiler t1) ++ (instr_compiler t2)

@@ -39,7 +39,7 @@ main = do
 
 proto1 = AT 1
          (LN
-          (BRP (ALL,NONE) CPY (USM 1 ["target.txt"]))
+          (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
           SIG)
 
 am_main :: IO ()
@@ -120,9 +120,9 @@ am_proto_1 = do
 
 appraise_proto_1 :: Ev -> AM Bool
 appraise_proto_1 e = do
-  let (G 1 e'@(PP n@(N 0 0 nonceVal (Mt))
-           (U 1 args {-["target.txt"]-} 1 hashVal (Mt)))
-       sigVal ) = e
+  let (G sigVal e'@(PP n@(N 0 nonceVal (Mt))
+           (U 1 args {-["target.txt"]-} hashVal (Mt)))
+       ) = e
 
   kp <- liftIO $ lookupSecretKeyPath
   priKeyBits <- liftIO $ lookupSecretKeyBytesIO kp
@@ -223,7 +223,6 @@ getPlaces t = getPlaces' t []
 getPlaces' :: T -> [Pl] -> [Pl]
 getPlaces' t pls =
   case t of
-   KIM _ p _ -> union [p] pls
    AT p t' -> union [p] (getPlaces' t' pls)
    LN t1 t2 ->
      let ls = getPlaces' t1 pls in

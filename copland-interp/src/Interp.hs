@@ -32,24 +32,20 @@ import qualified Data.Map as M
     Returns:  resulting evidence  -}
 interp :: T -> Ev -> COP Ev
 interp t e = do
-  p <- asks me
+  --p <- asks me
   ev <-
     case t of
-    USM i args -> do
+    ASP i args -> do
       bs <- interpUSM i args
-      return $ U i args p bs e
-
-    KIM i q args -> do
-      bs <- interpKIM i q args
-      return $ K i args q p bs e
+      return $ U i args bs e
 
     SIG -> do
       bs <- signEv e
-      return $ G p e bs
+      return $ G bs e
   
     HSH -> do
       bs <- hashEv e
-      return $ H p bs
+      return $ H bs
 
     CPY -> return e
   

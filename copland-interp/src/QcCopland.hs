@@ -93,7 +93,7 @@ instance Arbitrary T where
   
 genTerm :: Int -> Gen T
 genTerm n =
-  let base_gen = oneof [genKIM, genUSM, genHSH, genSIG] in
+  let base_gen = oneof [genUSM, genHSH, genSIG] in
   case n of 0 -> base_gen
             _ -> frequency $ [(n,genAT (n-1)),
                               (n,genLN (n-1)),
@@ -109,16 +109,10 @@ genHSH :: Gen T
 genHSH = do
   return (HSH)
 
-genKIM = do
-  i <- genPl
-  args <- genArgs
-  p <- genPl
-  return (KIM i p args)
-
 genUSM = do
   i <- genPl
   args <- genArgs
-  return (USM i args)
+  return (ASP i args)
 
 genLN n = do
   t0 <- genTerm n
@@ -166,7 +160,6 @@ genEv n =
                          (r,(genPP (n-1))),
                          (r,(genN (n-1))),
                          (r,(genG (n-1))),
-                         (r,(genK (n-1))),
                          (r,(genU (n-1))),
                          (p,genH),
                          (p,genMt)]
@@ -183,38 +176,26 @@ genMt = return Mt
 genU n = do
   i <- genPl
   args <- genArgs
-  p <- genPl
   bs <- genBS
   ev <- genEv n
-  return $ U i args p bs ev
-
-genK n = do
-  i <- genPl
-  args <- genArgs
-  q <- genPl
-  p <- genPl
-  bs <- genBS
-  ev <- genEv n
-  return $ K i args q p bs ev
+  return $ U i args bs ev
 
 genG n = do
-  p <- genPl
   bs <- genBS
   ev <- genEv n
-  return $ G p ev bs
+  return $ G bs ev
 
 genH :: Gen Ev
 genH = do
-  p <- genPl
   bs <- genBS
-  return $ H p bs
+  return $ H bs
 
 genN n = do
   p <- genPl
   n <- genPl
   bs <- genBS
   ev <- genEv n
-  return $ N p n bs ev
+  return $ N n bs ev
 
 genSS n = do
   ev1 <- genEv n

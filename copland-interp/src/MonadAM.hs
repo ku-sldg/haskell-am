@@ -55,8 +55,8 @@ am_genNonce :: AM Ev
 am_genNonce = do
   bs <- liftIO $ CI.doNonce
   new_id <- am_updateNonce bs
-  let my_place = 0 -- TODO:  should we make this more general?
-  return $ N my_place new_id bs Mt
+  --let my_place = 0 -- TODO:  should we make this more general?
+  return $ N new_id bs Mt
 
 am_getNonce :: Int -> AM B.ByteString
 am_getNonce i = do
@@ -69,7 +69,7 @@ am_getNonce i = do
 am_checkNonce :: Ev -> AM Bool
 am_checkNonce e = do
   case e of
-   N _ i bs e' -> do
+   N i bs e' -> do
      goldenVal <- am_getNonce i
      return (goldenVal == bs)
 

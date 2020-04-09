@@ -35,8 +35,8 @@ instance BI.Binary SP where
   
 -- Attestation Protocol Descrption Term.
 data T
-  = USM ASP_ID [ARG]
-  | KIM ASP_ID Pl [ARG]
+  = ASP ASP_ID [ARG]
+  {-| KIM ASP_ID Pl [ARG]-}
   | SIG
   | HSH
   | CPY
@@ -51,11 +51,10 @@ instance BI.Binary T where
 -- Concrete Evidence returned from an execution.
 data Ev
   = Mt
-  | U ASP_ID [ARG] Pl BS Ev
-  | K ASP_ID [ARG] Pl Pl BS Ev
-  | G Pl Ev BS
-  | H Pl BS
-  | N Pl Int BS Ev
+  | U ASP_ID [ARG] BS Ev
+  | G BS Ev
+  | H BS
+  | N Int BS Ev
   | SS Ev Ev
   | PP Ev Ev
   deriving (Generic,Eq, Read, Show)
@@ -100,15 +99,12 @@ encodeEv :: Ev -> BS
 encodeEv e =
   case e of
   Mt -> B.empty
-  U _ _ _ bs e' ->
+  U _ _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)
-  K _ _ _ _ bs e' ->
-    let e1bs = (encodeEv e') in
-        (B.append e1bs bs)
-  G _ _ bs -> bs
-  H _ bs -> bs
-  N _ _ bs e' ->
+  G bs _ -> bs
+  H bs -> bs
+  N _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)
   SS e1 e2 ->

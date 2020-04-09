@@ -53,12 +53,12 @@ appraiseKim :: ASP_ID -> Pl -> [ARG] -> BS -> IO (Bool,BS)
 appraiseKim i p args bs = do
   goldenVal <- getGoldenKim i p args
   return ((bs == goldenVal),goldenVal)
-
+{-
 appraise :: M.Map Int B.ByteString -> Pl -> B.ByteString -> Ev -> IO (Bool,String)
 appraise aNonceMap me priKeyBits e =
   case e of
   Mt -> return (True,"")
-  G _ e' sig -> do
+  G sig e' -> do
     let evBits = encodeEv e'
     --priKeyBits <- lookupSecretKeyBytes
     let priKey = SecretKey priKeyBits
@@ -99,7 +99,7 @@ appraise aNonceMap me priKeyBits e =
     let uBool = fst uRes
     let uBits = snd uRes
     return ((uBool && restResult), "\nGolden(expected) hash: \n" ++ (show (uBits)) ++ "\n\n" ++ "Actual hash: \n" ++ (show bs))
-
+{-
   K asp_id args p q bs e' -> do
     {-kBits <- getGoldenKim asp_id p args
     let uRes = (kBits == bs)-}
@@ -108,7 +108,8 @@ appraise aNonceMap me priKeyBits e =
     let kBits = snd kRes
     (restResult,_) <- appraise aNonceMap me priKeyBits e'
     return ((kBool && restResult), "\nGolden(expected) hash: \n" ++ (show kBits) ++ "\n\n" ++ "Actual hash: \n" ++ (show bs))
-    
+  -}  
 
 
   _ -> return (False,"appraise not implemented")
+-}

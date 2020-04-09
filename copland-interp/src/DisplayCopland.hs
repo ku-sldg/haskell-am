@@ -22,10 +22,8 @@ fromStr s = pretty (T.pack s)
 instance Pretty T where
   pretty t =
     case t of
-        (USM i args) ->
+        (ASP i args) ->
           hsep [(fromStr usmStr), (viaShow i), (viaShow args)]
-        (KIM i p args) ->
-          hsep [(fromStr kimStr), (viaShow i), (viaShow p), (viaShow args)]
         (SIG) -> (fromStr sigStr)
         (HSH) -> (fromStr hshStr)
         (CPY) -> (fromStr "CPY") --TODO: add static cpyStr
@@ -58,18 +56,15 @@ instance Pretty Ev where
   pretty e =
     case e of
     Mt -> (fromStr mtStr)
-    U i args p b e' ->
-      hsep [(fromStr uStr), (viaShow i), (viaShow args), (viaShow p),
+    U i args b e' ->
+      hsep [(fromStr uStr), (viaShow i), (viaShow args),
             (viaShow (shorb b)), parens (pretty e')]
-    K i args p q b e' ->
-      hsep [(fromStr kStr), (viaShow i), (viaShow args), (viaShow p),
-            (viaShow q),(viaShow (shorb b)), parens (pretty e')]
-    G p e' b ->
-      (fromStr gStr) <+> align (vsep [(viaShow p), parens (pretty e'), (viaShow (shorb b))])
-    H p b ->
-      hsep [(fromStr hStr), (viaShow p), (viaShow (shorb b))]
-    N p n b e' ->
-      (fromStr nStr) <+> align (vsep [(viaShow p), (viaShow n), (viaShow (shorb b)),
+    G b e' ->
+      (fromStr gStr) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
+    H b ->
+      hsep [(fromStr hStr), (viaShow (shorb b))]
+    N n b e' ->
+      (fromStr nStr) <+> align (vsep [(viaShow n), (viaShow (shorb b)),
                                       parens (pretty e')])
     SS e1 e2 ->
       vsep [(fromStr ssStr), (indent 2 (pretty e1)), (indent 2 (pretty e2))]
@@ -107,9 +102,9 @@ df = do
 as :: IO ()
 as = do
   let
-    g = G 2 Mt "2sig"
-    e = G 3 (U 42 [] 1 "abc" g) "3sig"
-    f = G 1 e "1sig"
+    g = G "2sig" Mt
+    e = G "3sig" (U 42 [] "abc" g)
+    f = G "1sig" e 
     h = SS f g
     k = PP h h
   putStrLn (prettyEv k)

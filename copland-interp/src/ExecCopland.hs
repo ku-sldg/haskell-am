@@ -25,20 +25,17 @@ import qualified Network.Socket.ByteString as NBS (recv, sendAll)
 build_comp :: Instr -> VM ()
 build_comp i = do
   e <- get_ev
-  myplace <- lift $ asks me
+  --myplace <- lift $ asks me
   case i of
     Copy -> put_ev e
-    Kmeas i q args -> do
-                 kimResult <- invokeKIM i q args
-                 put_ev $ K i args myplace q kimResult  e
     Umeas i args -> do
                  usmResult <- invokeUSM i args
-                 put_ev $ U i args myplace usmResult e
+                 put_ev $ U i args usmResult e
     Sign -> do
            --liftIO $ error "sig body"
            signature <- (signEv e)
-           put_ev (G myplace e signature)
-    Hash -> put_ev $ H myplace (hashEv e)
+           put_ev (G signature e)
+    Hash -> put_ev $ H (hashEv e)
     Split sp1 sp2 -> do
                  put_ev (splitEv sp1 e)
                  push_stackm (splitEv sp2 e)
