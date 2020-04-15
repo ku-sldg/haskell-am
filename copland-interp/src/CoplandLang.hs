@@ -19,7 +19,7 @@ import qualified Data.Map as M (Map)
 {-  Identify Places (protocol participants)  -}
 type Pl = Int
 {-  Arguments to measurement commands (USM/KIM)  -}
-type ARG = String
+type ARG = BS
 {-  Raw bits (results of measurement, hashes, nonces)  -}
 type BS = B.ByteString
 

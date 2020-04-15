@@ -10,6 +10,7 @@ import Crypto.Sign.Ed25519 (SecretKey(..), toPublicKey, verify)
 type GoldenUsmMap = M.Map (ASP_ID,Pl,[ARG]) BS
 type GoldenKimMap = M.Map (ASP_ID,Pl,[ARG]) BS
 
+{-
 goldenUsms :: IO GoldenUsmMap
 goldenUsms = do
   uBits <- B.readFile "goldenInputBits.txt"
@@ -53,6 +54,9 @@ appraiseKim :: ASP_ID -> Pl -> [ARG] -> BS -> IO (Bool,BS)
 appraiseKim i p args bs = do
   goldenVal <- getGoldenKim i p args
   return ((bs == goldenVal),goldenVal)
+
+-}
+  
 {-
 appraise :: M.Map Int B.ByteString -> Pl -> B.ByteString -> Ev -> IO (Bool,String)
 appraise aNonceMap me priKeyBits e =

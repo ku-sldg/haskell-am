@@ -24,6 +24,8 @@ import Control.Parallel (pseq)
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
 import qualified Network.Socket as NS (Socket, accept, close)
 import qualified Data.Map as M
+import qualified Data.Binary as B (decode)
+import qualified Data.ByteString.Lazy as BL (fromStrict)
 
 {-  Main interp function that interprets protocol terms and initial evidence.
     Params:
@@ -150,11 +152,13 @@ interpUSM i args = do
      1 -> if ((length args) == 0)
           then error $ "not enough args to USM: " ++ (show i)
           else do
-            let fileName = head args
+            let fileName_bits = head args
+                fileName = B.decode $ BL.fromStrict fileName_bits
+            
             res <- liftIO $ doHashFile $ "../" ++ fileName
             return res
      _ -> error $ "USM with asp_id not supported: " ++ (show i)        
-
+{-
 {-  Dispatch function for KIM procedures based on ASP_ID and target place  -}
 interpKIM :: ASP_ID -> Pl -> [ARG] -> COP BS
 interpKIM i q args = do
@@ -177,7 +181,7 @@ interpKIM i q args = do
        _ -> error $ "KIM with asp_id " ++ (show i) ++ " at place " ++ (show q) ++ " not supported"
            
      _ -> error $ "KIM with asp_id " ++ (show i) ++ " not supported"
-  
+ -} 
 signEv :: Ev -> COP BS
 signEv ev = do
   simulation <- asks simulation

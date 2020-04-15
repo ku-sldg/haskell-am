@@ -23,10 +23,19 @@ maxPl = 10
 maxArgs :: Int
 maxArgs = 3
 
+{-
+genBS :: Gen BS
+genBS = do
+  p <- genPl
+  let bits = BI.encode p
+  return (BL.toStrict bits)
+-}
+
 argString :: Int -> ARG
 argString n =
   let numStr = show n in
-  "arg" ++ numStr
+  let s = "arg" ++ numStr in
+  BL.toStrict $ BI.encode s
 
 argList :: Int -> [ARG]
 argList n =

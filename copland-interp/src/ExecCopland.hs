@@ -21,6 +21,8 @@ import Crypto.Sign.Ed25519
 import Control.Monad.Trans(liftIO)
 import Network.Socket
 import qualified Network.Socket.ByteString as NBS (recv, sendAll)
+import qualified Data.Binary as B (decode)
+import qualified Data.ByteString.Lazy as BL (fromStrict)
 
 build_comp :: Instr -> VM ()
 build_comp i = do
@@ -93,10 +95,13 @@ invokeUSM asp args = do
     1 -> if ((length args) == 0)
          then error $ "not enough args to USM: " ++ (show asp)
          else do
-           let fileName = head args
+           let fileName_bits = head args
+               fileName = B.decode $ BL.fromStrict fileName_bits
+           
            liftIO $ doHashFile $ "../" ++ fileName
     _ -> error $ "USM with asp_id not supported: " ++ (show asp)
 
+{-
 invokeKIM :: ASP_ID -> Pl -> [ARG] -> VM BS
 invokeKIM asp q args = do
   case asp of
@@ -111,7 +116,7 @@ invokeKIM asp q args = do
           _ -> fail $ "KIM with asp_id " ++ (show asp) ++ " at place " ++ (show q) ++ " not supported"
 
     _ -> fail $ "KIM with asp_id " ++ (show asp) ++ " not supported"
-
+-}
 
 toRemote :: Pl -> T -> Ev -> VM Ev
 toRemote pTo q initEvidence = do
