@@ -16,7 +16,7 @@ import MonadVM
 import Interp (spawn_the_servers, getNameMap)
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
-import qualified Appraise as APP (appraiseUsm)
+--import qualified Appraise as APP (appraiseUsm)
 import qualified CryptoImpl as CI (doHashFile)
 
 import Control.Monad.Trans(liftIO)
@@ -36,11 +36,13 @@ main = do
    True -> provision
    False -> am_main
 
-
+{-
 proto1 = AT 1
          (LN
           (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
           SIG)
+-}
+proto1 = CPY
 
 am_main :: IO ()
 am_main = do
@@ -50,7 +52,7 @@ am_main = do
 runAM_fresh :: AM Ev -> IO (Ev, AM_St)
 runAM_fresh am_computation = do
   let fresh_AM_Env = (AM_Env "")
-      fresh_AM_St = (AM_St M.empty 0)
+      fresh_AM_St = (AM_St M.empty 0 M.empty M.empty M.empty 0)
   runAM am_computation fresh_AM_Env fresh_AM_St
 
 nameMap_from_term :: T -> IO (M.Map Pl Address)
@@ -109,15 +111,18 @@ am_proto_1 = do
   resEv <- liftIO $ run_vm_t t ev nm
    -}
 
+{-
   case appraiseBool of
    True -> do
      b <- appraise_proto_1 resEv
      liftIO $ putStrLn $ "appraisal success: " ++ (show b)
    False -> return ()
+-}
 
   liftIO $ after_output t ev resEv
   return resEv
 
+{-
 appraise_proto_1 :: Ev -> AM Bool
 appraise_proto_1 e = do
   let (G sigVal e'@(PP n@(N 0 nonceVal (Mt))
@@ -140,7 +145,7 @@ appraise_proto_1 e = do
 
   liftIO $ putStrLn $ "Nonce Check: " ++ (show nonceCheck)
   return (sigResult && usmCheck && nonceCheck)
-
+-}
 after_output :: T -> Ev -> Ev -> IO ()
 after_output t ev resEv = do
   opts <- getClientOptions

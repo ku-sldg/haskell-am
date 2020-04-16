@@ -28,18 +28,23 @@ import Control.Concurrent
 
 startServer :: ServerType -> (BS.ByteString -> IO BS.ByteString) -> IO ()
 startServer x f = do
+  --error "here"
   socketPathname <- lookupPath x
+  --error socketPathname
   runUnixDomainServer socketPathname (handleSockBits f)
 
 handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
 handleSockBits f s = do
+  error "handle before recv"
   msg <- recv s 1024
+  error "handle after recv"
   resp <- f msg
   sendAll s resp
 
 data ServerType =
   COMM
   | SIGN
+  | ASP_SERV ASP_ID
 
 -- socketPathname is currently a global constant here
 -- this must change, soon ....
@@ -49,6 +54,7 @@ lookupPath v = do
         case v of
         COMM -> "COMM"
         SIGN -> "SIG"
+        ASP_SERV i -> "ASP_" ++ (show i)
   let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
   maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
   maybeSocketPath  <- lookupEnv $ custom_path
@@ -58,7 +64,7 @@ lookupPath v = do
         Nothing ->
           case maybeBuildPath of
            Just s -> do
-             return $ s ++ tag
+             return $ s ++ "/" ++ tag
            Nothing ->
              error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
   return socketPath

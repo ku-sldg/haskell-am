@@ -92,6 +92,16 @@ data SigRequestMessage = SigRequestMessage
 data SigResponseMessage = SigResponseMessage
                       { sigBits :: BS
                       } deriving (Show,Read,Generic)
+
+--Attestation Request Message
+data AspRequestMessage = AspRequestMessage
+                      { aspArgs :: [ARG]
+                      } deriving (Show,Read,Generic)
+
+--Attestation Response Message
+data AspResponseMessage = AspResponseMessage
+                      { aspBits :: BS
+                      } deriving (Show,Read,Generic)
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}

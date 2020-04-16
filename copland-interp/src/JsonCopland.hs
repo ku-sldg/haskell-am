@@ -141,6 +141,11 @@ instance FromJSON SigRequestMessage
 instance ToJSON SigResponseMessage
 instance FromJSON SigResponseMessage
 
+instance ToJSON AspRequestMessage
+instance FromJSON AspRequestMessage
+
+instance ToJSON AspResponseMessage
+instance FromJSON AspResponseMessage
 
 jsonOut :: T -> Ev -> Ev -> IO ()
 jsonOut t ev resEv = do

@@ -87,8 +87,26 @@ signEv e = do
       privKeyBits <- lift $ lookupSecretKeyBytes
       return $ bs -- privKeyBits
 -}
-  
 
+invokeUSM :: ASP_ID -> [ARG] -> VM BS
+invokeUSM asp args = do
+  connectionServerSocket <- get_asp_socket asp
+  --pFrom <- lift $ asks me
+  --namesFrom <- lift $ asks nameServer
+  liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt)
+      where dispatchAt s = do
+              let aspRequest = (AspRequestMessage args)
+              --let evBits = BL.toStrict (DA.encode e)
+              --error "in invokeUSM"
+              --error (show args)
+              let messageBits = DA.encode aspRequest
+              NBS.sendAll s (BL.toStrict messageBits)
+              --error (show messageBits)
+              --error "sent all in invokeUSM"
+              (AspResponseMessage resBits) <- getResponse s
+              return resBits
+
+{-
 invokeUSM :: ASP_ID -> [ARG] -> VM BS
 invokeUSM asp args = do
   case asp of
@@ -100,6 +118,7 @@ invokeUSM asp args = do
            
            liftIO $ doHashFile $ "../" ++ fileName
     _ -> error $ "USM with asp_id not supported: " ++ (show asp)
+-}
 
 {-
 invokeKIM :: ASP_ID -> Pl -> [ARG] -> VM BS
@@ -135,6 +154,7 @@ toRemote pTo q initEvidence = do
 getResponse :: DA.FromJSON a => Socket -> IO a
 getResponse s = do
   msg <- NBS.recv s 1024
+  error $ "received in getResponse : " ++ (show msg)
   decodeGen msg
 
 {- ************************************************************* -}
@@ -149,7 +169,9 @@ run_vm_t t e m = do
   cop_env <- liftIO $ build_AM_Env opts m
   commSocketPath <- lookupPath COMM
   sigSocketPath <- lookupPath SIGN
+  aspSocketPath <- lookupPath (ASP_SERV 1)
+  let aspMap = M.fromList [(1,aspSocketPath)]
   let instrs = (instr_compiler t)
   --error $ show instrs
-  res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath) cop_env
+  res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath aspMap) cop_env
   return $ st_ev res

@@ -33,7 +33,8 @@ data  Vm_st = Vm_st { st_ev :: Ev
                     , st_store :: M.Map Natural Ev
                     , st_index :: Int
                     , st_serverSocket :: String
-                    , st_sigSocket :: String             
+                    , st_sigSocket :: String
+                    , st_aspSockets :: M.Map ASP_ID String
                     }
 
 emptyState = Vm_st { st_ev = Mt
@@ -41,10 +42,11 @@ emptyState = Vm_st { st_ev = Mt
                    , st_store = M.empty
                    , st_index = 0
                    , st_serverSocket = ""
-                   , st_sigSocket = ""                    
+                   , st_sigSocket = ""
+                   , st_aspSockets = M.empty
                    }
 
-initialState ev socketPathname sigPathname = emptyState { st_ev = ev, st_serverSocket = socketPathname, st_sigSocket = sigPathname}
+initialState ev socketPathname sigPathname aspMap = emptyState { st_ev = ev, st_serverSocket = socketPathname, st_sigSocket = sigPathname, st_aspSockets = aspMap}
 
 type VM = StateT Vm_st COP
 
@@ -63,6 +65,16 @@ stackPop (Stack []) = Nothing
 stackPop (Stack [x]) = Just (Stack [], x)
 stackPop (Stack (x:xs)) = Just (Stack xs, x)
 
+
+
+
+get_asp_socket :: ASP_ID -> VM String
+get_asp_socket i = do
+  socks <- gets st_aspSockets
+  let maybeSock = M.lookup i socks
+  case maybeSock of
+   Just s -> return s
+   Nothing -> error $ "No socket registered for ASP " ++ (show i) ++ "."
 
 
 get_ev :: VM Ev
