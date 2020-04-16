@@ -91,6 +91,7 @@ signEv e = do
 invokeUSM :: ASP_ID -> [ARG] -> VM BS
 invokeUSM asp args = do
   connectionServerSocket <- get_asp_socket asp
+  liftIO $ putStrLn $ "connectionServerSocket: " ++ (show connectionServerSocket)
   --pFrom <- lift $ asks me
   --namesFrom <- lift $ asks nameServer
   liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt)
@@ -145,6 +146,7 @@ toRemote pTo q initEvidence = do
   liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt pFrom namesFrom)
       where dispatchAt pFrom namesFrom s = do
               let messageBits = DA.encode (RequestMessage pTo pFrom namesFrom q initEvidence)
+              putStrLn $ "sendAll: " ++ (show messageBits)
               NBS.sendAll s (BL.toStrict messageBits)
               (ResponseMessage _ _ e') <- getResponse s
               return e'
@@ -154,7 +156,7 @@ toRemote pTo q initEvidence = do
 getResponse :: DA.FromJSON a => Socket -> IO a
 getResponse s = do
   msg <- NBS.recv s 1024
-  error $ "received in getResponse : " ++ (show msg)
+  --error $ "received in getResponse : " ++ (show msg)
   decodeGen msg
 
 {- ************************************************************* -}

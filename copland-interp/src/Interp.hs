@@ -152,8 +152,9 @@ interpUSM i args = do
      1 -> if ((length args) == 0)
           then error $ "not enough args to USM: " ++ (show i)
           else do
-            let fileName_bits = head args
-                fileName = B.decode $ BL.fromStrict fileName_bits
+            let fileName = head args
+            {-let fileName_bits = head args
+                fileName = B.decode $ BL.fromStrict fileName_bits -}
             
             res <- liftIO $ doHashFile $ "../" ++ fileName
             return res

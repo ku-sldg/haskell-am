@@ -34,8 +34,9 @@ genBS = do
 argString :: Int -> ARG
 argString n =
   let numStr = show n in
-  let s = "arg" ++ numStr in
-  BL.toStrict $ BI.encode s
+  "arg" ++ numStr
+  {-let s = "arg" ++ numStr in
+  BL.toStrict $ BI.encode s -}
 
 argList :: Int -> [ARG]
 argList n =

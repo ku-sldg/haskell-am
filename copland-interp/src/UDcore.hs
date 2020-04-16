@@ -51,10 +51,14 @@ runUnixDomainServer socketPathname serverAction = withSocketsDo $ do
       listen sock maxQueued
       return sock
     loop sock = forever $ do
+        --error "in server"
         (conn, _peer) <- accept sock
+        --error "past accept sock"
 #if MIN_VERSION_network(3,1,1)
+        --error "3,1,1"
         void $ forkFinally (serverAction conn) (const $ gracefulClose conn 5000)
 #else
+        --error "not 3,1,1"
         void $ forkFinally (serverAction conn) (const $ close conn)
 #endif
 

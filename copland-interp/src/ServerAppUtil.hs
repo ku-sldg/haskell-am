@@ -30,14 +30,16 @@ startServer :: ServerType -> (BS.ByteString -> IO BS.ByteString) -> IO ()
 startServer x f = do
   --error "here"
   socketPathname <- lookupPath x
-  --error socketPathname
+  putStrLn socketPathname
   runUnixDomainServer socketPathname (handleSockBits f)
 
 handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> Socket -> IO ()
 handleSockBits f s = do
-  error "handle before recv"
+  putStrLn "in handleSockBits"
+  --error "handle before recv"
   msg <- recv s 1024
-  error "handle after recv"
+  putStrLn $ "msg: " ++ (show msg)
+  --error "handle after recv"
   resp <- f msg
   sendAll s resp
 

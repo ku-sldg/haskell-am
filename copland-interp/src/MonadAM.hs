@@ -133,8 +133,10 @@ ev_nonce_list e = ev_nonce_list' e []
 n_to_term :: (Int,BS) -> AM T
 n_to_term (i,bs) = do
   n_asp <- gets nonce_check_asp
-  let arg1 = BL.toStrict $ D.encode i
-      arg2 = bs in
+  let arg1 = (show i)
+      arg2 = (show bs) in
+  {-let arg1 = BL.toStrict $ D.encode i
+      arg2 = bs in -}
    return $ ASP n_asp [arg1,arg2]
    
   
