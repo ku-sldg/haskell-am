@@ -150,33 +150,76 @@ nlist_to_term ls =
      rest <- (nlist_to_term ls')
      return $ LN v rest
 
-{-
-gen_appraisal_term' :: T -> Pl -> Ev -> T
+ev_nonce_term :: Ev -> AM T
+ev_nonce_term e = do
+  let ls = ev_nonce_list e
+  nlist_to_term ls
+        
+
+gen_appraisal_term' :: T -> Pl -> Ev -> AM (T,Ev)
 gen_appraisal_term' t p e =
-  let t_ev = (nlist_to_term (ev_nonce_list e)) in
-  let res' =
-        case t of
-         ASP i args -> ASP (aspMap i p) args
-         SIG -> ASP (sigMap p) [] -- TODO: custom args here?
-         HSH -> ASP (hshMap p) [] -- TODO: custom args here?
-         CPY -> CPY -- TODO: is this acceptable?
-         AT q t' -> gen_appraisal_term' t' q e
-         LN t1 t2 ->
-           let t1' = (gen_appraisal_term' t1 p Mt) in -- TODO: Mt ev?
-           let t2' = (gen_appraisal_term' t2 p Mt) in
-            BRP (NONE,NONE) t1' t2' -- TODO: (NONE,NONE) ?
-         BRS (sp1,sp2) t1 t2 ->
-           let t1' = (gen_appraisal_term' t1 p Mt) in -- TODO: Mt ev?
-           let t2' = (gen_appraisal_term' t2 p Mt) in
-            BRP (sp1,sp2) t1' t2' -- TODO: (sp1,sp2) ?
-         BRP (sp1,sp2) t1 t2 ->
-           let t1' = (gen_appraisal_term' t1 p Mt) in -- TODO: Mt ev?
-           let t2' = (gen_appraisal_term' t2 p Mt) in
-            BRP (sp1,sp2) t1' t2' -- TODO: (sp1,sp2) ?
-        in
-   LN t_ev res'
+  case t of
+   ASP i args -> do
+     case e of
+      U _ args bs e' -> do
+        app_id <- am_get_asp_asp p i
+        return $ ((ASP app_id ((show bs) : args)), e')
+      _ -> error "evidence mismath on ASP-U"
+   SIG -> do
+     case e of
+      G bs e' -> do
+        sig_id <- am_get_sig_asp p
+        return $ ((ASP sig_id []), e') -- TODO: custom args here?
+      _ -> error "evidence mismath on SIG-G"
+   HSH -> do
+     case e of
+      H bs -> do
+        hsh_id <- am_get_hsh_asp p
+        return $ ((ASP hsh_id []), e) -- TODO: custom args here?  e or Mt?
+      _ -> error "evidence mismath on HSH-H"
+   CPY -> return (CPY,e) -- TODO: is this acceptable?
+   AT q t' -> gen_appraisal_term' t' q e -- TODO: e or Mt?
+   LN t1 t2 -> do
+     (t2',e2) <- (gen_appraisal_term' t2 p e)
+     (t1',e1) <- (gen_appraisal_term' t1 p e2)
+     return $ ((BRP (NONE,NONE) t1' t2'),e1) -- TODO: (NONE,NONE)?  e1?
+   BRS (_,_) t1 t2 -> do
+     case e of
+      SS e1 e2 -> do
+     {-let e1 = allnone sp1 e
+         e2 = allnone sp2 e  -}   
+        (t1',_) <- (gen_appraisal_term' t1 p e1)
+        (t2',_) <- (gen_appraisal_term' t2 p e2)
+        return $ ((BRP (NONE,NONE) t1' t2'),Mt) -- TODO: BRP?  (NONE,NONE)?  Mt?
+      _ -> error "evidence mismath on BRS-SS"
+   BRP (sp1,sp2) t1 t2 -> do
+    case e of
+     PP e1 e2 -> do
+    {- let e1 = allnone sp1 e
+         e2 = allnone sp2 e -}  
+       (t1',_) <- (gen_appraisal_term' t1 p e1)
+       (t2',_) <- (gen_appraisal_term' t2 p e2)
+       return $ ((BRP (NONE,NONE) t1' t2'),Mt) -- TODO: (NONE,NONE)?  Mt?
+     _ -> error "evidence mismath on BRP-PP"
+
+
+     {-
+     t1' <- (gen_appraisal_term' t1 p e)
+     t2' <- (gen_appraisal_term' t2 p e)
+     return $ BRP (sp1,sp2) t1' t2' -- TODO: (sp1,sp2) ?
 -}
 
+  where allnone sp e =
+          case sp of
+           ALL -> e
+           NONE -> Mt
+
+
+gen_appraisal_term :: T -> Pl -> Ev -> AM T
+gen_appraisal_term t p e = do
+  t1 <- ev_nonce_term e
+  (t2,_) <- gen_appraisal_term' t p e
+  return $ LN t1 t2
 
 
 
