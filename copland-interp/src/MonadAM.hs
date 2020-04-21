@@ -16,9 +16,9 @@ import ClientProgArgs (getClientOptions, Client_Options(..))
 import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.ByteString as B (ByteString, readFile, empty)
-import qualified Data.ByteString.Lazy as BL (toStrict)
+import qualified Data.ByteString.Lazy as BL (toStrict,fromStrict)
 import qualified Data.Map as M
-import qualified Data.Binary as D (encode)
+import qualified Data.Binary as D (encode,decode)
 
 {-  The Attestation Manager Monad  -}
 type AM = ReaderT AM_Env (StateT AM_St IO)
@@ -172,7 +172,10 @@ gen_appraisal_term' t p e = do
      case e of
       G bs e' -> do
         sig_id <- am_get_sig_asp p
-        return $ ((ASP sig_id []), e') -- TODO: custom args here?
+        let evBits = encodeEv e' --BL.toStrict (DA.encode e)
+            evBitsArg = show evBits
+            sigArg = show bs
+        return $ ((ASP sig_id [evBitsArg,sigArg]), e') -- TODO: custom args here?
       _ -> error "evidence mismath on SIG-G"
    HSH -> do
      case e of
@@ -197,7 +200,7 @@ gen_appraisal_term' t p e = do
       _ -> error "evidence mismath on BRS-SS"
    BRP (sp1,sp2) t1 t2 -> do
     case e of
-     PP e1 e2 -> do
+     SS e1 e2 -> do -- TODO:  change this back to PP once parallel supported
     {- let e1 = allnone sp1 e
          e2 = allnone sp2 e -}  
        (t1',_) <- (gen_appraisal_term' t1 p e1)
@@ -223,6 +226,27 @@ gen_appraisal_term t p initEv resEv = do
   t1 <- ev_nonce_term initEv
   (t2,_) <- gen_appraisal_term' t p resEv
   return $ LN t1 t2
+
+
+
+appraise_ev :: Ev -> [Bool]
+appraise_ev e =
+  case e of
+   SS e1 e2 ->
+     let e1bs = appraise_ev e1 in
+     let e2bs = appraise_ev e2 in
+      e1bs ++ e2bs
+   U _ _ bs e' ->
+     let e'bs = appraise_ev e' in
+     let aBool= D.decode (BL.fromStrict bs) in
+      aBool : e'bs
+   Mt -> []
+   _ -> error "shouldn't happen because of gen_appraisal_term definition"
+
+
+
+
+
 
 
 

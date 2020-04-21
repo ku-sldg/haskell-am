@@ -48,7 +48,7 @@ am_main :: IO ()
 am_main = do
   let app_nonceMap = M.empty
       app_nonceID = 0
-      app_sig_map = M.empty
+      app_sig_map = M.fromList [(0,41)]
       app_hsh_map = M.empty
       app_asp_map = M.fromList [((0, 1),42)]
       app_nonceCheckAsp = 0
@@ -135,6 +135,10 @@ am_proto_1 = do
      app_ev <- liftIO $ run_vm_t app_term Mt nm -- TODO: Mt evidence ok?
      --b <- appraise_proto_1 resEv
      liftIO $ putStrLn $ "appraisal result: " ++ (show app_ev)
+     let boolList = appraise_ev app_ev
+     let appBoolResult = and boolList
+     liftIO $ putStrLn $ "bool list: " ++ (show boolList)
+     liftIO $ putStrLn $ "Appraisal result: " ++ (show appBoolResult)
    False -> return ()
 
   liftIO $ after_output t ev resEv

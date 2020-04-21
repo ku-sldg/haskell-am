@@ -1,3 +1,6 @@
+LN (ASP 1 ["target.txt"]) SIG
+BRP (NONE,NONE) (ASP 1 ["target.txt"]) (ASP 1 ["target.txt"]) 
+LN (ASP 1 ["target.txt"]) (ASP 1 ["target.txt"])
 (ASP 1 ["target.txt"])
 SIG
 

@@ -17,6 +17,7 @@ import Copland
 import CommUtil
 import UDcore
 import ServerAppUtil (startServer, ServerType(SIGN))
+import MonadCop (lookupSecretKeyPath,lookupSecretKeyBytesIO)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as BL (toStrict)
@@ -26,6 +27,7 @@ import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.Map as M
 import qualified Data.Aeson as DA (decodeStrict, encode)
 import Control.Concurrent
+import Crypto.Sign.Ed25519 (dsign, Signature(..), toPublicKey, verify, SecretKey(..))
 
 main :: IO ()
 main = do
@@ -34,6 +36,14 @@ main = do
 doAt :: BS.ByteString -> IO BS.ByteString
 doAt msg = do
   (SigRequestMessage eBits) <- decodeGen msg
-  let sBits = eBits -- TODO sig algorithm here
+
+  kp <- lookupSecretKeyPath
+  priKeyBits <- lookupSecretKeyBytesIO kp
+  let priKey = SecretKey priKeyBits
+      sig = dsign priKey eBits
+      sigBS = unSignature sig
+
+  
+  let sBits = sigBS
   let respMsg = DA.encode (SigResponseMessage sBits)
   return (BL.toStrict respMsg)

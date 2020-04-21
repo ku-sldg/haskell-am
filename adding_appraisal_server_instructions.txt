@@ -1,0 +1,8 @@
+ClientMain.hs ==> am_main function:  Add appraisal asp to appropriate map(sig, hsh, or asp)
+
+ExecCopland.hs ==> run_vm_t function:  Register the new ASP by adding a new socketPath to aspMap (which gets passed to the initialState of the VM monad).
+
+copland-interp.cabal:  add executable module (that is, if your new asp server is in Haskell)
+
+Asp<asp_id>ServerMain.hs:  change argument to startServer function to (ASP_SERV <asp_id>).
+

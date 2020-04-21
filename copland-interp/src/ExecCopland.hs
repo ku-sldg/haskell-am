@@ -74,7 +74,7 @@ signEv e = do
   --namesFrom <- lift $ asks nameServer
   liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt)
       where dispatchAt s = do
-              let evBits = BL.toStrict (DA.encode e)
+              let evBits = encodeEv e
               let messageBits = DA.encode (SigRequestMessage evBits)
               NBS.sendAll s (BL.toStrict messageBits)
               (SigResponseMessage sigBits) <- getResponse s
@@ -173,7 +173,8 @@ run_vm_t t e m = do
   sigSocketPath <- lookupPath SIGN
   aspSocketPath <- lookupPath (ASP_SERV 1)
   appSocketPath <- lookupPath (ASP_SERV 42)
-  let aspMap = M.fromList [(1,aspSocketPath),(42,appSocketPath)]
+  appSigSocketPath <- lookupPath (ASP_SERV 41)
+  let aspMap = M.fromList [(1,aspSocketPath),(42,appSocketPath),(41,appSigSocketPath)]
   let instrs = (instr_compiler t)
   --error $ show instrs
   res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath aspMap) cop_env
