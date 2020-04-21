@@ -46,8 +46,24 @@ proto1 = CPY
 
 am_main :: IO ()
 am_main = do
-  (resEv, resState) <- runAM_fresh (am_proto_1)
+  let app_nonceMap = M.empty
+      app_nonceID = 0
+      app_sig_map = M.empty
+      app_hsh_map = M.empty
+      app_asp_map = M.fromList [((0, 1),42)]
+      app_nonceCheckAsp = 0
+      init_AM_st =
+        (AM_St app_nonceMap app_nonceID app_sig_map app_hsh_map app_asp_map
+         app_nonceCheckAsp)
+  (resEv, resState) <- runAM_with_st (am_proto_1) init_AM_st
   return ()
+
+runAM_with_st :: AM Ev -> AM_St -> IO (Ev, AM_St)
+runAM_with_st am_computation am_st = do
+  let fresh_AM_Env = (AM_Env "")
+      fresh_AM_St = am_st
+  runAM am_computation fresh_AM_Env fresh_AM_St
+
 
 runAM_fresh :: AM Ev -> IO (Ev, AM_St)
 runAM_fresh am_computation = do
@@ -111,13 +127,15 @@ am_proto_1 = do
   resEv <- liftIO $ run_vm_t t ev nm
    -}
 
-{-
+
   case appraiseBool of
    True -> do
-     b <- appraise_proto_1 resEv
-     liftIO $ putStrLn $ "appraisal success: " ++ (show b)
+     app_term <- gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
+     liftIO $ putStrLn $ "app_term: " ++ (show app_term)
+     app_ev <- liftIO $ run_vm_t app_term Mt nm -- TODO: Mt evidence ok?
+     --b <- appraise_proto_1 resEv
+     liftIO $ putStrLn $ "appraisal result: " ++ (show app_ev)
    False -> return ()
--}
 
   liftIO $ after_output t ev resEv
   return resEv

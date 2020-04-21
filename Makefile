@@ -29,7 +29,7 @@ term:
 	cd copland-interp ; stack exec -- copland-app-exe -w -t ../t.hs
 
 termCompiled:
-	cd copland-interp ; stack exec -- copland-app-exe -w -compile -t ../t.hs
+	cd copland-interp ; stack exec -- copland-app-exe -w -compile -t ../t.hs -a
 
 attack:
 	./modTarget.sh

@@ -45,6 +45,8 @@ data AM_St =
            nonce_check_asp :: ASP_ID
          } deriving (Show)
 
+empty_AM_state = (AM_St M.empty 0 M.empty M.empty M.empty 0)
+
 runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
      runStateT (runReaderT k env) st
@@ -157,7 +159,8 @@ ev_nonce_term e = do
         
 
 gen_appraisal_term' :: T -> Pl -> Ev -> AM (T,Ev)
-gen_appraisal_term' t p e =
+gen_appraisal_term' t p e = do
+  liftIO $ putStrLn $ "evidence in gen_appriasel_term': " ++ (show e)
   case t of
    ASP i args -> do
      case e of
@@ -215,10 +218,10 @@ gen_appraisal_term' t p e =
            NONE -> Mt
 
 
-gen_appraisal_term :: T -> Pl -> Ev -> AM T
-gen_appraisal_term t p e = do
-  t1 <- ev_nonce_term e
-  (t2,_) <- gen_appraisal_term' t p e
+gen_appraisal_term :: T -> Pl -> Ev -> Ev -> AM T
+gen_appraisal_term t p initEv resEv = do
+  t1 <- ev_nonce_term initEv
+  (t2,_) <- gen_appraisal_term' t p resEv
   return $ LN t1 t2
 
 

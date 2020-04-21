@@ -172,7 +172,8 @@ run_vm_t t e m = do
   commSocketPath <- lookupPath COMM
   sigSocketPath <- lookupPath SIGN
   aspSocketPath <- lookupPath (ASP_SERV 1)
-  let aspMap = M.fromList [(1,aspSocketPath)]
+  appSocketPath <- lookupPath (ASP_SERV 42)
+  let aspMap = M.fromList [(1,aspSocketPath),(42,appSocketPath)]
   let instrs = (instr_compiler t)
   --error $ show instrs
   res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath aspMap) cop_env

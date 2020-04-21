@@ -1,7 +1,1 @@
-asdf
-fdsa
-random
-tex
-t
-here
-!!
+good target

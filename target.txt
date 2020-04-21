@@ -1,9 +1,1 @@
-asdf
-fdsa
-random
-tex
-t
-here
-!!
-modification
-.
+good target
