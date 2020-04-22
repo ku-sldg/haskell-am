@@ -41,7 +41,7 @@ tStr = "T"
 
 {- Protocol Term constructor names -}
 usmStr :: String
-usmStr = "USM"
+usmStr = "ASP"
 
 kimStr :: String
 kimStr = "KIM"

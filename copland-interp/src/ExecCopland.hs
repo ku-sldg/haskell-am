@@ -52,8 +52,9 @@ build_comp i = do
            put_ev er
     {-I'm doing Req/Rpy as a single instruction. -}
     Reqrpy destPlace q -> do
-                 e' <- toRemote destPlace q e
-                 put_ev e'
+      liftIO $ putStrLn $ "Sending evidence: " ++ (show e)
+      e' <- toRemote destPlace q e
+      put_ev e'
 {- Branch parallel (Bep and Joinp) will be excluded for now.  October 2019
   To perform operations in parallel will require extensive
   extensions to the VM.

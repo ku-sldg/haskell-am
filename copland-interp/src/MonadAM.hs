@@ -152,17 +152,23 @@ ev_nonce_term :: Ev -> AM T
 ev_nonce_term e = do
   let ls = ev_nonce_list e
   nlist_to_term ls
-        
 
-gen_appraisal_term' :: T -> Pl -> Ev -> AM (T,Ev)
-gen_appraisal_term' t p e = do
-  liftIO $ putStrLn $ "evidence in gen_appriasel_term': " ++ (show e)
+{-
+gen_evt' :: T -> T -> Ev -> Pl -> Ev_T
+gen_evt' t init_t e p =
   case t of
    ASP i args -> do
      case e of
-      U _ args bs e' -> do
+      U _ _ bs e' ->
+        {-let et' = gen_evt' -}
+        
+{-
+        do
         app_id <- am_get_asp_asp p i
-        return $ ((ASP app_id ((show bs) : args)), e')
+        let res = ((ASP app_id ((show bs) : args)), e')
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res -}
       _ -> error "evidence mismath on ASP-U"
    SIG -> do
      case e of
@@ -171,7 +177,10 @@ gen_appraisal_term' t p e = do
         let evBits = encodeEv e' --BL.toStrict (DA.encode e)
             evBitsArg = show evBits
             sigArg = show bs
-        return $ ((ASP sig_id [evBitsArg,sigArg]), e') -- TODO: custom args here?
+            res = ((ASP sig_id [evBitsArg,sigArg]), e')
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res -- TODO: custom args here?
       _ -> error "evidence mismath on SIG-G"
    HSH -> do
      case e of
@@ -179,22 +188,103 @@ gen_appraisal_term' t p e = do
         hsh_id <- am_get_hsh_asp p
         return $ ((ASP hsh_id []), e) -- TODO: custom args here?  e or Mt?
       _ -> error "evidence mismath on HSH-H"
-   CPY -> return (CPY,e) -- TODO: is this acceptable?
-   AT q t' -> gen_appraisal_term' t' q e -- TODO: e or Mt?
+   CPY -> do
+     let res = (CPY,e)
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+     return res -- TODO: is this acceptable?
+   AT q t' -> do
+     gen_appraisal_term' t' q e -- TODO: e or Mt?
+     {-(t'_res_term, _) <- gen_appraisal_term' t' q e -- TODO: e or Mt?
+     return (t'_res_term, e) -}
    LN t1 t2 -> do
      (t2',e2) <- (gen_appraisal_term' t2 p e)
+     liftIO $ putStrLn $ "E2: " ++ (show e2)
      (t1',e1) <- (gen_appraisal_term' t1 p e2)
      return $ ((BRP (NONE,NONE) t1' t2'),e1) -- TODO: (NONE,NONE)?  e1?
    BRS (_,_) t1 t2 -> do
      case e of
       SS e1 e2 -> do
-     {-let e1 = allnone sp1 e
-         e2 = allnone sp2 e  -}   
+        {-let e1 = allnone sp1 e
+            e2 = allnone sp2 e   -}
         (t1',_) <- (gen_appraisal_term' t1 p e1)
         (t2',_) <- (gen_appraisal_term' t2 p e2)
-        return $ ((BRP (NONE,NONE) t1' t2'),Mt) -- TODO: BRP?  (NONE,NONE)?  Mt?
+        let res = ((BRP (NONE,NONE) t1' t2'),Mt)
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res -- TODO: BRP?  (NONE,NONE)?  Mt?
       _ -> error "evidence mismath on BRS-SS"
-   BRP (sp1,sp2) t1 t2 -> do
+   BRP (_,_) t1 t2 -> do
+    case e of
+     SS e1 e2 -> do -- TODO:  change this back to PP once parallel supported
+    {- let e1 = allnone sp1 e
+         e2 = allnone sp2 e -}  
+       (t1',_) <- (gen_appraisal_term' t1 p e1)
+       (t2',_) <- (gen_appraisal_term' t2 p e2)
+       return $ ((BRP (NONE,NONE) t1' t2'),Mt) -- TODO: (NONE,NONE)?  Mt?
+     _ -> error "evidence mismath on BRP-PP"
+-}  
+        
+
+gen_appraisal_term' :: T -> Pl -> Ev -> AM (T,Ev)
+gen_appraisal_term' t p e = do
+  liftIO $ putStrLn $ "\nterm in gen_appriasel_term': \n" ++ (prettyT t) ++ "\n"
+  liftIO $ putStrLn $ "\nevidence in gen_appriasel_term': \n" ++ (prettyEv e) ++ "\n"
+  case t of
+   ASP i args -> do
+     case e of
+      U _ args bs e' -> do
+        app_id <- am_get_asp_asp p i
+        let res = ((ASP app_id ((show bs) : args)), e')
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res
+      _ -> error "evidence mismath on ASP-U"
+   SIG -> do
+     case e of
+      G bs e' -> do
+        sig_id <- am_get_sig_asp p
+        let evBits = encodeEv e' --BL.toStrict (DA.encode e)
+            evBitsArg = show evBits
+            sigArg = show bs
+            res = ((ASP sig_id [evBitsArg,sigArg]), e')
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res -- TODO: custom args here?
+      _ -> error "evidence mismath on SIG-G"
+   HSH -> do
+     case e of
+      H bs -> do
+        hsh_id <- am_get_hsh_asp p
+        return $ ((ASP hsh_id []), e) -- TODO: custom args here?  e or Mt?
+      _ -> error "evidence mismath on HSH-H"
+   CPY -> do
+     let res = (CPY,e)
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+     return res -- TODO: is this acceptable?
+   AT q t' -> do
+     gen_appraisal_term' t' q e -- TODO: e or Mt?
+     {-(t'_res_term, _) <- gen_appraisal_term' t' q e -- TODO: e or Mt?
+     return (t'_res_term, e) -}
+   LN t1 t2 -> do
+     (t2',e2) <- (gen_appraisal_term' t2 p e)
+     liftIO $ putStrLn $ "E2: " ++ (show e2)
+     (t1',e1) <- (gen_appraisal_term' t1 p e2)
+     return $ ((BRP (NONE,NONE) t1' t2'),e1) -- TODO: (NONE,NONE)?  e1?
+   BRS (_,_) t1 t2 -> do
+     case e of
+      SS e1 e2 -> do
+        {-let e1 = allnone sp1 e
+            e2 = allnone sp2 e   -}
+        (t1',_) <- (gen_appraisal_term' t1 p e1)
+        (t2',_) <- (gen_appraisal_term' t2 p e2)
+        let res = ((BRP (NONE,NONE) t1' t2'),Mt)
+        liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+          (prettyT (fst res)) ++ "\n" ++ (prettyEv (snd res)) ++ "\n"
+        return $ res -- TODO: BRP?  (NONE,NONE)?  Mt?
+      _ -> error "evidence mismath on BRS-SS"
+   BRP (_,_) t1 t2 -> do
     case e of
      SS e1 e2 -> do -- TODO:  change this back to PP once parallel supported
     {- let e1 = allnone sp1 e

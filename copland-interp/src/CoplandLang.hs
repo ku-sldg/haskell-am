@@ -63,6 +63,19 @@ data Ev
 instance BI.Binary Ev where
 --instance NFData Ev where
 
+-- Place-lifted Evidence, used as intermediate for generating appraisal term
+data Ev_T
+  = Mtt
+  | Ut Pl ASP_ID [ARG] BS Ev_T
+  | Gt Pl BS Ev_T
+  | Ht Pl BS
+  | Nt Int BS Ev_T
+  | SSt Ev_T Ev_T
+  | PPt Ev_T Ev_T
+  deriving (Generic,Eq, Read, Show)
+
+instance BI.Binary Ev_T where
+
 
 {-------- Comm Types --------}
 --Abstract Address type for concrete Addresses (i.e. IP:port string).

@@ -21,11 +21,11 @@ import qualified Data.Map as M
 am_state_init :: AM_St
 am_state_init = 
   let -- Maps place to the asp_id that checks signatures from that place.
-      app_sig_map = M.fromList [(0,41)]
+      app_sig_map = M.fromList [(0,41), (1,41)]
       -- Similar map for hash appraisals,
       app_hsh_map = M.empty
       -- Maps a place/asp_id pair to the asp_id that can appraise it.
-      app_asp_map = M.fromList [((0, 1),42)]
+      app_asp_map = M.fromList [((0, 1),42), ((1,1),42)]
       -- asp_id for (appraisal) asp that checks nonces
       app_nonceCheckAsp = 0 in
         initial_AM_state app_sig_map app_hsh_map app_asp_map app_nonceCheckAsp

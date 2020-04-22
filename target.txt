@@ -1,1 +1,1 @@
-badTarget!
+good target
