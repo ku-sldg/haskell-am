@@ -238,13 +238,3 @@ appraise_ev e =
       aBool : e'bs
    Mt -> []
    _ -> error "shouldn't happen because of gen_appraisal_term definition"
-
-
-am_runCOP :: M.Map Pl Address -> COP a -> AM a
-am_runCOP m cop = do
-  opts <- liftIO $ getClientOptions
-  cop_env <- liftIO $ build_Cop_Env opts m
-  res <- liftIO $ runCOP cop cop_env --runCOP (interp t e) cop_env
-  return res
-
-

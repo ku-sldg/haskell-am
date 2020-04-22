@@ -114,25 +114,3 @@ get_sigSocket :: VM String
 get_sigSocket = do
   s <- get
   return $ st_sigSocket s
-
-
-
-
-{- This is a hard-coded initial state for demo/testing purposes.
-   TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 
-vm_state_init :: Ev -> IO VM_St
-vm_state_init e = do
-  -- Register Comm Server
-  commSocketPath <- lookupPath COMM
-  -- Register my (place 0's) Signature server
-  sigSocketPath <- lookupPath SIGN
-  -- Register ASP 1
-  asp1SocketPath <- lookupPath (ASP_SERV 1)
-  -- Register appraiser of ASP 1
-  app1SocketPath <- lookupPath (ASP_SERV 42)
-  -- Register appraiser of 0's signature
-  appSig0SocketPath <- lookupPath (ASP_SERV 41) 
-  let aspMap =
-        M.fromList
-        [(1,asp1SocketPath),(42,app1SocketPath),(41,appSig0SocketPath)]
-  return $ initial_VM_state e commSocketPath sigSocketPath aspMap

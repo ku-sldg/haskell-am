@@ -131,14 +131,3 @@ getResponse s = do
 run_vm :: [Instr] -> VM_St -> Cop_Env -> IO VM_St
 run_vm  ilist initState initEnv =
    runReaderT (execStateT (sequence $ map build_comp ilist) initState) initEnv
-
-run_vm_t ::  T -> Ev -> M.Map Pl Address  -> IO (Ev)
-run_vm_t t e nameMap = do
-  opts <- getClientOptions
-  cop_env <- build_Cop_Env opts nameMap
-  let instrs = (instr_compiler t)
-  --error $ show instrs
-  vm_st <- vm_state_init e
-  res <- run_vm (instrs) vm_st cop_env
-  return $ st_ev res
-

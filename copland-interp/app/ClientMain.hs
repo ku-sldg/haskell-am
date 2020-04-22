@@ -9,7 +9,7 @@
 module Main where
 
 import Copland
-import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath)
+import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env, runCOP, Cop_Env)
 import MonadAM
 import ExecCopland
 import MonadVM
@@ -19,6 +19,7 @@ import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)
 import qualified CryptoImpl as CI (doHashFile)
 import ServerAppUtil(spawn_the_servers)
+import qualified DemoStates as DS (am_state_init, vm_state_init)
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -35,8 +36,9 @@ main = do
   let provBool = optProv opts
   case provBool of
    True -> provision
-   False -> am_main am_proto_1 am_state_init
+   False -> am_main am_proto_1 DS.am_state_init
 
+{-
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP components.  -}
 am_state_init :: AM_St
@@ -50,6 +52,27 @@ am_state_init =
       -- asp_id for (appraisal) asp that checks nonces
       app_nonceCheckAsp = 0 in
         initial_AM_state app_sig_map app_hsh_map app_asp_map app_nonceCheckAsp
+
+{- This is a hard-coded initial state for demo/testing purposes.
+   TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 
+vm_state_init :: Ev -> IO VM_St
+vm_state_init e = do
+  -- Register Comm Server
+  commSocketPath <- lookupPath COMM
+  -- Register my (place 0's) Signature server
+  sigSocketPath <- lookupPath SIGN
+  -- Register ASP 1
+  asp1SocketPath <- lookupPath (ASP_SERV 1)
+  -- Register appraiser of ASP 1
+  app1SocketPath <- lookupPath (ASP_SERV 42)
+  -- Register appraiser of 0's signature
+  appSig0SocketPath <- lookupPath (ASP_SERV 41) 
+  let aspMap =
+        M.fromList
+        [(1,asp1SocketPath),(42,app1SocketPath),(41,appSig0SocketPath)]
+  return $ initial_VM_state e commSocketPath sigSocketPath aspMap
+-}
+
         
 am_main :: AM Ev -> AM_St -> IO ()
 am_main proto init = do
@@ -74,6 +97,14 @@ nameMap_from_term t = do
   let places = getPlaces t
   res <- genNameServer places
   return res
+
+run_vm_t ::  T -> VM_St -> Cop_Env  -> IO (Ev)
+run_vm_t t vm_st cop_env = do
+  opts <- getClientOptions
+  let instrs = (instr_compiler t)
+  --vm_st <- DS.vm_state_init e
+  res <- run_vm (instrs) vm_st cop_env
+  return $ st_ev res
 
 am_proto_1 :: AM Ev
 am_proto_1 = do
@@ -104,19 +135,27 @@ am_proto_1 = do
      liftIO $ CC.threadDelay 10000
    False -> return ()
 
+
+  --opts <- getClientOptions
+  cop_env <- liftIO $ build_Cop_Env opts nm
+  
   -- if client compiles the received copland term,
   -- and executes the generated sequence of copland instructions.
   resEv <- case compileBool of
-             True -> liftIO $ run_vm_t t ev nm
+             True -> liftIO $ do
+               vm_st <- DS.vm_state_init ev
+               run_vm_t t vm_st cop_env
              -- or simply interprets the received copland term
-             False -> am_runCOP nm (interp t ev)
+             False -> liftIO $ runCOP (interp t ev) cop_env
 
   case appraiseBool of
    True -> do
      app_term <- gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
      liftIO $ putStrLn $ "app_term: " ++ (show app_term)
-     app_ev <- liftIO $ run_vm_t app_term Mt nm -- TODO: Mt evidence ok?
-     --b <- appraise_proto_1 resEv
+     app_ev <- liftIO $ do
+       vm_st <- DS.vm_state_init Mt -- TODO: Mt evidence ok?
+       run_vm_t app_term vm_st cop_env
+       --b <- appraise_proto_1 resEv
      liftIO $ putStrLn $ "appraisal result: " ++ (show app_ev)
      let boolList = appraise_ev app_ev
      let appBoolResult = and boolList

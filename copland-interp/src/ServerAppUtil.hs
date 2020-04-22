@@ -22,6 +22,7 @@ import Interp (interp)
 import MonadCop (runCOP, buildServerEnv)
 import MonadVM
 import ExecCopland (run_vm)
+import qualified DemoStates as DS (vm_state_init)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString as BS (ByteString)
@@ -51,7 +52,7 @@ fromRemote conn opts = do
   e' <- case compileB of
          True -> do
            let instrs = instr_compiler t
-           vm_st <- vm_state_init e
+           vm_st <- DS.vm_state_init e
            res <- run_vm instrs vm_st env
            return $ st_ev res
          False -> runCOP (interp t e) env
