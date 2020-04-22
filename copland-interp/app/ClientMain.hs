@@ -13,11 +13,12 @@ import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath)
 import MonadAM
 import ExecCopland
 import MonadVM
-import Interp (spawn_the_servers, getNameMap)
+import Interp (getNameMap,interp)
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)
 import qualified CryptoImpl as CI (doHashFile)
+import ServerAppUtil(spawn_the_servers)
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -99,7 +100,7 @@ am_proto_1 = do
 
   case spawnServers of
    True -> do
-     liftIO $ spawn_the_servers nm spawnSimBool spawnDebugBool
+     liftIO $ spawn_the_servers nm spawnSimBool spawnDebugBool compileBool
      liftIO $ CC.threadDelay 10000
    False -> return ()
 
@@ -108,7 +109,7 @@ am_proto_1 = do
   resEv <- case compileBool of
              True -> liftIO $ run_vm_t t ev nm
              -- or simply interprets the received copland term
-             False -> am_runCOP t ev nm
+             False -> am_runCOP nm (interp t ev)
 
   case appraiseBool of
    True -> do

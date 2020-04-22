@@ -20,7 +20,7 @@ import Copland
 import CommUtil
 import UDcore
 import ExecCopland
-import ServerAppUtil (startServer, ServerType(COMM))
+import ServerAppUtil (startServer)
 
 import Control.Concurrent
 

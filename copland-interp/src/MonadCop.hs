@@ -9,6 +9,7 @@ module MonadCop where
 
 import Copland
 import qualified ServerProgArgs as SA
+import ClientProgArgs (getClientOptions, Client_Options(..))
 
 import Control.Monad.Reader
 import System.Environment (lookupEnv)
@@ -75,6 +76,17 @@ logc s = do
 runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
+
+build_Cop_Env :: Client_Options -> M.Map Pl Address -> IO Cop_Env
+build_Cop_Env opts nameMap = do
+
+  let b = optSim opts
+      d = optDebug opts
+      pl = 0 -- TODO:  hardcoded
+      
+  keyPath <- lookupSecretKeyPath
+  return $ Cop_Env b d nameMap keyPath pl
+  {- TODO: ok to return place 0, since it will be updated? -}
 
 buildServerEnv :: SA.Server_Options -> M.Map Pl Address -> Pl -> IO Cop_Env
 buildServerEnv opts nameMap myPlace = do

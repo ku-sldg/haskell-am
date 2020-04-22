@@ -23,7 +23,8 @@ getServerOptions = do
 data Server_Options = Server_Options
   { server_optSim :: Bool,
     server_optDebug :: Bool,
-    server_serverPort :: String} deriving (Show)
+    server_serverPort :: String,
+    server_compile :: Bool } deriving (Show)
 
 opts :: ParserInfo Server_Options
 opts = info (popts <**> helper)
@@ -32,13 +33,19 @@ opts = info (popts <**> helper)
   <> header "Copland interpreter server")
        
 popts :: Parser Server_Options
-popts = Server_Options <$> simulation <*> debug <*> sPort
+popts = Server_Options <$> simulation <*> debug <*> sPort <*> compile
   
 simulation :: Parser Bool
 simulation = switch
    ( long "sim"
   <> short 's'
   <> help "Set to run in simulation-mode" )
+
+compile :: Parser Bool
+compile = switch
+   ( long "compile"
+  <> short 'c'
+  <> help "Set to compile Copland terms into VM instructions" )
 
 debug :: Parser Bool
 debug = switch

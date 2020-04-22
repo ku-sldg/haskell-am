@@ -15,6 +15,7 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString as B (ByteString, append, empty)
 import qualified Data.Binary as BI (Binary)
 import qualified Data.Map as M (Map)
+import System.Environment (lookupEnv)
 
 {-  Identify Places (protocol participants)  -}
 type Pl = Int
@@ -127,3 +128,30 @@ encodeEv e =
     (B.append e1bs e2bs)
 
 
+data ServerType =
+  COMM
+  | SIGN
+  | ASP_SERV ASP_ID
+
+-- socketPathname is currently a global constant here
+-- this must change, soon ....
+lookupPath :: ServerType -> IO FilePath
+lookupPath v = do
+  let tag =
+        case v of
+        COMM -> "COMM"
+        SIGN -> "SIG"
+        ASP_SERV i -> "ASP_" ++ (show i)
+  let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
+  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
+  maybeSocketPath  <- lookupEnv $ custom_path
+  socketPath <-
+        case maybeSocketPath of
+        Just p -> return p
+        Nothing ->
+          case maybeBuildPath of
+           Just s -> do
+             return $ s ++ "/" ++ tag
+           Nothing ->
+             error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
+  return socketPath

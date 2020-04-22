@@ -16,7 +16,7 @@ module Main where
 import Copland
 import CommUtil
 import UDcore
-import ServerAppUtil (startServer, ServerType(SIGN))
+import ServerAppUtil (startServer)
 import MonadCop (lookupSecretKeyPath,lookupSecretKeyBytesIO)
 
 import qualified Data.ByteString.Char8 as C

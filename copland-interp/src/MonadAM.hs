@@ -9,9 +9,9 @@ module MonadAM where
 
 import Copland
 import CryptoImpl as CI (doNonce)
-import Interp (interp,getNameMap)
-import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath)
-import ClientProgArgs (getClientOptions, Client_Options(..))
+--import Interp (interp,getNameMap)
+import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath, COP, build_Cop_Env)
+import ClientProgArgs
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -240,20 +240,11 @@ appraise_ev e =
    _ -> error "shouldn't happen because of gen_appraisal_term definition"
 
 
-am_runCOP :: T -> Ev -> M.Map Pl Address -> AM Ev
-am_runCOP t e m = do
+am_runCOP :: M.Map Pl Address -> COP a -> AM a
+am_runCOP m cop = do
   opts <- liftIO $ getClientOptions
   cop_env <- liftIO $ build_Cop_Env opts m
-  res <- liftIO $ runCOP (interp t e) cop_env
+  res <- liftIO $ runCOP cop cop_env --runCOP (interp t e) cop_env
   return res
 
-build_Cop_Env :: Client_Options -> M.Map Pl Address -> IO Cop_Env
-build_Cop_Env opts nameMap = do
 
-  let b = optSim opts
-      d = optDebug opts
-      pl = 0 -- TODO:  hardcoded
-      
-  keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl
-  {- TODO: ok to return place 0, since it will be updated? -}

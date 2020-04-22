@@ -23,3 +23,5 @@ cabal.project.local~
 demoOutput/*
 copland-interp/stack.yaml.lock
 *~
+COMM
+SIG

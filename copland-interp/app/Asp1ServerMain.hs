@@ -16,7 +16,7 @@ module Main where
 import Copland
 import CommUtil
 import UDcore
-import ServerAppUtil (startServer, ServerType(ASP_SERV))
+import ServerAppUtil (startServer)
 import CryptoImpl (doHashFile)
 
 import qualified Data.ByteString.Char8 as C

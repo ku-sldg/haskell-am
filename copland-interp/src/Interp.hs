@@ -16,6 +16,7 @@ import CryptoImpl (doNonce, doSign, doHash, doHashFile, doFakeNonce, doFakeSign,
 import Comm
 import MonadCop
 import qualified ServerProgArgs as SA (Server_Options(..))
+--import qualified ExecCopland as EC (run_vm, vm_state_init)
 
 import Control.Monad (forever, void)
 import Control.Monad.Trans.Reader(asks, ask, runReaderT)
@@ -117,20 +118,36 @@ toRemote pTo t e = do
     logc $ "Returning evidence result: " ++ (show resEv)
     return resEv
 
+{-
 {-  Acts as a server for handling remote attestation requests.
     Params:
       conn- connection handle (Socket) to the client
-      opts- server config options provided as command-line arguments  -}
+      opts- server config options provided as command-line arguments
+
+TODO:  move this somewhere besides Interp.hs.
+-}
 fromRemote :: NS.Socket -> SA.Server_Options -> IO ()
 fromRemote conn opts = do
   (RequestMessage pTo pFrom names t e) <- receiveReq conn
   --error $ (show names)
   env <- buildServerEnv opts names pTo
-  e' <- run_interp t e env
+
+  let compileB = serverCompile opts
+  e' <- case compileB of
+         True -> do
+           let instrs = instr_compiler t
+           vm_st <- vm_state_init e
+           res <- run_vm instrs vm_st env
+           return $ st_ev res
+         False -> runCOP (interp t e) env
+  
+  --e' <- run_interp t e env
   --putStrLn $ "evidence gathered: " ++ (show e')
   sendResp conn pTo pFrom e'
   NS.close conn
+-}
 
+{-
 {-  Convenience function that runs interp over a Copland term and initial
     evidence, in a specified COP environment, with an empty initial state,
     returning the resulting evidence.  -}
@@ -138,6 +155,7 @@ run_interp :: T -> Ev -> Cop_Env -> IO Ev
 run_interp t e env = do
   e' <- (runCOP  (interp t e) env)
   return e'
+-}
 
 {-  Dispatch function for USM procedures based on ASP_ID  -}
 interpUSM :: ASP_ID -> [ARG] -> COP BS
@@ -242,7 +260,7 @@ splitEv sp e =
   ALL -> e
   NONE -> Mt
 
-
+{-
 start_standalone_interp_server :: SA.Server_Options -> IO ()
 start_standalone_interp_server opts = do
   let pString = SA.server_serverPort opts
@@ -263,16 +281,17 @@ serve_requests sock opts = forever $ do
   --error (show opts)
   void $ CC.forkIO $ fromRemote conn opts
 
-spawn_a_server :: Bool -> Bool -> Address -> IO ()
-spawn_a_server sim debug addr = do
-  let sopts = SA.Server_Options sim debug addr
+spawn_a_server :: Bool -> Bool -> Bool -> Address -> IO ()
+spawn_a_server sim debug compile addr = do
+  let sopts = SA.Server_Options sim debug addr compile
   void $ CC.forkIO $ start_standalone_interp_server sopts
   
-spawn_the_servers :: M.Map Pl Address -> Bool -> Bool -> IO ()
-spawn_the_servers nm simB debugB = do
+spawn_the_servers :: M.Map Pl Address -> Bool -> Bool -> Bool -> IO ()
+spawn_the_servers nm simB debugB compileB = do
   let ps = M.toList nm
       snds = map snd ps
-  mapM_ (spawn_a_server simB debugB) snds
+  mapM_ (spawn_a_server simB debugB compileB) snds
+-}
 
 getNameMap :: FilePath -> [Pl] -> IO (M.Map Pl String)
 getNameMap fileName pls = do
