@@ -3,7 +3,9 @@
 module ExecCopland where
 
 import ServerAppUtil (lookupPath, ServerType(..))
-import Copland
+import CoplandLang
+import CoplandInstr
+import qualified JsonCopland as JC (decodeGen)
 import ClientProgArgs
 import MonadCop
 import MonadAM
@@ -90,92 +92,70 @@ signEv e = do
 
 invokeUSM :: ASP_ID -> [ARG] -> VM BS
 invokeUSM asp args = do
-  connectionServerSocket <- get_asp_socket asp
-  liftIO $ putStrLn $ "connectionServerSocket: " ++ (show connectionServerSocket)
-  --pFrom <- lift $ asks me
-  --namesFrom <- lift $ asks nameServer
-  liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt)
+  aspSocket <- get_asp_socket asp
+  liftIO $ putStrLn $ "aspSocket: " ++ (show aspSocket)
+
+  liftIO $ runUnixDomainClient aspSocket (dispatchAt)
       where dispatchAt s = do
               let aspRequest = (AspRequestMessage args)
-              --let evBits = BL.toStrict (DA.encode e)
-              --error "in invokeUSM"
-              --error (show args)
-              let messageBits = DA.encode aspRequest
+                  messageBits = DA.encode aspRequest
               NBS.sendAll s (BL.toStrict messageBits)
-              --error (show messageBits)
-              --error "sent all in invokeUSM"
               (AspResponseMessage resBits) <- getResponse s
               return resBits
 
-{-
-invokeUSM :: ASP_ID -> [ARG] -> VM BS
-invokeUSM asp args = do
-  case asp of
-    1 -> if ((length args) == 0)
-         then error $ "not enough args to USM: " ++ (show asp)
-         else do
-           let fileName_bits = head args
-               fileName = B.decode $ BL.fromStrict fileName_bits
-           
-           liftIO $ doHashFile $ "../" ++ fileName
-    _ -> error $ "USM with asp_id not supported: " ++ (show asp)
--}
-
-{-
-invokeKIM :: ASP_ID -> Pl -> [ARG] -> VM BS
-invokeKIM asp q args = do
-  case asp of
-    1 ->
-        case q of
-          1 ->
-            if ((length args) == 0)
-            then error $ "not enough args to KIM: " ++ (show asp)
-            else do
-              let fileName = head args
-              liftIO $ doHashFile $ "../" ++ fileName
-          _ -> fail $ "KIM with asp_id " ++ (show asp) ++ " at place " ++ (show q) ++ " not supported"
-
-    _ -> fail $ "KIM with asp_id " ++ (show asp) ++ " not supported"
--}
-
 toRemote :: Pl -> T -> Ev -> VM Ev
 toRemote pTo q initEvidence = do
-  connectionServerSocket <- get_serverSocket
+  connectionServerSocket <- get_serverSocket  --get Comm Server socket
   pFrom <- lift $ asks me
   namesFrom <- lift $ asks nameServer
-  liftIO $ runUnixDomainClient connectionServerSocket (dispatchAt pFrom namesFrom)
-      where dispatchAt pFrom namesFrom s = do
-              let messageBits = DA.encode (RequestMessage pTo pFrom namesFrom q initEvidence)
-              putStrLn $ "sendAll: " ++ (show messageBits)
-              NBS.sendAll s (BL.toStrict messageBits)
-              (ResponseMessage _ _ e') <- getResponse s
-              return e'
+  liftIO $ runUnixDomainClient connectionServerSocket
+    (dispatchAt pFrom namesFrom)
+  where dispatchAt pFrom namesFrom s = do
+          let messageBits =
+                DA.encode (RequestMessage pTo pFrom namesFrom q initEvidence)
+          putStrLn $ "sendAll: " ++ (show messageBits)
+          NBS.sendAll s (BL.toStrict messageBits)
+          (ResponseMessage _ _ e') <- getResponse s
+          return e'
             
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
 getResponse :: DA.FromJSON a => Socket -> IO a
 getResponse s = do
   msg <- NBS.recv s 1024
-  --error $ "received in getResponse : " ++ (show msg)
-  decodeGen msg
+  JC.decodeGen msg
 
 {- ************************************************************* -}
 
-run_vm :: [Instr] -> Vm_st -> Cop_Env -> IO Vm_st
+run_vm :: [Instr] -> VM_St -> Cop_Env -> IO VM_St
 run_vm  ilist initState initEnv =
    runReaderT (execStateT (sequence $ map build_comp ilist) initState) initEnv
 
 run_vm_t ::  T -> Ev -> M.Map Pl Address  -> IO (Ev)
-run_vm_t t e m = do
-  opts <- liftIO $ getClientOptions
-  cop_env <- liftIO $ build_AM_Env opts m
-  commSocketPath <- lookupPath COMM
-  sigSocketPath <- lookupPath SIGN
-  aspSocketPath <- lookupPath (ASP_SERV 1)
-  appSocketPath <- lookupPath (ASP_SERV 42)
-  appSigSocketPath <- lookupPath (ASP_SERV 41)
-  let aspMap = M.fromList [(1,aspSocketPath),(42,appSocketPath),(41,appSigSocketPath)]
+run_vm_t t e nameMap = do
+  opts <- getClientOptions
+  cop_env <- build_Cop_Env opts nameMap
   let instrs = (instr_compiler t)
   --error $ show instrs
-  res <- liftIO $ run_vm (instrs) (initialState e commSocketPath sigSocketPath aspMap) cop_env
+  vm_st <- vm_state_init e
+  res <- run_vm (instrs) vm_st cop_env
   return $ st_ev res
+
+{- This is a hard-coded initial state for demo/testing purposes.
+   TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 
+vm_state_init :: Ev -> IO VM_St
+vm_state_init e = do
+  -- Register Comm Server
+  commSocketPath <- lookupPath COMM
+  -- Register my (place 0's) Signature server
+  sigSocketPath <- lookupPath SIGN
+  -- Register ASP 1
+  asp1SocketPath <- lookupPath (ASP_SERV 1)
+  -- Register appraiser of ASP 1
+  app1SocketPath <- lookupPath (ASP_SERV 42)
+  -- Register appraiser of 0's signature
+  appSig0SocketPath <- lookupPath (ASP_SERV 41) 
+  let aspMap =
+        M.fromList
+        [(1,asp1SocketPath),(42,app1SocketPath),(41,appSig0SocketPath)]
+  return $ initial_VM_state e commSocketPath sigSocketPath aspMap

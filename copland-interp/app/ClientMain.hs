@@ -34,28 +34,25 @@ main = do
   let provBool = optProv opts
   case provBool of
    True -> provision
-   False -> am_main
+   False -> am_main am_proto_1 am_state_init
 
-{-
-proto1 = AT 1
-         (LN
-          (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
-          SIG)
--}
-proto1 = CPY
-
-am_main :: IO ()
-am_main = do
-  let app_nonceMap = M.empty
-      app_nonceID = 0
+{- This is a hard-coded initial state for demo/testing purposes.
+   TODO:  Need to make this user-facing, provide an external registration process for ASP components.  -}
+am_state_init :: AM_St
+am_state_init = 
+  let -- Maps place to the asp_id that checks signatures from that place.
       app_sig_map = M.fromList [(0,41)]
+      -- Similar map for hash appraisals,
       app_hsh_map = M.empty
+      -- Maps a place/asp_id pair to the asp_id that can appraise it.
       app_asp_map = M.fromList [((0, 1),42)]
-      app_nonceCheckAsp = 0
-      init_AM_st =
-        (AM_St app_nonceMap app_nonceID app_sig_map app_hsh_map app_asp_map
-         app_nonceCheckAsp)
-  (resEv, resState) <- runAM_with_st (am_proto_1) init_AM_st
+      -- asp_id for (appraisal) asp that checks nonces
+      app_nonceCheckAsp = 0 in
+        initial_AM_state app_sig_map app_hsh_map app_asp_map app_nonceCheckAsp
+        
+am_main :: AM Ev -> AM_St -> IO ()
+am_main proto init = do
+  (resEv, resState) <- runAM_with_st proto init
   return ()
 
 runAM_with_st :: AM Ev -> AM_St -> IO (Ev, AM_St)
@@ -77,21 +74,11 @@ nameMap_from_term t = do
   res <- genNameServer places
   return res
 
-term_ev :: FilePath -> AM (T,Ev)
-term_ev fp = do
-  case fp of
-   "" -> do
-     let t = proto1
-     n <- am_genNonce
-     return (t, n)
-
-   _ -> liftIO $ get_term_ev
-
-
 am_proto_1 :: AM Ev
 am_proto_1 = do
   opts <- liftIO $ getClientOptions
   let termFile = optTermIn opts
+      evFile = optEvIn opts
       namesFile = optNames opts
       spawnServers = optSpawn opts
       spawnSimBool = optSpawnSim opts
@@ -99,10 +86,12 @@ am_proto_1 = do
       appraiseBool = optApp opts
       compileBool = optCompile opts
 
-  (t,ev) <- term_ev termFile -- Ignore input evidence for now
+  (t,ev) <- liftIO $ get_term_ev termFile evFile
 
-  --n <- am_genNonce
-  --let ev = n -- Use generated nonce as initial evidence
+  {- Uncomment to use generated nonce as initial evidence 
+  n <- am_genNonce
+  let ev = n
+  -}
 
   let places = getPlaces t
 
@@ -121,13 +110,6 @@ am_proto_1 = do
              -- or simply interprets the received copland term
              False -> am_runCOP t ev nm
 
-  {- resEv <- am_runCOP t ev nm
-  -- if client compiles the received copland term,
-  -- and executes the generated sequence of copland instructions.
-  resEv <- liftIO $ run_vm_t t ev nm
-   -}
-
-
   case appraiseBool of
    True -> do
      app_term <- gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
@@ -144,30 +126,6 @@ am_proto_1 = do
   liftIO $ after_output t ev resEv
   return resEv
 
-{-
-appraise_proto_1 :: Ev -> AM Bool
-appraise_proto_1 e = do
-  let (G sigVal e'@(PP n@(N 0 nonceVal (Mt))
-           (U 1 args {-["target.txt"]-} hashVal (Mt)))
-       ) = e
-
-  kp <- liftIO $ lookupSecretKeyPath
-  priKeyBits <- liftIO $ lookupSecretKeyBytesIO kp
-
-  let evBits = encodeEv e'
-  let priKey = SecretKey priKeyBits
-      pubKey = toPublicKey priKey  --TODO: generalize public key management
-      sigResult = verify pubKey sigVal
-
-  liftIO $ putStrLn $ "Sig Check: " ++ (show sigResult)
-  (usmCheck,goldenHash) <- liftIO $ APP.appraiseUsm 1 1 args hashVal
-
-  liftIO $ putStrLn $ "USM Check: " ++ (show usmCheck)
-  nonceCheck <- am_checkNonce n
-
-  liftIO $ putStrLn $ "Nonce Check: " ++ (show nonceCheck)
-  return (sigResult && usmCheck && nonceCheck)
--}
 after_output :: T -> Ev -> Ev -> IO ()
 after_output t ev resEv = do
   opts <- getClientOptions
@@ -194,15 +152,11 @@ after_output t ev resEv = do
        putStrLn $ "\n" ++ "Evidence Result: " ++ "\n" ++ (prettyEv resEv) ++ "\n"
        writeFile fp (prettyEv resEv)
 
-get_term_ev :: IO (T, Ev)
-get_term_ev = do
-  opts <- getClientOptions
-  let inp = optTermIn opts
-      einp = optEvIn opts
-
+get_term_ev :: FilePath -> FilePath -> IO (T, Ev)
+get_term_ev inp einp = do
   t <-
     case inp of
-     "" -> error "should not happen" -- TODO: refactor
+     "" -> return proto1
      _ -> getTerm inp
   ev <-
     case einp of
@@ -213,36 +167,43 @@ get_term_ev = do
   return (t,ev)
 
   where
+    proto1 = CPY
+             {-AT 1
+             (LN
+              (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
+              SIG) -}
     before_output :: T -> Ev -> IO ()
     before_output t ev = do
       putStrLn $ "\n" ++ "Protocol Executed(Also in demoOutput/protoIn.hs): \n" ++ (prettyT t)
       putStrLn $ "\n" ++ "Initial Evidence: \n" ++ (prettyEv ev) ++ "\n"
 
-getTerm :: FilePath -> IO T
-getTerm fp = do
+-- Attempt to read a value from the FIRST LINE of a file.
+-- Output a type(and filepath)-specific error message upon failure.
+readFileGen :: Read a => FilePath -> String -> IO a
+readFileGen fp typeString = do
       s <- readFile fp
       let ss = lines s
-      let (maybeT::Maybe T) = readMaybe (head ss)
+      let maybeT = readMaybe (head ss)
       case maybeT of
        Just t -> return t
-       _ -> error $ "Failed to parse T from file: " ++ fp
+       _ -> error $ "Failed to parse " ++ typeString ++ " from file: " ++ fp
+       
+getTerm :: FilePath -> IO T
+getTerm fp = readFileGen fp "T"
 
 getEv :: FilePath -> IO Ev
-getEv fp = do
-     s <- readFile fp
-     let ss = lines s
-     let (maybeT::Maybe Ev) = readMaybe (head ss)
-     case maybeT of
-      Just t -> return t
-      _ -> error $ "Failed to parse Ev from file: " ++ fp
+getEv fp = readFileGen fp "Ev"
 
+{- Hard-coded provisioning.
+   TODO: Make this user-facing.
+         Probably calls for its own provisioning executable + CLI.  -}
 provision :: IO ()
 provision = do
   bits <- CI.doHashFile "../target.txt"
   B.writeFile "goldenInputBits.txt" bits
 
-  bits <- CI.doHashFile "../kimTarget.txt"
-  B.writeFile "goldenKimBits.txt" bits
+  {-bits <- CI.doHashFile "../kimTarget.txt"
+  B.writeFile "goldenKimBits.txt" bits-}
 
 getPlaces :: T -> [Pl]
 getPlaces t = getPlaces' t []
@@ -264,3 +225,30 @@ getPlaces' t pls =
      let rs = getPlaces' t2 pls in
      union ls rs
    _ -> pls
+
+
+
+{-
+appraise_proto_1 :: Ev -> AM Bool
+appraise_proto_1 e = do
+  let (G sigVal e'@(PP n@(N 0 nonceVal (Mt))
+           (U 1 args {-["target.txt"]-} hashVal (Mt)))
+       ) = e
+
+  kp <- liftIO $ lookupSecretKeyPath
+  priKeyBits <- liftIO $ lookupSecretKeyBytesIO kp
+
+  let evBits = encodeEv e'
+  let priKey = SecretKey priKeyBits
+      pubKey = toPublicKey priKey  --TODO: generalize public key management
+      sigResult = verify pubKey sigVal
+
+  liftIO $ putStrLn $ "Sig Check: " ++ (show sigResult)
+  (usmCheck,goldenHash) <- liftIO $ APP.appraiseUsm 1 1 args hashVal
+
+  liftIO $ putStrLn $ "USM Check: " ++ (show usmCheck)
+  nonceCheck <- am_checkNonce n
+
+  liftIO $ putStrLn $ "Nonce Check: " ++ (show nonceCheck)
+  return (sigResult && usmCheck && nonceCheck)
+-}

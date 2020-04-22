@@ -35,20 +35,6 @@ main :: IO ()
 main = do
   putStrLn "starting asp42 server......"
   startServer (ASP_SERV 42) doAt
-  
-{-
-invokeUSM :: ASP_ID -> [ARG] -> VM BS
-invokeUSM asp args = do
-  case asp of
-    1 -> if ((length args) == 0)
-         then error $ "not enough args to USM: " ++ (show asp)
-         else do
-           let fileName_bits = head args
-               fileName = B.decode $ BL.fromStrict fileName_bits
-           
-           liftIO $ doHashFile $ "../" ++ fileName
-    _ -> error $ "USM with asp_id not supported: " ++ (show asp)
--}
 
 type GoldenUsmMap = M.Map (ASP_ID,Pl,[ARG]) BS
 
@@ -103,30 +89,3 @@ doAt msg = do
            let respMsg = DA.encode (AspResponseMessage (BL.toStrict uBoolBits))
            putStrLn $ "respMgs: " ++ (show respMsg)
            return $ BL.toStrict respMsg
-
-
-
-  {-
-  let sBits = eBits -- TODO sig algorithm here
-  let respMsg = DA.encode (SigResponseMessage sBits)
-  return (BL.toStrict respMsg)-}
-
-
-
-    {-
-           let (fileName_bits :: BS) = head args
-           putStrLn $ "fileName_bits: " ++ (show fileName_bits)
-           --let (fileName :: String) = B.decode (BL.fromStrict fileName_bits)
-           let (eitherFN ::
-                   Either (BL.ByteString, BG.ByteOffset, String)
-                   (BL.ByteString, BG.ByteOffset, String))
-                 = B.decodeOrFail (BL.fromStrict fileName_bits) -}
-    
-           --fileName <- decodeGen {-$ BL.fromStrict-} fileName_bits
-           --error fileName
-
-    {-
-           case eitherFN of
-            Left x -> putStrLn (show x)
-            Right (_,_,fileName) -> putStrLn $ "Filename: " ++ fileName
--}

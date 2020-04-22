@@ -28,7 +28,7 @@ import qualified Data.Map as M
       st_serverSocket - Unix Domain Socket identifier (filename)
 -}
 
-data  Vm_st = Vm_st { st_ev :: Ev
+data  VM_St = VM_St { st_ev :: Ev
                     , st_stack :: Stack Ev
                     , st_store :: M.Map Natural Ev
                     , st_index :: Int
@@ -37,7 +37,7 @@ data  Vm_st = Vm_st { st_ev :: Ev
                     , st_aspSockets :: M.Map ASP_ID String
                     }
 
-emptyState = Vm_st { st_ev = Mt
+emptyState = VM_St { st_ev = Mt
                    , st_stack = Stack []
                    , st_store = M.empty
                    , st_index = 0
@@ -46,9 +46,11 @@ emptyState = Vm_st { st_ev = Mt
                    , st_aspSockets = M.empty
                    }
 
-initialState ev socketPathname sigPathname aspMap = emptyState { st_ev = ev, st_serverSocket = socketPathname, st_sigSocket = sigPathname, st_aspSockets = aspMap}
+initial_VM_state ev socketPathname sigPathname aspMap =
+  emptyState { st_ev = ev, st_serverSocket = socketPathname,
+               st_sigSocket = sigPathname, st_aspSockets = aspMap }
 
-type VM = StateT Vm_st COP
+type VM = StateT VM_St COP
 
 
 newtype Stack a = Stack [a]

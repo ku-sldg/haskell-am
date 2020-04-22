@@ -36,20 +36,6 @@ main = do
   putStrLn "starting asp1 server......"
   startServer (ASP_SERV 1) doAt
 
-{-
-invokeUSM :: ASP_ID -> [ARG] -> VM BS
-invokeUSM asp args = do
-  case asp of
-    1 -> if ((length args) == 0)
-         then error $ "not enough args to USM: " ++ (show asp)
-         else do
-           let fileName_bits = head args
-               fileName = B.decode $ BL.fromStrict fileName_bits
-           
-           liftIO $ doHashFile $ "../" ++ fileName
-    _ -> error $ "USM with asp_id not supported: " ++ (show asp)
--}
-
 doAt :: BS.ByteString -> IO BS.ByteString
 doAt msg = do
   putStrLn "doAt"
@@ -62,37 +48,7 @@ doAt msg = do
            let fileName = head args
            putStrLn $ "fileName: " ++ fileName
 
-
-    
-    {-
-           let (fileName_bits :: BS) = head args
-           putStrLn $ "fileName_bits: " ++ (show fileName_bits)
-           --let (fileName :: String) = B.decode (BL.fromStrict fileName_bits)
-           let (eitherFN ::
-                   Either (BL.ByteString, BG.ByteOffset, String)
-                   (BL.ByteString, BG.ByteOffset, String))
-                 = B.decodeOrFail (BL.fromStrict fileName_bits) -}
-    
-           --fileName <- decodeGen {-$ BL.fromStrict-} fileName_bits
-           --error fileName
-
-    {-
-           case eitherFN of
-            Left x -> putStrLn (show x)
-            Right (_,_,fileName) -> putStrLn $ "Filename: " ++ fileName
--}
-    
-
-           
-
            hashBits <- doHashFile $ "../" ++ fileName
            let respMsg = DA.encode (AspResponseMessage hashBits)
            putStrLn $ "respMgs: " ++ (show respMsg)
            return $ BL.toStrict respMsg
-
-
-
-  {-
-  let sBits = eBits -- TODO sig algorithm here
-  let respMsg = DA.encode (SigResponseMessage sBits)
-  return (BL.toStrict respMsg)-}

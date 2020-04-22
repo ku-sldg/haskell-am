@@ -45,7 +45,16 @@ data AM_St =
            nonce_check_asp :: ASP_ID
          } deriving (Show)
 
-empty_AM_state = (AM_St M.empty 0 M.empty M.empty M.empty 0)
+empty_AM_state = AM_St { am_nonceMap =  M.empty,
+                         am_nonceId = 0,
+                         sig_map = M.empty,
+                         hsh_map = M.empty,
+                         asp_map = M.empty,
+                         nonce_check_asp = 0 }
+
+initial_AM_state sigMap hshMap aspMap nca =
+  empty_AM_state { sig_map = sigMap, hsh_map = hshMap, asp_map = aspMap,
+                   nonce_check_asp = nca }
 
 runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
@@ -107,19 +116,6 @@ am_checkNonce e = do
 
    _ -> return False
    {- TODO: better return type/error handling for non-nonce case? -}
-
-
-{-
--- TODO: incorporate these as maps in the appraisal monad 
-sigMap :: Pl -> ASP_ID
-sigMap p = undefined
-
-hshMap :: Pl -> ASP_ID
-hshMap p = undefined
-
-aspMap :: ASP_ID -> Pl -> ASP_ID
-aspMap i = undefined
--}
 
 
 -- TODO:  refactor to fold
@@ -244,23 +240,15 @@ appraise_ev e =
    _ -> error "shouldn't happen because of gen_appraisal_term definition"
 
 
-
-
-
-
-
-
-   
-
 am_runCOP :: T -> Ev -> M.Map Pl Address -> AM Ev
 am_runCOP t e m = do
   opts <- liftIO $ getClientOptions
-  cop_env <- liftIO $ build_AM_Env opts m
+  cop_env <- liftIO $ build_Cop_Env opts m
   res <- liftIO $ runCOP (interp t e) cop_env
   return res
 
-build_AM_Env :: Client_Options -> M.Map Pl Address -> IO Cop_Env
-build_AM_Env opts nameMap = do
+build_Cop_Env :: Client_Options -> M.Map Pl Address -> IO Cop_Env
+build_Cop_Env opts nameMap = do
 
   let b = optSim opts
       d = optDebug opts
