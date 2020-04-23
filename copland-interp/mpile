@@ -1,4 +1,4 @@
-G (SS
-    Mt
-    U 1 ["target.txt"] "\FS\154\&4\132..." (Mt))
-  "qu\DEL\252..."
+G 1 (SS
+      Mt
+      U 1 1 ["target.txt"] "\FS\154\&4\132..." (Mt))
+    "qu\DEL\252..."

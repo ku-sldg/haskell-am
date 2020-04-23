@@ -56,13 +56,13 @@ instance Pretty Ev where
   pretty e =
     case e of
     Mt -> (fromStr mtStr)
-    U i args b e' ->
-      hsep [(fromStr uStr), (viaShow i), (viaShow args),
+    U p i args b e' ->
+      hsep [(fromStr uStr), (viaShow p), (viaShow i), (viaShow args),
             (viaShow (shorb b)), parens (pretty e')]
-    G b e' ->
-      (fromStr gStr) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
-    H b ->
-      hsep [(fromStr hStr), (viaShow (shorb b))]
+    G p b e' ->
+      (hsep [(fromStr gStr), (viaShow p)]) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
+    H p b ->
+      hsep [(fromStr hStr), (viaShow p), (viaShow (shorb b))]
     N n b e' ->
       (fromStr nStr) <+> align (vsep [(viaShow n), (viaShow (shorb b)),
                                       parens (pretty e')])
@@ -76,6 +76,7 @@ instance Show Ev where
   showsPrec _ = renderShowS . layoutPretty defaultLayoutOptions . pretty
 -}
 
+prettyEv :: Ev -> String
 prettyEv = renderString . layoutPretty defaultLayoutOptions . pretty
 
 
@@ -99,6 +100,7 @@ df = do
     --q = LN (LN (LN NONCE NONCE) NONCE) (LN SIG SIG)
   putStrLn (prettyT t)
 
+{-
 as :: IO ()
 as = do
   let
@@ -108,3 +110,4 @@ as = do
     h = SS f g
     k = PP h h
   putStrLn (prettyEv k)
+-}

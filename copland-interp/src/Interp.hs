@@ -35,20 +35,20 @@ import qualified Data.ByteString.Lazy as BL (fromStrict)
     Returns:  resulting evidence  -}
 interp :: T -> Ev -> COP Ev
 interp t e = do
-  --p <- asks me
+  p <- asks me
   ev <-
     case t of
     ASP i args -> do
       bs <- interpUSM i args
-      return $ U i args bs e
+      return $ U p i args bs e
 
     SIG -> do
       bs <- signEv e
-      return $ G bs e
+      return $ G p bs e
   
     HSH -> do
       bs <- hashEv e
-      return $ H bs
+      return $ H p bs
 
     CPY -> return e
   

@@ -150,7 +150,7 @@ am_proto_1 = do
 
   case appraiseBool of
    True -> do
-     app_term <- gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
+     app_term <- gen_appraisal_term t ev resEv --gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
      liftIO $ putStrLn $ "app_term: " ++ (show app_term)
      app_ev <- liftIO $ do
        vm_st <- DS.vm_state_init Mt -- TODO: Mt evidence ok?

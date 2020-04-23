@@ -223,9 +223,73 @@ gen_evt' t init_t e p =
        (t2',_) <- (gen_appraisal_term' t2 p e2)
        return $ ((BRP (NONE,NONE) t1' t2'),Mt) -- TODO: (NONE,NONE)?  Mt?
      _ -> error "evidence mismath on BRP-PP"
--}  
-        
+-}
 
+gen_from_ev' :: Ev -> AM T
+gen_from_ev' e = do
+  --liftIO $ putStrLn $ "\nterm in gen_appriasel_term': \n" ++ (prettyT t) ++ "\n"
+  liftIO $ putStrLn $ "\nevidence in gen_appriasel_term': \n" ++ (prettyEv e) ++ "\n"
+  case e of
+   Mt -> return CPY
+   U p i args bs e' -> do
+     app_id <- am_get_asp_asp p i
+     t2 <- gen_from_ev' e'
+     let t1 = (ASP app_id ((show bs) : args))
+     let res = BRP (NONE,NONE) t1 t2
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+       (prettyT res) ++ "\n"
+     return $ res
+   G p bs e' -> do
+     sig_id <- am_get_sig_asp p
+     let evBits = encodeEv e' --BL.toStrict (DA.encode e)
+         evBitsArg = show evBits
+         sigArg = show bs
+     t2 <- gen_from_ev' e'
+     let t1 = (ASP sig_id [evBitsArg,sigArg])
+         res = BRP (NONE,NONE) t1 t2 
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+       (prettyT res) ++ "\n"
+     return $ res -- TODO: custom args here?
+   H p bs -> do
+     hsh_id <- am_get_hsh_asp p
+     let hshArg = show bs
+     return $ (ASP hsh_id [hshArg]) -- TODO: custom args here?  e or Mt?
+
+   SS e1 e2 -> do
+     {-let e1 = allnone sp1 e
+            e2 = allnone sp2 e   -}
+     t1' <- (gen_from_ev' e1)
+     t2' <- (gen_from_ev' e2)
+     let res = BRP (NONE,NONE) t1' t2'
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+       (prettyT res) ++ "\n"
+     return $ res -- TODO: BRP?  (NONE,NONE)?  Mt?
+
+   PP e1 e2 -> do
+     {-let e1 = allnone sp1 e
+            e2 = allnone sp2 e   -}
+     t1' <- (gen_from_ev' e1)
+     t2' <- (gen_from_ev' e2)
+     let res = BRP (NONE,NONE) t1' t2'
+     liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
+       (prettyT res) ++ "\n"
+     return $ res -- TODO: BRP?  (NONE,NONE)?  Mt?
+
+  where allnone sp e =
+          case sp of
+           ALL -> e
+           NONE -> Mt
+
+
+
+
+
+
+
+
+
+        
+{-
 gen_appraisal_term' :: T -> Pl -> Ev -> AM (T,Ev)
 gen_appraisal_term' t p e = do
   liftIO $ putStrLn $ "\nterm in gen_appriasel_term': \n" ++ (prettyT t) ++ "\n"
@@ -233,7 +297,7 @@ gen_appraisal_term' t p e = do
   case t of
    ASP i args -> do
      case e of
-      U _ args bs e' -> do
+      U _ _ args bs e' -> do
         app_id <- am_get_asp_asp p i
         let res = ((ASP app_id ((show bs) : args)), e')
         liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
@@ -242,7 +306,7 @@ gen_appraisal_term' t p e = do
       _ -> error "evidence mismath on ASP-U"
    SIG -> do
      case e of
-      G bs e' -> do
+      G _ bs e' -> do
         sig_id <- am_get_sig_asp p
         let evBits = encodeEv e' --BL.toStrict (DA.encode e)
             evBitsArg = show evBits
@@ -254,7 +318,7 @@ gen_appraisal_term' t p e = do
       _ -> error "evidence mismath on SIG-G"
    HSH -> do
      case e of
-      H bs -> do
+      H _ bs -> do
         hsh_id <- am_get_hsh_asp p
         return $ ((ASP hsh_id []), e) -- TODO: custom args here?  e or Mt?
       _ -> error "evidence mismath on HSH-H"
@@ -305,12 +369,12 @@ gen_appraisal_term' t p e = do
           case sp of
            ALL -> e
            NONE -> Mt
+-}
 
-
-gen_appraisal_term :: T -> Pl -> Ev -> Ev -> AM T
-gen_appraisal_term t p initEv resEv = do
+gen_appraisal_term :: T -> Ev -> Ev -> AM T
+gen_appraisal_term t initEv resEv = do
   t1 <- ev_nonce_term initEv
-  (t2,_) <- gen_appraisal_term' t p resEv
+  t2 <- gen_from_ev' resEv
   return $ LN t1 t2
 
 
@@ -322,7 +386,7 @@ appraise_ev e =
      let e1bs = appraise_ev e1 in
      let e2bs = appraise_ev e2 in
       e1bs ++ e2bs
-   U _ _ bs e' ->
+   U _ _ _ bs e' ->
      let e'bs = appraise_ev e' in
      let aBool= D.decode (BL.fromStrict bs) in
       aBool : e'bs

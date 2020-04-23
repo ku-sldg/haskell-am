@@ -52,9 +52,9 @@ instance BI.Binary T where
 -- Concrete Evidence returned from an execution.
 data Ev
   = Mt
-  | U ASP_ID [ARG] BS Ev
-  | G BS Ev
-  | H BS
+  | U Pl ASP_ID [ARG] BS Ev
+  | G Pl BS Ev
+  | H Pl BS
   | N Int BS Ev
   | SS Ev Ev
   | PP Ev Ev
@@ -63,6 +63,7 @@ data Ev
 instance BI.Binary Ev where
 --instance NFData Ev where
 
+  {-
 -- Place-lifted Evidence, used as intermediate for generating appraisal term
 data Ev_T
   = Mtt
@@ -75,6 +76,7 @@ data Ev_T
   deriving (Generic,Eq, Read, Show)
 
 instance BI.Binary Ev_T where
+-}
 
 
 {-------- Comm Types --------}
@@ -123,11 +125,11 @@ encodeEv :: Ev -> BS
 encodeEv e =
   case e of
   Mt -> B.empty
-  U _ _ bs e' ->
+  U _ _ _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)
-  G bs _ -> bs
-  H bs -> bs
+  G _ bs _ -> bs
+  H _ bs -> bs
   N _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)

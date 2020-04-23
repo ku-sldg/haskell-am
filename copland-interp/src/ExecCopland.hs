@@ -29,17 +29,17 @@ import qualified Data.ByteString.Lazy as BL (fromStrict)
 build_comp :: Instr -> VM ()
 build_comp i = do
   e <- get_ev
-  --myplace <- lift $ asks me
+  myplace <- lift $ asks me
   case i of
     Copy -> put_ev e
     Umeas i args -> do
                  usmResult <- invokeUSM i args
-                 put_ev $ U i args usmResult e
+                 put_ev $ U myplace i args usmResult e
     Sign -> do
            --liftIO $ error "sig body"
            signature <- (signEv e)
-           put_ev (G signature e)
-    Hash -> put_ev $ H (hashEv e)
+           put_ev (G myplace signature e)
+    Hash -> put_ev $ H myplace (hashEv e)
     Split sp1 sp2 -> do
                  put_ev (splitEv sp1 e)
                  push_stackm (splitEv sp2 e)
