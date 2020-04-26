@@ -185,23 +185,23 @@ genMt = return Mt
 
 genU n = do
   i <- genPl
-  p <- genPl
+  --p <- genPl
   args <- genArgs
   bs <- genBS
   ev <- genEv n
-  return $ U p i args bs ev
+  return $ U i args bs ev
 
 genG n = do
-  i <- genPl
+  --i <- genPl
   bs <- genBS
   ev <- genEv n
-  return $ G i bs ev
+  return $ G bs ev
 
 genH :: Gen Ev
 genH = do
   bs <- genBS
-  i <- genPl
-  return $ H i bs
+  --i <- genPl
+  return $ H bs
 
 genN n = do
   p <- genPl

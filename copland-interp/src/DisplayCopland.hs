@@ -56,13 +56,13 @@ instance Pretty Ev where
   pretty e =
     case e of
     Mt -> (fromStr mtStr)
-    U p i args b e' ->
-      hsep [(fromStr uStr), (viaShow p), (viaShow i), (viaShow args),
+    U i args b e' ->
+      hsep [(fromStr uStr), {-(viaShow p),-} (viaShow i), (viaShow args),
             (viaShow (shorb b)), parens (pretty e')]
-    G p b e' ->
-      (hsep [(fromStr gStr), (viaShow p)]) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
-    H p b ->
-      hsep [(fromStr hStr), (viaShow p), (viaShow (shorb b))]
+    G b e' ->
+      (hsep [(fromStr gStr){-, (viaShow p)-}]) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
+    H b ->
+      hsep [(fromStr hStr){-, (viaShow p)-}, (viaShow (shorb b))]
     N n b e' ->
       (fromStr nStr) <+> align (vsep [(viaShow n), (viaShow (shorb b)),
                                       parens (pretty e')])
