@@ -19,7 +19,7 @@ import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)
 import qualified CryptoImpl as CI (doHashFile)
 import ServerAppUtil(spawn_the_servers)
-import qualified DemoStates as DS (am_state_init, vm_state_init)
+import qualified DemoStates as DS (am_env_init, vm_state_init)
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -36,7 +36,7 @@ main = do
   let provBool = optProv opts
   case provBool of
    True -> provision
-   False -> am_main am_proto_1 DS.am_state_init
+   False -> am_main am_proto_1 DS.am_env_init
 
 {-
 {- This is a hard-coded initial state for demo/testing purposes.
@@ -74,23 +74,31 @@ vm_state_init e = do
 -}
 
         
-am_main :: AM Ev -> AM_St -> IO ()
+am_main :: AM Ev -> AM_Env -> IO ()
 am_main proto init = do
-  (resEv, resState) <- runAM_with_st proto init
+  (resEv, resState) <- runAM_with_env proto init
   return ()
 
+{-
 runAM_with_st :: AM Ev -> AM_St -> IO (Ev, AM_St)
 runAM_with_st am_computation am_st = do
-  let fresh_AM_Env = (AM_Env "")
+  let fresh_AM_Env = empty_AM_env
       fresh_AM_St = am_st
   runAM am_computation fresh_AM_Env fresh_AM_St
+-}
+runAM_with_env :: AM Ev -> AM_Env -> IO (Ev, AM_St)
+runAM_with_env am_computation am_env = do
+  let da_AM_Env = am_env
+      da_AM_St = empty_AM_state
+  runAM am_computation da_AM_Env da_AM_St
 
-
+{-
 runAM_fresh :: AM Ev -> IO (Ev, AM_St)
 runAM_fresh am_computation = do
-  let fresh_AM_Env = (AM_Env "")
-      fresh_AM_St = (AM_St M.empty 0 M.empty M.empty M.empty 0)
+  let fresh_AM_Env = empty_AM_env
+      fresh_AM_St = empty_AM_state
   runAM am_computation fresh_AM_Env fresh_AM_St
+-}
 
 nameMap_from_term :: T -> IO (M.Map Pl Address)
 nameMap_from_term t = do
@@ -120,10 +128,10 @@ am_proto_1 = do
 
   (t,ev) <- liftIO $ get_term_ev termFile evFile
 
-  {- Uncomment to use generated nonce as initial evidence 
-  n <- am_genNonce
+  {- Uncomment to use generated nonce as initial evidence -}
+  n1 <- am_genNonce Mt
+  n <- am_genNonce n1
   let ev = n
-  -}
 
   let places = getPlaces t
 
@@ -150,9 +158,11 @@ am_proto_1 = do
 
   case appraiseBool of
    True -> do
-     let init_ev_type = Mtt -- TODO: generalize this
-     app_term <- gen_appraisal_term t ev resEv init_ev_type
+     let init_ev_type = Nt 1 (Nt 0 Mtt) -- TODO: generalize this
+     app_term <- gen_appraisal_term t {-ev-} resEv init_ev_type
      --gen_appraisal_term t 0 ev resEv -- TODO: 0 place ok?
+
+     nonceB <- am_get_app_nonce_bool --check_nonces_ev resEv
      liftIO $ putStrLn $ "app_term: " ++ (show app_term)
      app_ev <- liftIO $ do
        vm_st <- DS.vm_state_init Mt -- TODO: Mt evidence ok?
@@ -160,8 +170,9 @@ am_proto_1 = do
        --b <- appraise_proto_1 resEv
      liftIO $ putStrLn $ "appraisal result: " ++ (show app_ev)
      let boolList = appraise_ev app_ev
-     let appBoolResult = and boolList
+     let appBoolResult = and (boolList ++ [nonceB])
      liftIO $ putStrLn $ "bool list: " ++ (show boolList)
+     liftIO $ putStrLn $ "nonce check: " ++ (show nonceB)
      liftIO $ putStrLn $ "Appraisal result: " ++ (show appBoolResult)
    False -> return ()
 

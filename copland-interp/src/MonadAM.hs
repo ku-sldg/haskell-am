@@ -15,6 +15,8 @@ import ClientProgArgs
 
 import Control.Monad.Reader
 import Control.Monad.State
+-- import Control.Monad.Error
+-- import Control.Monad.Trans.MaybeT
 import qualified Data.ByteString as B (ByteString, readFile, empty)
 import qualified Data.ByteString.Lazy as BL (toStrict,fromStrict)
 import qualified Data.Map as M
@@ -22,13 +24,17 @@ import qualified Data.Binary as D (encode,decode)
 
 {-  The Attestation Manager Monad  -}
 type AM = ReaderT AM_Env (StateT AM_St IO)
+--type AM = ReaderT AM_Env (StateT AM_St (MaybeT IO))
 
 {-  Read-only environment used during protocol execution.
     Contains:
 
 -}
 data AM_Env =
-  AM_Env { myPolicy :: Policy
+  AM_Env { sig_map :: M.Map Pl ASP_ID,
+           hsh_map :: M.Map Pl ASP_ID,
+           asp_map :: M.Map (Pl,ASP_ID) ASP_ID,
+           nonce_check_asp :: ASP_ID
           } deriving (Show)
 
 type Policy = String
@@ -37,23 +43,22 @@ type Policy = String
     Contains:
  -}
 data AM_St =
-  AM_St { am_nonceMap :: M.Map Int B.ByteString,
-           am_nonceId  :: Int,
-           sig_map :: M.Map Pl ASP_ID,
-           hsh_map :: M.Map Pl ASP_ID,
-           asp_map :: M.Map (Pl,ASP_ID) ASP_ID,
-           nonce_check_asp :: ASP_ID
+  AM_St { am_nonceMap :: M.Map Int BS,
+          am_nonceAppraiseMap :: M.Map Int Bool,
+          am_nonceId  :: Int
          } deriving (Show)
 
 empty_AM_state = AM_St { am_nonceMap =  M.empty,
-                         am_nonceId = 0,
-                         sig_map = M.empty,
+                         am_nonceAppraiseMap = M.empty,
+                         am_nonceId = 0 }
+
+empty_AM_env = AM_Env {  sig_map = M.empty,
                          hsh_map = M.empty,
                          asp_map = M.empty,
                          nonce_check_asp = 0 }
 
-initial_AM_state sigMap hshMap aspMap nca =
-  empty_AM_state { sig_map = sigMap, hsh_map = hshMap, asp_map = aspMap,
+initial_AM_env sigMap hshMap aspMap nca =
+  empty_AM_env { sig_map = sigMap, hsh_map = hshMap, asp_map = aspMap,
                    nonce_check_asp = nca }
 
 runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
@@ -62,7 +67,7 @@ runAM k env st =
 
 am_get_sig_asp :: Pl -> AM ASP_ID
 am_get_sig_asp p = do
-  m <- gets sig_map
+  m <- asks sig_map
   let maybeId = M.lookup p m
   case maybeId of
    Just i -> return i
@@ -70,7 +75,7 @@ am_get_sig_asp p = do
 
 am_get_hsh_asp :: Pl -> AM ASP_ID
 am_get_hsh_asp p = do
-  m <- gets hsh_map
+  m <- asks hsh_map
   let maybeId = M.lookup p m
   case maybeId of
    Just i -> return i
@@ -78,7 +83,7 @@ am_get_hsh_asp p = do
 
 am_get_asp_asp :: Pl -> ASP_ID -> AM ASP_ID
 am_get_asp_asp p i = do
-  m <- gets asp_map
+  m <- asks asp_map
   let maybeId = M.lookup (p,i) m
   case maybeId of
    Just newI -> return newI
@@ -86,27 +91,57 @@ am_get_asp_asp p i = do
 
 am_updateNonce :: B.ByteString -> AM Int
 am_updateNonce bs = do
-  (AM_St m id w x y z) <- get
+  (AM_St m x id) <- get
   let newMap = M.insert id bs m
       newId = id + 1
-  put (AM_St newMap newId w x y z)
+  put (AM_St newMap x newId)
   return id
 
-am_genNonce :: AM Ev
-am_genNonce = do
+am_genNonce :: Ev -> AM Ev
+am_genNonce e = do
   bs <- liftIO $ CI.doNonce
   new_id <- am_updateNonce bs
   --let my_place = 0 -- TODO:  should we make this more general?
-  return $ N new_id bs Mt
+  return $ N new_id bs e
 
-am_getNonce :: Int -> AM B.ByteString
+am_getNonce :: Int -> AM BS
 am_getNonce i = do
-  (AM_St m _ _ _ _ _) <- get
+  (AM_St m _ _) <- get
   let maybeVal = M.lookup i m
   case maybeVal of
    Nothing -> return B.empty {- TODO: better error handling -}
    Just val -> return val
 
+am_appraise_nonce :: Int -> BS -> AM ()
+am_appraise_nonce i bs = do
+  (AM_St x amap y) <- get
+  goldenVal <- am_getNonce i
+  let b = (bs == goldenVal)
+      newAmap = M.insert i b amap
+  put (AM_St x newAmap y)
+
+am_get_app_nonces :: AM (M.Map Int Bool)
+am_get_app_nonces = do
+  gets am_nonceAppraiseMap
+
+am_clear_app_nonces :: AM ()
+am_clear_app_nonces = do
+  (AM_St x _ y) <- get
+  put (AM_St x (M.empty) y)
+
+am_get_app_nonce_bools :: AM [Bool]
+am_get_app_nonce_bools = do
+  m <- am_get_app_nonces
+  liftIO $ putStrLn $ "nonce bool map: " ++ (show m)
+  let ls = M.toList m
+  return $ fmap snd ls
+
+am_get_app_nonce_bool :: AM Bool
+am_get_app_nonce_bool = do
+  bs <- am_get_app_nonce_bools
+  return (and bs)
+
+{-
 am_checkNonce :: Ev -> AM Bool
 am_checkNonce e = do
   case e of
@@ -115,6 +150,7 @@ am_checkNonce e = do
      return (goldenVal == bs)
 
    _ -> return False
+-}
    {- TODO: better return type/error handling for non-nonce case? -}
 
 
@@ -130,13 +166,30 @@ ev_nonce_list e = ev_nonce_list' e []
 
 n_to_term :: (Int,BS) -> AM T
 n_to_term (i,bs) = do
-  n_asp <- gets nonce_check_asp
+  n_asp <- asks nonce_check_asp
   let arg1 = (show i)
       arg2 = (show bs) in
   {-let arg1 = BL.toStrict $ D.encode i
       arg2 = bs in -}
    return $ ASP n_asp [arg1,arg2]
-   
+
+check_nonces' :: [(Int,BS)] -> AM [Bool]
+check_nonces' ls =
+  mapM f ls
+  where f :: (Int,BS) -> AM Bool
+        f (i,bs) = do
+          goldenVal <- am_getNonce i
+          return (goldenVal == bs)
+
+check_nonces :: [(Int,BS)] -> AM Bool
+check_nonces ls = do
+  bools <- check_nonces' ls
+  return (and bools)
+
+check_nonces_ev :: Ev -> AM Bool
+check_nonces_ev e = do
+  let ls = ev_nonce_list e
+  check_nonces ls
   
 
 nlist_to_term :: [(Int,BS)] -> AM T
@@ -236,6 +289,17 @@ gen_from_ev' e et = do
   --liftIO $ putStrLn $ "\nterm in gen_appriasel_term': \n" ++ (prettyT t) ++ "\n"
   liftIO $ putStrLn $ "\nevidence in gen_appriasal_term': \n" ++ (prettyEv e) ++ "\n"
   case e of
+   N i bs e' ->
+     case et of
+      Nt i_t e'_t -> do
+        am_appraise_nonce i_t bs
+        gen_from_ev' e' e'_t
+        {- case (i == i_t) of
+         True -> do
+           am_appraise_nonce i bs
+           gen_from_ev' e' e'_t
+         False -> error "nonce id mismatch" -}
+      _ -> error "evidence mismath on N Nt"  
    Mt ->
      case et of
       Mtt -> return CPY
@@ -425,19 +489,20 @@ t_to_evt' t p e =
 t_to_evt :: T -> Ev_T -> Ev_T
 t_to_evt t e = t_to_evt' t 0 e
 
-gen_appraisal_term :: T -> Ev -> Ev -> Ev_T -> AM T
-gen_appraisal_term t initEv resEv initEv_T = do
-  t1 <- ev_nonce_term initEv
+gen_appraisal_term :: T -> {-Ev ->-} Ev -> Ev_T -> AM T
+gen_appraisal_term t {-initEv-} resEv initEv_T = do
+  am_clear_app_nonces
+  --t1 <- ev_nonce_term initEv
   let resEv_t = t_to_evt t initEv_T
   t2 <- gen_from_ev' resEv resEv_t
-  return $ LN t1 t2
-
+  --return $ LN t1 t2
+  return t2
 
 
 appraise_ev :: Ev -> [Bool]
 appraise_ev e =
   case e of
-   SS e1 e2 ->
+   SS e1 e2 -> -- TODO:  this will become PP evidence once AVM supports BRP
      let e1bs = appraise_ev e1 in
      let e2bs = appraise_ev e2 in
       e1bs ++ e2bs

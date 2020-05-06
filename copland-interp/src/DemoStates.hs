@@ -18,8 +18,14 @@ import qualified Data.Map as M
 
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP components.  -}
+
+{-
 am_state_init :: AM_St
-am_state_init = 
+am_state_init = empty_AM_state {- TODO: is this ok? -}
+-}
+
+am_env_init :: AM_Env
+am_env_init = 
   let -- Maps place to the asp_id that checks signatures from that place.
       app_sig_map = M.fromList [(0,41), (1,41)]
       -- Similar map for hash appraisals,
@@ -28,7 +34,7 @@ am_state_init =
       app_asp_map = M.fromList [((0, 1),42), ((1,1),42)]
       -- asp_id for (appraisal) asp that checks nonces
       app_nonceCheckAsp = 0 in
-        initial_AM_state app_sig_map app_hsh_map app_asp_map app_nonceCheckAsp
+        initial_AM_env app_sig_map app_hsh_map app_asp_map app_nonceCheckAsp
 
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 
