@@ -4,7 +4,7 @@ module ExecCopland where
 
 --import ServerAppUtil (lookupPath, ServerType(..),vm_state_init)
 import CoplandLang
-import CoplandInstr
+{-import CoplandInstr -}
 import qualified JsonCopland as JC (decodeGen)
 import ClientProgArgs
 import MonadCop
@@ -26,20 +26,111 @@ import qualified Network.Socket.ByteString as NBS (recv, sendAll)
 import qualified Data.Binary as B (decode)
 import qualified Data.ByteString.Lazy as BL (fromStrict)
 
-build_comp :: Instr -> VM ()
-build_comp i = do
+copyEv :: VM Ev
+copyEv = get_ev
+
+do_prim :: ASP -> VM Ev
+do_prim a =
+  case a of
+    CPY -> copyEv
+    SIG -> do
+      e <- get_ev
+      bs <- signEv e
+      return $ G bs e
+    HSH -> do
+      e <- get_ev
+      bs <- hashEv e
+      return $ H bs
+    ASPC i args -> do
+      e <- get_ev
+      bs <- invokeUSM i args
+      return $ U i args bs e
+
+put_comm_request :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
+put_comm_request t q reqi rpyi = return ()
+
+poll_comm_response :: Natural -> VM Ev
+poll_comm_response n = return Mt 
+
+
+sendReq :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
+sendReq t q reqi rpyi = do
+  {-p <- get_pl-}
   e <- get_ev
+  put_store_at reqi e
+  put_comm_request t q reqi rpyi
+
+receiveResp :: Natural -> VM Ev
+receiveResp rpyi = do
+  poll_comm_response rpyi
+
+put_par_request :: AnnoTerm -> (Natural, Natural) -> VM ()
+put_par_request t pr@(loc1, loc2) = return ()
+
+poll_par_response :: Natural -> VM Ev
+poll_par_response n = return Mt
+
+poll_par_responses :: (Natural,Natural) -> VM (Ev,Ev)
+poll_par_responses (n,m) = do
+  e1 <- poll_par_response n
+  e2 <- poll_par_response m
+  return (e1,e2)
+
+runParThread :: AnnoTerm -> (Natural, Natural) -> VM ()
+runParThread t pr@(loc1,loc2) = do
+  e <- get_store_at loc1
+  put_par_request t pr
+
+runParThreads :: AnnoTerm -> AnnoTerm -> (Natural,Natural) -> (Natural,Natural) -> VM ()
+runParThreads t1 t2 t1_locs t2_locs = do
+  runParThread t1 t1_locs
+  runParThread t2 t2_locs
+  
+
+build_comp :: AnnoTerm -> VM ()
+build_comp t = do
+ {- e <- get_ev -}
   --myplace <- lift $ asks me
-  case i of
-    Copy -> put_ev e
-    Umeas i args -> do
-                 usmResult <- invokeUSM i args
-                 put_ev $ U i args usmResult e
-    Sign -> do
-           --liftIO $ error "sig body"
-           signature <- (signEv e)
-           put_ev (G signature e)
-    Hash -> put_ev $ H (hashEv e)
+  case t of
+    AASPT _ a -> do
+      e <- do_prim a
+      put_ev e
+    AAT (reqi,rpyi) q t' -> do
+      sendReq t' q reqi rpyi
+      e' <- receiveResp rpyi
+      put_ev e'
+    ALN _ t1 t2 -> do
+      build_comp t1
+      build_comp t2
+    ABRS _ (sp1,sp2) t1 t2 -> do
+      e <- get_ev
+      {-p <- get_pl-}
+      let (e1,e2) = splitEvm sp1 sp2 e
+      put_ev e1
+      build_comp t1
+      e1r <- get_ev
+      put_ev e2
+      build_comp t2
+      e2r <- get_ev
+      put_ev $ SS e1r e2r
+    ABRP (x,y) (sp1,sp2) t1 t2 -> do
+      e <- get_ev
+      {-p <- get_pl-}
+      let (e1,e2) = splitEvm sp1 sp2 e
+      let loc_e1  = fst (range t1)
+      let loc_e1' = snd (range t1) - 1
+      let loc_e2  = fst (range t2)
+      let loc_e2' = snd (range t2) - 1
+      put_store_at loc_e1 e1
+      put_store_at loc_e2 e2
+      runParThreads t1 t2 (loc_e1,loc_e1') (loc_e2,loc_e2')
+      (e1r,e2r) <- poll_par_responses (loc_e1', loc_e2')
+      put_ev $ PP e1r e2r
+      
+    
+      
+      
+    {-
     Split sp1 sp2 -> do
                  put_ev (splitEv sp1 e)
                  push_stackm (splitEv sp2 e)
@@ -61,14 +152,22 @@ build_comp i = do
 -}
     _ -> fail $ "Unrecognied Instruction: " ++ (show i)
 
+-}
+
 splitEv sp e =
   case sp of
     ALL -> e
     NONE -> Mt
 
-hashEv :: Ev -> BS
+splitEvm :: SP -> SP -> Ev -> (Ev,Ev)
+splitEvm sp1 sp2 e =
+  let e1 = splitEv sp1 e in 
+  let e2 = splitEv sp2 e in
+    (e1,e2)
+
+hashEv :: Ev -> VM BS
 hashEv e =
-      doHash $ encodeEv e
+      return $ doHash $ encodeEv e
 
 signEv :: Ev -> VM BS
 signEv e = do
@@ -129,6 +228,6 @@ getResponse s = do
 {- ************************************************************* -}
 
 
-run_vm :: [Instr] -> VM_St -> Cop_Env -> IO VM_St
-run_vm  ilist initState initEnv =
-   runReaderT (execStateT (sequence $ map build_comp ilist) initState) initEnv
+run_vm :: AnnoTerm -> VM_St -> Cop_Env -> IO VM_St
+run_vm  t initState initEnv =
+   runReaderT (execStateT (build_comp t) initState) initEnv

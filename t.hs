@@ -1,4 +1,6 @@
-(AT 1(LN (BRS (ALL,NONE) CPY (ASP 1 ["target.txt"])) SIG))
+AT 1 (ASPT (ASPC 1 ["target.txt"]))
+
+(AT 1(LN (BRS (ALL,NONE) (ASPT CPY) (ASPT (ASPC 1 ["target.txt"]))) (ASPT SIG)))
 
 
 LN (AT 1 (LN (AT 2 (LN (ASP 1 []) SIG)) (LN (ASP 2 []) SIG))) (LN (ASP 3 []) SIG)

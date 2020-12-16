@@ -171,7 +171,7 @@ n_to_term (i,bs) = do
       arg2 = (show bs) in
   {-let arg1 = BL.toStrict $ D.encode i
       arg2 = bs in -}
-   return $ ASP n_asp [arg1,arg2]
+   return $ ASPT $ ASPC n_asp [arg1,arg2]
 
 check_nonces' :: [(Int,BS)] -> AM [Bool]
 check_nonces' ls =
@@ -195,7 +195,7 @@ check_nonces_ev e = do
 nlist_to_term :: [(Int,BS)] -> AM T
 nlist_to_term ls =
   case ls of
-   [] -> return CPY
+   [] -> return $ ASPT $ CPY
    (p : ls') -> do
      v <- n_to_term p
      rest <- (nlist_to_term ls')
@@ -302,14 +302,14 @@ gen_from_ev' e et = do
       _ -> error "evidence mismath on N Nt"  
    Mt ->
      case et of
-      Mtt -> return CPY
+      Mtt -> return (ASPT CPY)
       _ -> error "evidence mismath on Mt Mtt"
    U i args bs e' ->
      case et of
       Ut p i_t args_t e'_t -> do
         app_id <- am_get_asp_asp p i_t
         t2 <- gen_from_ev' e' e'_t
-        let t1 = (ASP app_id ((show bs) : args_t))
+        let t1 = ASPT $ (ASPC app_id ((show bs) : args_t))
         let res = BRP (NONE,NONE) t1 t2
         liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
           (prettyT res) ++ "\n"
@@ -323,7 +323,7 @@ gen_from_ev' e et = do
             evBitsArg = show evBits
             sigArg = show bs
         t2 <- gen_from_ev' e' e'_t
-        let t1 = (ASP sig_id [evBitsArg,sigArg])
+        let t1 = ASPT $ (ASPC sig_id [evBitsArg,sigArg])
             res = BRP (NONE,NONE) t1 t2
         liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
           (prettyT res) ++ "\n"
@@ -334,7 +334,7 @@ gen_from_ev' e et = do
       Ht p -> do
         hsh_id <- am_get_hsh_asp p
         let hshArg = show bs
-        return $ (ASP hsh_id [hshArg]) -- TODO: custom args here?  e or Mt?
+        return $ ASPT $ (ASPC hsh_id [hshArg]) -- TODO: custom args here?  e or Mt?
       _ -> error "evidence mismath on H Ht"
    SS e1 e2 ->
      case et of
@@ -456,13 +456,18 @@ gen_appraisal_term' t p e = do
            NONE -> Mt
 -}
 
+t_to_evt'' :: ASP -> Pl -> Ev_T -> Ev_T
+t_to_evt'' t p e =
+  case t of
+    ASPC i args -> Ut p i args e
+    SIG -> Gt p e
+    HSH -> Ht p
+    CPY -> e
+
 t_to_evt' :: T -> Pl -> Ev_T -> Ev_T
 t_to_evt' t p e =
   case t of
-   ASP i args -> Ut p i args e
-   SIG -> Gt p e
-   HSH -> Ht p
-   CPY -> e
+   ASPT a -> t_to_evt'' a p e
    AT q t' -> t_to_evt' t' q e
    LN t1 t2 ->
      let e1t = t_to_evt' t1 p e in

@@ -51,11 +51,14 @@ fromRemote conn opts = do
   let compileB = SA.server_compile opts
   e' <- case compileB of
          True -> do
-           let instrs = instr_compiler t
+           {-let instrs = instr_compiler t -}
            vm_st <- DS.vm_state_init e
-           res <- run_vm instrs vm_st env
+           putStrLn $ "HHHEEERE"
+           res <- run_vm (annotated t) vm_st env
            return $ st_ev res
-         False -> runCOP (interp t e) env
+         False -> do
+           putStrLn $ "HERE"
+           runCOP (interp t e) env
   
   --e' <- run_interp t e env
   --putStrLn $ "evidence gathered: " ++ (show e')
@@ -73,11 +76,12 @@ start_standalone_server opts = do
   
   addr <- resolve portString
   sock <- open addr
-  putStrLn $ "starting server" ++ " at port: " ++ portString
+  putStrLn $ "starting server" ++ " at portttt: " ++ portString
   serve_requests sock opts {-void $ CC.forkIO $-} 
 
 serve_requests :: NS.Socket -> SA.Server_Options -> IO ()
 serve_requests sock opts = forever $ do
+  putStrLn $ "BEFORE CONNECTION"
   (conn, peer) <- NS.accept sock
   putStrLn $ "Connection from " ++ show peer
   --error (show opts)

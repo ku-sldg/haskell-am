@@ -28,6 +28,22 @@ import qualified Data.Map as M
 import qualified Data.Binary as B (decode)
 import qualified Data.ByteString.Lazy as BL (fromStrict)
 
+
+interp' :: ASP -> Ev -> COP Ev
+interp' t e =
+  case t of
+    ASPC i args -> do
+      bs <- interpUSM i args
+      return $ U i args bs e
+    SIG -> do
+      bs <- signEv e
+      return $ G bs e
+    HSH -> do
+      bs <- hashEv e
+      return $ H bs
+    CPY -> return e
+
+
 {-  Main interp function that interprets protocol terms and initial evidence.
     Params:
       t- protocol term to interpret
@@ -36,21 +52,8 @@ import qualified Data.ByteString.Lazy as BL (fromStrict)
 interp :: T -> Ev -> COP Ev
 interp t e = do
   --p <- asks me
-  ev <-
     case t of
-    ASP i args -> do
-      bs <- interpUSM i args
-      return $ U i args bs e
-
-    SIG -> do
-      bs <- signEv e
-      return $ G bs e
-  
-    HSH -> do
-      bs <- hashEv e
-      return $ H bs
-
-    CPY -> return e
+      ASPT a -> interp' a e
   
     {-NONCE -> do
       bs <- genNonce
@@ -58,35 +61,33 @@ interp t e = do
       nId <- updateNonce bs
       return $ N p nId bs e -}
       
-    AT q t' -> do
+      AT q t' -> do
       -- TODO: Async logic here?
-      (e'{-,c-}) <- toRemote q t' e
+        (e'{-,c-}) <- toRemote q t' e
       --liftIO $ disconnect c
-      return e'
+        return e'
   
-    LN t1 t2 -> do
-      e1 <- interp t1 e
-      logc $ "e1 computed: " ++ (show e1)
-      logc $ "by t1: " ++ (show t1)
-      logc $ "t2: " ++ (show t2)
-      res <- pseq e1 (interp t2 e1)
-      return res
+      LN t1 t2 -> do
+        e1 <- interp t1 e
+        logc $ "e1 computed: " ++ (show e1)
+        logc $ "by t1: " ++ (show t1)
+        logc $ "t2: " ++ (show t2)
+        res <- pseq e1 (interp t2 e1)
+        return res
   
-    BRS (sp1, sp2) t1 t2 -> do
-      let es1 = splitEv sp1 e
-      let es2 = splitEv sp2 e
-      e1 <- interp t1 es1
-      e2 <- pseq e1 (interp t2 es2)
-      return $ SS e1 e2
+      BRS (sp1, sp2) t1 t2 -> do
+        let es1 = splitEv sp1 e
+        let es2 = splitEv sp2 e
+        e1 <- interp t1 es1
+        e2 <- pseq e1 (interp t2 es2)
+        return $ SS e1 e2
       
-    BRP (sp1, sp2) t1 t2 -> do
-      let es1 = splitEv sp1 e
-      let es2 = splitEv sp2 e
-      e1 <- interp t1 es1
-      e2 <- interp t2 es2
-      return $ PP e1 e2
-      
-  return ev
+      BRP (sp1, sp2) t1 t2 -> do
+        let es1 = splitEv sp1 e
+        let es2 = splitEv sp2 e
+        e1 <- interp t1 es1
+        e2 <- interp t2 es2
+        return $ PP e1 e2
 
  
 {-  Send a remote attestation request and return resulting evidence.

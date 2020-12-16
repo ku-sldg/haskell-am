@@ -109,9 +109,11 @@ nameMap_from_term t = do
 run_vm_t ::  T -> VM_St -> Cop_Env  -> IO (Ev)
 run_vm_t t vm_st cop_env = do
   opts <- getClientOptions
-  let instrs = (instr_compiler t)
+  {-let instrs = (instr_compiler t) -}
   --vm_st <- DS.vm_state_init e
-  res <- run_vm (instrs) vm_st cop_env
+  putStrLn "INVOKING run_vm"
+  res <- run_vm (annotated t) vm_st cop_env
+  putStrLn "RAN run_vm"
   return $ st_ev res
 
 am_proto_1 :: AM Ev
@@ -151,10 +153,15 @@ am_proto_1 = do
   -- and executes the generated sequence of copland instructions.
   resEv <- case compileBool of
              True -> liftIO $ do
+               --error "HI"
                vm_st <- DS.vm_state_init ev
                run_vm_t t vm_st cop_env
              -- or simply interprets the received copland term
-             False -> liftIO $ runCOP (interp t ev) cop_env
+             False -> do
+               --error "HEY"
+               liftIO $ runCOP (interp t ev) cop_env
+
+  liftIO $ putStrLn $ "\n\nEVIDENCE: " ++ (show resEv) ++ "\n\n"
 
   case appraiseBool of
    True -> do
@@ -220,7 +227,7 @@ get_term_ev inp einp = do
   return (t,ev)
 
   where
-    proto1 = CPY
+    proto1 = ASPT CPY
              {-AT 1
              (LN
               (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))

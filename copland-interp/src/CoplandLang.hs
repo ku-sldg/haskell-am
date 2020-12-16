@@ -16,6 +16,7 @@ import qualified Data.ByteString as B (ByteString, append, empty)
 import qualified Data.Binary as BI (Binary)
 import qualified Data.Map as M (Map)
 import System.Environment (lookupEnv)
+import Numeric.Natural
 
 {-  Identify Places (protocol participants)  -}
 type Pl = Int
@@ -33,21 +34,72 @@ data SP = ALL | NONE
         deriving (Generic,Read,Show)
 
 instance BI.Binary SP where
+
+data ASP
+  = CPY
+  | SIG
+  | HSH
+  | ASPC ASP_ID [ARG]
+  deriving (Generic,Read,Show)
+
+instance BI.Binary ASP where
   
 -- Attestation Protocol Descrption Term.
 data T
-  = ASP ASP_ID [ARG]
-  {-| KIM ASP_ID Pl [ARG]-}
-  | SIG
-  | HSH
-  | CPY
+  = ASPT ASP
   | AT Pl T
   | LN T T
   | BRS (SP,SP) T T
   | BRP (SP,SP) T T  
   deriving (Generic,Read,Show)
 
+{- TODO: shorthand notation for ASP terms, avoid ASPT x -}
+
+type Range = (Natural,Natural)
+
+data AnnoTerm
+  = AASPT Range ASP
+  | AAT Range Pl AnnoTerm
+  | ALN Range AnnoTerm AnnoTerm
+  | ABRS Range (SP,SP) AnnoTerm AnnoTerm
+  | ABRP Range (SP,SP) AnnoTerm AnnoTerm
+  deriving (Generic,Read,Show)
+
 instance BI.Binary T where
+
+range :: AnnoTerm -> Range
+range t =
+  case t of
+    AASPT r _ -> r
+    AAT r _ _ -> r
+    ALN r _ _ -> r
+    ABRS r _ _ _ -> r
+    ABRP r _ _ _ -> r
+
+anno :: T -> Natural -> (Natural, AnnoTerm)
+anno t i =
+  case t of
+    ASPT a -> (i + 1, AASPT (i, i + 1) a)
+    AT p x ->
+      let (j,a) = anno x (i+1) in
+        (j + 1, AAT (i, j + 1) p a)
+    LN x y ->
+      let (j,a) = anno x i in
+      let (k,b) = anno y j in
+      (k, ALN (i,k) a b)
+    BRS s x y ->
+      let (j,a) = anno x (i+1) in
+      let (k,b) = anno y j in
+      (k + 1, ABRS (i, k + 1) s a b)
+    BRP s x y ->
+      let (j,a) = anno x (i+1) in
+      let (k,b) = anno y j in
+      (k + 1, ABRP (i, k + 1) s a b)
+
+annotated :: T -> AnnoTerm
+annotated t = snd (anno t 0)
+
+
 
 -- Concrete Evidence returned from an execution.
 data Ev

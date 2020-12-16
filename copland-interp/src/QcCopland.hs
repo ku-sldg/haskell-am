@@ -113,16 +113,16 @@ genTerm n =
 
 genSIG :: Gen T
 genSIG = do
-  return (SIG)
+  return (ASPT SIG)
 
 genHSH :: Gen T
 genHSH = do
-  return (HSH)
+  return (ASPT HSH)
 
 genUSM = do
   i <- genPl
   args <- genArgs
-  return (ASP i args)
+  return (ASPT $ ASPC i args)
 
 genLN n = do
   t0 <- genTerm n

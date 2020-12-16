@@ -30,18 +30,18 @@ import qualified Data.Map as M
 -}
 
 data  VM_St = VM_St { st_ev :: Ev
-                    , st_stack :: Stack Ev
+                    {-, st_stack :: Stack Ev -}
                     , st_store :: M.Map Natural Ev
-                    , st_index :: Int
+                    {-, st_index :: Int -}
                     , st_serverSocket :: String
                     , st_sigSocket :: String
                     , st_aspSockets :: M.Map ASP_ID String
                     }
 
 emptyState = VM_St { st_ev = Mt
-                   , st_stack = Stack []
+                   {-, st_stack = Stack [] -}
                    , st_store = M.empty
-                   , st_index = 0
+                   {-, st_index = 0 -}
                    , st_serverSocket = ""
                    , st_sigSocket = ""
                    , st_aspSockets = M.empty
@@ -53,7 +53,7 @@ initial_VM_state ev socketPathname sigPathname aspMap =
 
 type VM = StateT VM_St COP
 
-
+{-
 newtype Stack a = Stack [a]
 
 stackIsEmpty :: Stack a -> Bool
@@ -67,7 +67,24 @@ stackPop :: Stack a -> Maybe (Stack a, a)
 stackPop (Stack []) = Nothing
 stackPop (Stack [x]) = Just (Stack [], x)
 stackPop (Stack (x:xs)) = Just (Stack xs, x)
+-}
 
+put_store_at :: Natural -> Ev -> VM ()
+put_store_at n e = do
+  st <- get
+  let store = st_store st
+  let store' = M.insert n e store
+  put (st {st_store = store'})
+  
+  
+
+get_store_at :: Natural -> VM Ev
+get_store_at n = do
+  store' <- gets st_store
+  let maybeEv = M.lookup n store'
+  case maybeEv of
+    Just e -> return e
+    Nothing -> error $ "Failed to access st_store at index: " ++ (show n) ++ "."
 
 
 
@@ -86,6 +103,7 @@ get_ev = gets st_ev
 put_ev :: Ev -> VM ()
 put_ev newEv = modify (\s -> s{ st_ev = newEv })
 
+{-
 get_nextIndex :: VM Int
 get_nextIndex = do
   s <- get
@@ -102,6 +120,7 @@ pop_stackm = do
   case stackPop (st_stack s) of
     Just (newstack, top) -> do {put s{st_stack = newstack}; return top}
     _ ->  fail "VM state stack is empty"
+-}
 
 {- should be just "asks serverSocket", when serverSocket is moved to the Environment -}
 get_serverSocket :: VM String

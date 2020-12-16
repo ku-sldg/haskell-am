@@ -31,6 +31,9 @@ term:
 termCompiled:
 	cd copland-interp ; stack exec -- copland-app-exe -w -compile -t ../t.hs -a
 
+termCompiledd:
+	cd copland-interp ; stack exec -- copland-app-exe -compile -t ../t.hs
+
 attack:
 	./modTarget.sh
 repair:

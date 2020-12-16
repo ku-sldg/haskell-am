@@ -111,6 +111,24 @@ instance FromJSON Ev where
     {-, allNullaryToStringTag = False -}
     }
 
+instance ToJSON ASP where
+  toJSON = genericToJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
+    }
+
+instance FromJSON ASP where
+  parseJSON = genericParseJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
+    }
+
 instance ToJSON T where
   toJSON = genericToJSON defaultOptions {
     sumEncoding =

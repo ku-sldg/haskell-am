@@ -19,14 +19,19 @@ import qualified Data.ByteString as B (take, ByteString, append)
 fromStr :: String -> Doc ann
 fromStr s = pretty (T.pack s)
 
+instance Pretty ASP where
+  pretty t =
+    case t of
+      (ASPC i args) ->
+        hsep [(fromStr usmStr), (viaShow i), (viaShow args)]
+      (SIG) -> (fromStr sigStr)
+      (HSH) -> (fromStr hshStr)
+      (CPY) -> (fromStr "CPY") --TODO: add static cpyStr
+
 instance Pretty T where
   pretty t =
     case t of
-        (ASP i args) ->
-          hsep [(fromStr usmStr), (viaShow i), (viaShow args)]
-        (SIG) -> (fromStr sigStr)
-        (HSH) -> (fromStr hshStr)
-        (CPY) -> (fromStr "CPY") --TODO: add static cpyStr
+        ASPT a -> pretty a
         {-(NONCE) -> (fromStr nonceStr) -}
         (AT p t') -> nest 2 (vsep ["@_" <> (viaShow p), (pretty t')])
         (LN t1 t2) ->
@@ -94,9 +99,9 @@ prettyEv = renderString . layoutPretty defaultLayoutOptions . pretty
 df :: IO ()
 df = do
   let
-    r = (AT 4 SIG)
-    s = LN HSH (AT 3 r)
-    t = LN (AT 4 SIG) (LN HSH (AT 3 (AT 4 SIG)))--(LN r s)
+    r = (AT 4 (ASPT SIG))
+    s = LN (ASPT HSH) (AT 3 r)
+    t = LN (AT 4 (ASPT SIG)) (LN (ASPT HSH) (AT 3 (AT 4 (ASPT SIG))))--(LN r s)
     --q = LN (LN (LN NONCE NONCE) NONCE) (LN SIG SIG)
   putStrLn (prettyT t)
 
