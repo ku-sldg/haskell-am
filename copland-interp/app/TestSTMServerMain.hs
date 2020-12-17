@@ -11,12 +11,15 @@
 module Main where
 
 import qualified Data.ByteString.Char8 as C
-import qualified Data.ByteString as BS (ByteString)
+import qualified Data.ByteString as BS (ByteString, empty)
+import qualified Data.ByteString.Lazy as BL (toStrict)
 import Network.Socket hiding  (recv, sendAll)
 import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.Map as M
 import qualified Data.Aeson as DA (decodeStrict, encode)
 import Numeric.Natural
+import Control.Monad.Reader (asks)
+import Control.Monad.Trans (liftIO)
 
 
 import Copland
@@ -24,13 +27,18 @@ import CommUtil
 import UDcore
 import ExecCopland
 import ServerAppUtil (startServer)
-import MonadStore
+import MonadTestSTM
 
 import Control.Concurrent.STM
 
 main :: IO ()
 main = do
-  startServer STORE doAt
+  v <- atomically $ newTMVar 0
+  let env = Test_Env v 
+
+
+  
+  startServer STORE (doAt env)
 
 {-
 store_loop :: StoreM ()
@@ -38,11 +46,30 @@ store_loop = do
   msg' <-
 -}
 
-doAt msg = do
+inc_num :: TMVar Natural -> STM Natural
+inc_num v = do
+  val <- takeTMVar v
+  putTMVar v (val + 1)
+  return val
+
+get_num :: TMVar Natural -> STM Natural
+get_num v = readTMVar v 
+  
+
+test_handle_req :: TestRequestMessage -> TestM Natural
+test_handle_req m = do
+  var <- asks env_num
+  case m of
+    TestIncMessage -> liftIO $ atomically $ (inc_num var)
+    TestGetMessage -> liftIO $ atomically $ (get_num var)
+  
+
+doAt env msg = do
   msg' <- decodeGen msg --decodeRequest msg
-  case msg' of
-    SetMessage m -> error "hi"
-    GetMessage m -> error "hey"
+  n <- run_testm (test_handle_req msg') env
+  let respMsg = TestResponseMessage n
+  let respBits = DA.encode respMsg
+  return (BL.toStrict respBits)
 
 
 

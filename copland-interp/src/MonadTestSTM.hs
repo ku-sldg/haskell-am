@@ -5,7 +5,7 @@
 -}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module MonadStore where
+module MonadTestSTM where
 
 import Copland
 import MonadCop
@@ -26,9 +26,9 @@ import Control.Concurrent.STM
 
 -}
 
-data  Store_Env = Store_Env
-  { st_store_map :: TMVar (M.Map (VM_ID,Natural) Natural)
-  , st_store :: TMVar (M.Map Natural Ev) }
+data  Test_Env = Test_Env
+  { env_num :: TMVar Natural
+  {-, st_store :: TMVar (M.Map Natural Ev)-} }
 
 {-
 emptyState = Store_Env { st_store_map = M.empty
@@ -38,8 +38,11 @@ initial_Store_env ev =
   emptyState { st_store_map = ev }
 -}
 
-type StoreM = ReaderT Store_Env IO
+type TestM = ReaderT Test_Env IO
 
+
+run_testm :: TestM a -> Test_Env -> IO a
+run_testm comp env = runReaderT comp env
 
 {-
 put_store_at :: Natural -> Ev -> VM ()

@@ -177,6 +177,21 @@ instance FromJSON StoreRequestMessage
 instance ToJSON StoreAckMessage
 instance FromJSON StoreAckMessage
 
+{-
+instance ToJSON TestIncMessage
+instance FromJSON TestIncMessage
+
+instance ToJSON TestGetMessage
+instance FromJSON TestGetMessage
+-}
+
+instance ToJSON TestRequestMessage
+instance FromJSON TestRequestMessage
+
+instance ToJSON TestResponseMessage
+instance FromJSON TestResponseMessage
+
+
 jsonOut :: T -> Ev -> Ev -> IO ()
 jsonOut t ev resEv = do
   let jsonProtoInFile = "../demoOutput/jsonIn.hs"

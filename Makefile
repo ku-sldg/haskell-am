@@ -6,6 +6,8 @@ CLIENT := copland-interp\:exe\:copland-client-exe
 GEN := copland-interp\:exe\:copland-gen-exe
 SIG := copland-interp\:exe\:sig-server-exe
 STORE := copland-interp\:exe\:store-server-exe
+TESTS := copland-interp\:exe\:test-server-exe
+TESTC := copland-interp\:exe\:test-client-exe
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
@@ -115,6 +117,12 @@ ghciclient:
 
 ghcistore:
 	cd copland-interp ; stack ghci --main-is ${STORE}
+
+ghcitestserver:
+	cd copland-interp ; stack ghci --main-is ${TESTS}
+
+ghcitestclient:
+	cd copland-interp ; stack ghci --main-is ${TESTC}
 
 ghcigen:
 	cd copland-interp ; stack ghci --main-is ${GEN}

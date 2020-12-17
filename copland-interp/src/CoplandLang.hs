@@ -189,6 +189,27 @@ data StoreResponseMessage =
   StoreResponseMessage
   { outEv :: Ev } deriving (Show,Read,Generic)
 
+{-
+--Test Inc Message
+data TestIncMessage =
+  TestIncMessage
+   deriving (Show,Read,Generic)
+
+--Test Get Message
+data TestGetMessage =
+  TestGetMessage
+  deriving (Show,Read,Generic)
+-}
+
+--Test Request (Inc/Get) Message
+data TestRequestMessage =
+  TestIncMessage
+  | TestGetMessage  deriving (Show,Read,Generic)
+
+--Test Response Message
+data TestResponseMessage =
+  TestResponseMessage
+  { outN :: Natural } deriving (Show,Read,Generic)
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}
