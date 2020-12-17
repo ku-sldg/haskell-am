@@ -50,7 +50,7 @@ put_comm_request :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
 put_comm_request t q reqi rpyi = return ()
 
 poll_comm_response :: Natural -> VM Ev
-poll_comm_response n = return Mt 
+poll_comm_response rpyi = return Mt 
 
 
 sendReq :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()

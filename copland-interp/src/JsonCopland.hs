@@ -165,6 +165,18 @@ instance FromJSON AspRequestMessage
 instance ToJSON AspResponseMessage
 instance FromJSON AspResponseMessage
 
+instance ToJSON StoreGetMessage
+instance FromJSON StoreGetMessage
+
+instance ToJSON StoreSetMessage
+instance FromJSON StoreSetMessage
+
+instance ToJSON StoreRequestMessage
+instance FromJSON StoreRequestMessage
+
+instance ToJSON StoreAckMessage
+instance FromJSON StoreAckMessage
+
 jsonOut :: T -> Ev -> Ev -> IO ()
 jsonOut t ev resEv = do
   let jsonProtoInFile = "../demoOutput/jsonIn.hs"

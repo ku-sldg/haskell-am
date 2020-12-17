@@ -134,41 +134,61 @@ instance BI.Binary Ev_T where
 --Abstract Address type for concrete Addresses (i.e. IP:port string).
 type Address = String
 
+type VM_ID = Natural
+
 --Attestation Request Message
 data RequestMessage = RequestMessage
-                      { toPlace :: Pl,
-                        fromPlace :: Pl,
-                        reqNameMap :: M.Map Pl Address,
-                        reqTerm :: T,
-                        reqEv :: Ev
-                      } deriving (Show,Read,Generic)
+  { toPlace :: Pl,
+    fromPlace :: Pl,
+    reqNameMap :: M.Map Pl Address,
+    reqTerm :: T,
+    reqEv :: Ev } deriving (Show,Read,Generic)
 
 --Attestation Response Message
 data ResponseMessage = ResponseMessage
-                      { respToPlace :: Pl,
-                        respFromPlace :: Pl,
-                        respEv :: Ev
-                      } deriving (Show,Read,Generic)
+  { respToPlace :: Pl,
+    respFromPlace :: Pl,
+    respEv :: Ev } deriving (Show,Read,Generic)
 
 --Attestation Request Message
 data SigRequestMessage = SigRequestMessage
-                      { evBits :: BS
-                      } deriving (Show,Read,Generic)
+  { evBits :: BS } deriving (Show,Read,Generic)
 
 --Attestation Response Message
 data SigResponseMessage = SigResponseMessage
-                      { sigBits :: BS
-                      } deriving (Show,Read,Generic)
+  { sigBits :: BS } deriving (Show,Read,Generic)
 
 --Attestation Request Message
 data AspRequestMessage = AspRequestMessage
-                      { aspArgs :: [ARG]
-                      } deriving (Show,Read,Generic)
+  { aspArgs :: [ARG] } deriving (Show,Read,Generic)
 
 --Attestation Response Message
 data AspResponseMessage = AspResponseMessage
-                      { aspBits :: BS
-                      } deriving (Show,Read,Generic)
+  { aspBits :: BS } deriving (Show,Read,Generic)
+
+data StoreSetMessage = StoreSetMessage
+  { myId  :: VM_ID,
+    setId :: Natural,
+    inEv  :: Ev } deriving (Show,Read,Generic)
+
+data StoreGetMessage = StoreGetMessage
+  { getId :: Natural } deriving (Show,Read,Generic)
+
+--Store Request (Set/Get) Message
+data StoreRequestMessage =
+  SetMessage StoreSetMessage
+  | GetMessage StoreGetMessage deriving (Show,Read,Generic)
+
+--Store Acknowledge Message
+data StoreAckMessage =
+  StoreAckMessage
+  { realId :: Natural } deriving (Show,Read,Generic)
+
+--Store Response Message
+data StoreResponseMessage =
+  StoreResponseMessage
+  { outEv :: Ev } deriving (Show,Read,Generic)
+
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}
@@ -198,6 +218,7 @@ data ServerType =
   COMM
   | SIGN
   | ASP_SERV ASP_ID
+  | STORE
 
 -- socketPathname is currently a global constant here
 -- this must change, soon ....
@@ -207,6 +228,7 @@ lookupPath v = do
         case v of
         COMM -> "COMM"
         SIGN -> "SIG"
+        STORE -> "STORE"
         ASP_SERV i -> "ASP_" ++ (show i)
   let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
   maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
