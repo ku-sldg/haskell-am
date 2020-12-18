@@ -45,6 +45,12 @@ repair:
 provision:
 	cd copland-interp ; stack exec -- copland-client-exe -p
 
+runtestserver:
+	cd copland-interp ; stack exec -- test-server-exe
+
+runtestclient:
+	cd copland-interp ; stack exec -- test-client-exe
+
 #Generate one random(-n 1) Copland term(-t) as a datatype(-d)
 gen:
 	cd copland-interp ; stack exec -- copland-gen-exe -n 1 -t -d

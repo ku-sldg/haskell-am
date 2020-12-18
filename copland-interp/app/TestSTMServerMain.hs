@@ -28,7 +28,7 @@ import UDcore
 import ExecCopland
 import ServerAppUtil (startServer)
 import MonadTestSTM
-
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.STM
 
 main :: IO ()
@@ -60,8 +60,14 @@ test_handle_req :: TestRequestMessage -> TestM Natural
 test_handle_req m = do
   var <- asks env_num
   case m of
-    TestIncMessage -> liftIO $ atomically $ (inc_num var)
-    TestGetMessage -> liftIO $ atomically $ (get_num var)
+    TestIncMessage -> do
+      n <- liftIO $ atomically $ (inc_num var)
+      liftIO $ putStrLn $ "Performed Inc on: " ++ (show n) ++ "\n"
+      return n
+    TestGetMessage -> do
+      n <- liftIO $ atomically $ (get_num var)
+      liftIO $ putStrLn $ "Performed Get on: " ++ (show n) ++ "\n"
+      return n
   
 
 doAt env msg = do
@@ -69,6 +75,7 @@ doAt env msg = do
   n <- run_testm (test_handle_req msg') env
   let respMsg = TestResponseMessage n
   let respBits = DA.encode respMsg
+  threadDelay 1000000
   return (BL.toStrict respBits)
 
 

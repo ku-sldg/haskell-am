@@ -36,6 +36,7 @@ import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified JsonCopland as JC (decodeGen)
 import Network.Socket (Socket)
 import Numeric.Natural
+import Control.Monad(replicateM_)
 
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
@@ -54,7 +55,22 @@ sendTestReq sock m = do
           (TestResponseMessage n) <- getResponse s
           return n
 
+oneInc :: IO ()
+oneInc = do
+  let req = TestIncMessage
+  sock <- lookupPath STORE
+  n <- sendTestReq sock req
+  putStrLn $ "Inc call: " ++ (show n) ++ "\n\n"
+
+oneGet :: IO ()
+oneGet = do
+  let req = TestGetMessage
+  sock <- lookupPath STORE
+  n <- sendTestReq sock req
+  putStrLn $ "Get call: " ++ (show n) ++ "\n\n"
+
 main :: IO ()
 main = do
-  return ()
+  replicateM_ 10 oneInc
+  oneGet
   
