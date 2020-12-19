@@ -20,6 +20,8 @@ import ClientProgArgs (getClientOptions, Client_Options(..))
 import qualified CryptoImpl as CI (doHashFile)
 import ServerAppUtil(spawn_the_servers)
 import qualified DemoStates as DS (am_env_init, vm_state_init)
+import UDcore
+import CommUtil
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -28,6 +30,10 @@ import Crypto.Sign.Ed25519 (SecretKey(..), verify, toPublicKey)
 import qualified Data.Map as M
 import qualified Control.Concurrent as CC (threadDelay)
 import qualified Data.ByteString as B (empty, writeFile)
+
+
+import Control.Concurrent.STM
+import Numeric.Natural
 
 
 main :: IO ()
@@ -116,6 +122,9 @@ run_vm_t t vm_st cop_env = do
   putStrLn "RAN run_vm"
   return $ st_ev res
 
+
+
+
 am_proto_1 :: AM Ev
 am_proto_1 = do
   opts <- liftIO $ getClientOptions
@@ -139,15 +148,17 @@ am_proto_1 = do
 
   nm <- liftIO $ getNameMap namesFile places
 
+  (reqs,store) <- liftIO $ derive_comm_reqs (annotated t) nm
+  liftIO $ setupComm reqs
+
   case spawnServers of
    True -> do
      liftIO $ spawn_the_servers nm spawnSimBool spawnDebugBool compileBool
      liftIO $ CC.threadDelay 10000
    False -> return ()
 
-
   --opts <- getClientOptions
-  cop_env <- liftIO $ build_Cop_Env opts nm
+  cop_env <- liftIO $ build_Cop_Env opts nm store
   
   -- if client compiles the received copland term,
   -- and executes the generated sequence of copland instructions.

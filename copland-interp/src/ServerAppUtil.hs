@@ -46,7 +46,14 @@ fromRemote :: NS.Socket -> SA.Server_Options -> IO ()
 fromRemote conn opts = do
   (RequestMessage pTo pFrom names t e) <- receiveReq conn
   --error $ (show names)
-  env <- buildServerEnv opts names pTo
+
+
+  (reqs,store) <- derive_comm_reqs (annotated t) names
+  setupComm reqs
+  
+  env <- buildServerEnv opts names pTo store
+
+  
 
   let compileB = SA.server_compile opts
   e' <- case compileB of

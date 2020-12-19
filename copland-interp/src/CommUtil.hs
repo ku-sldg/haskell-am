@@ -13,6 +13,7 @@ import qualified ServerProgArgs as SA (Server_Options(..))
 --import CommImpl
 import MonadCop
 import MonadAM
+import UDcore
 
 import Network.Socket as NS hiding (recv)
 import Text.Read(readMaybe)
@@ -20,6 +21,13 @@ import Control.Exception (bracket)
 import Control.Monad(replicateM)
 import qualified Data.Map as M
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
+
+import Control.Concurrent.STM
+import qualified Data.Aeson as DA (decodeStrict, encode, FromJSON)
+import qualified Network.Socket.ByteString as NBS (recv, sendAll)
+import qualified Data.ByteString.Lazy as BL (fromStrict, toStrict)
+import Numeric.Natural
+import Control.Monad.Trans(liftIO)
 
 resolve port = do
         let hints = defaultHints {
@@ -125,3 +133,43 @@ isPrivileged :: NS.SockAddr -> Bool
 isPrivileged (NS.SockAddrInet p _) = p < 1025
 isPrivileged (NS.SockAddrInet6 p _ _ _) = p < 1025
 isPrivileged _ = False
+
+
+derive_comm_reqs :: AnnoTerm -> M.Map Pl Address  ->
+  IO ([CommSetMessage], M.Map Natural (TMVar Ev))
+derive_comm_reqs t nm = derive_comm_reqs' t nm ([], M.empty)
+
+derive_comm_reqs' :: AnnoTerm -> M.Map Pl Address ->
+  ([CommSetMessage], M.Map Natural (TMVar Ev)) ->
+  IO ([CommSetMessage], M.Map Natural (TMVar Ev))
+derive_comm_reqs' t nm res@(reqs,store) =
+  case t of
+    AASPT _ _ -> return res
+    AAT (reqi,rpyi) q t' -> do
+      let newMsg = CommSetMessage q nm (unanno t) reqi rpyi
+      reqTMVar <- atomically $ newEmptyTMVar
+      rpyTMVar <- atomically $ newEmptyTMVar
+      let reqMap = M.insert reqi reqTMVar store
+      let rpyMap = M.insert rpyi rpyTMVar reqMap
+      return (newMsg : reqs, rpyMap)
+
+setupComm :: [CommSetMessage] -> IO ()
+setupComm ls = do
+  connectionServerSocket <- lookupPath COMM --get_serverSocket  --get Comm Server socket
+  --pFrom <- lift $ asks me
+  --namesFrom <- lift $ asks nameServer
+  liftIO $ runUnixDomainClient connectionServerSocket
+    (dispatchAt {-pFrom namesFrom-})
+  where dispatchAt {-pFrom namesFrom -} s = do
+          let messageBits = DA.encode (CommSetList ls)
+          putStrLn $ "sendAll: " ++ (show messageBits)
+          NBS.sendAll s (BL.toStrict messageBits)
+          CommAckMessage <- getResponse s
+          return ()
+
+{-  Receive an attestation response
+    Returns:  evidence from response message  -}
+getResponse :: DA.FromJSON a => Socket -> IO a
+getResponse s = do
+  msg <- NBS.recv s 1024
+  decodeGen msg

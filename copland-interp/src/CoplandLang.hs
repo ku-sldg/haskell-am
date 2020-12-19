@@ -16,6 +16,7 @@ import qualified Data.ByteString as B (ByteString, append, empty)
 import qualified Data.Binary as BI (Binary)
 import qualified Data.Map as M (Map)
 import System.Environment (lookupEnv)
+
 import Numeric.Natural
 
 {-  Identify Places (protocol participants)  -}
@@ -65,6 +66,18 @@ data AnnoTerm
   | ABRP Range (SP,SP) AnnoTerm AnnoTerm
   deriving (Generic,Read,Show)
 
+{-
+data CommSetMessage = CommSetMessage
+  { toPl :: Pl,
+    --fromPlace :: Pl,
+    toNameMap :: M.Map Pl Address,
+    toTerm :: T,
+    init_index :: Natural,
+    final_index :: Natural
+    --reqEv :: Ev
+  } deriving (Show,Read,Generic)
+-}
+
 instance BI.Binary T where
 
 range :: AnnoTerm -> Range
@@ -98,6 +111,16 @@ anno t i =
 
 annotated :: T -> AnnoTerm
 annotated t = snd (anno t 0)
+
+unanno :: AnnoTerm -> T
+unanno a =
+  case a of
+    AASPT _ a' -> ASPT a'
+    AAT _ q t -> AT q (unanno t)
+    ALN _ t1 t2 -> LN (unanno t1) (unanno t2)
+    ABRS _ sp t1 t2 -> BRS sp (unanno t1) (unanno t2)
+    ABRP _ sp t1 t2 -> BRP sp (unanno t1) (unanno t2)
+    
 
 
 
@@ -168,11 +191,11 @@ data AspResponseMessage = AspResponseMessage
 
 data StoreSetMessage = StoreSetMessage
   { myId  :: VM_ID,
-    setId :: Natural,
+    init_ev_id :: Natural,
     inEv  :: Ev } deriving (Show,Read,Generic)
 
 data StoreGetMessage = StoreGetMessage
-  { getId :: Natural } deriving (Show,Read,Generic)
+  { get_id :: Natural } deriving (Show,Read,Generic)
 
 --Store Request (Set/Get) Message
 data StoreRequestMessage =
@@ -182,7 +205,7 @@ data StoreRequestMessage =
 --Store Acknowledge Message
 data StoreAckMessage =
   StoreAckMessage
-  { realId :: Natural } deriving (Show,Read,Generic)
+  { real_ev_id :: Natural } deriving (Show,Read,Generic)
 
 --Store Response Message
 data StoreResponseMessage =
@@ -210,6 +233,21 @@ data TestRequestMessage =
 data TestResponseMessage =
   TestResponseMessage
   { outN :: Natural } deriving (Show,Read,Generic)
+
+data CommSetMessage = CommSetMessage
+  { toPl :: Pl,
+    --fromPlace :: Pl,
+    toNameMap :: M.Map Pl Address,
+    toTerm :: T,
+    init_index :: Natural,
+    final_index :: Natural
+    --reqEv :: Ev
+  } deriving (Show,Read,Generic)
+
+data CommSetList = CommSetList [CommSetMessage] deriving (Show,Read,Generic)
+
+data CommAckMessage =
+  CommAckMessage deriving (Show,Read,Generic)
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}
@@ -264,3 +302,6 @@ lookupPath v = do
            Nothing ->
              error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
   return socketPath
+
+
+

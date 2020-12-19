@@ -191,6 +191,16 @@ instance FromJSON TestRequestMessage
 instance ToJSON TestResponseMessage
 instance FromJSON TestResponseMessage
 
+instance ToJSON CommSetMessage
+instance FromJSON CommSetMessage
+
+instance ToJSON CommAckMessage
+instance FromJSON CommAckMessage
+
+instance ToJSON CommSetList
+instance FromJSON CommSetList
+
+
 
 jsonOut :: T -> Ev -> Ev -> IO ()
 jsonOut t ev resEv = do

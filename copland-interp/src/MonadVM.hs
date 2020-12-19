@@ -13,7 +13,7 @@ import MonadCop
 
 import System.Environment (lookupEnv)
 import Control.Monad.Reader
-import Control.Monad.State.Lazy
+import Control.Monad.State
 import Control.Monad.Trans(liftIO)
 import Numeric.Natural
 import qualified Data.Map as M
@@ -31,7 +31,7 @@ import qualified Data.Map as M
 
 data  VM_St = VM_St { st_ev :: Ev
                     {-, st_stack :: Stack Ev -}
-                    , st_store :: M.Map Natural Ev
+                    {-, st_store :: M.Map Natural Ev -}
                     {-, st_index :: Int -}
                     , st_serverSocket :: String
                     , st_sigSocket :: String
@@ -40,7 +40,7 @@ data  VM_St = VM_St { st_ev :: Ev
 
 emptyState = VM_St { st_ev = Mt
                    {-, st_stack = Stack [] -}
-                   , st_store = M.empty
+                   {-, st_store = M.empty -}
                    {-, st_index = 0 -}
                    , st_serverSocket = ""
                    , st_sigSocket = ""
@@ -69,6 +69,7 @@ stackPop (Stack [x]) = Just (Stack [], x)
 stackPop (Stack (x:xs)) = Just (Stack xs, x)
 -}
 
+{-
 put_store_at :: Natural -> Ev -> VM ()
 put_store_at n e = do
   st <- get
@@ -85,7 +86,7 @@ get_store_at n = do
   case maybeEv of
     Just e -> return e
     Nothing -> error $ "Failed to access st_store at index: " ++ (show n) ++ "."
-
+-}
 
 
 get_asp_socket :: ASP_ID -> VM String

@@ -27,10 +27,21 @@ import ServerAppUtil (startServer)
 import MonadStore
 
 import Control.Concurrent.STM
+import qualified Data.Set as S 
+
+
+initStoreEnv :: IO Store_Env
+initStoreEnv = atomically $ do
+  imap <- newTMVar M.empty
+  smap <- newTMVar M.empty
+  indexes <- newTMVar S.empty
+  return (Store_Env imap smap indexes)
+  
 
 main :: IO ()
 main = do
-  startServer STORE doAt
+  env <- initStoreEnv
+  startServer STORE (doAt env)
 
 {-
 store_loop :: StoreM ()
@@ -38,7 +49,7 @@ store_loop = do
   msg' <-
 -}
 
-doAt msg = do
+doAt env msg = do
   msg' <- decodeGen msg --decodeRequest msg
   case msg' of
     SetMessage m -> error "hi"

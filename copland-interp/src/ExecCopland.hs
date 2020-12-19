@@ -11,9 +11,11 @@ import MonadCop
 import MonadAM
 import MonadVM
 import UDcore
+import CommUtil
 
 import Control.Monad.State.Lazy
-import Control.Monad.Trans.Reader(asks, ask, runReaderT)
+--import Control.Monad.Trans.Reader(asks, ask, runReaderT)
+import Control.Monad.Reader(asks, ask, runReaderT)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.Aeson as DA (decodeStrict, encode, FromJSON)
@@ -46,29 +48,34 @@ do_prim a =
       bs <- invokeUSM i args
       return $ U i args bs e
 
+{-
 put_comm_request :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
 put_comm_request t q reqi rpyi = return ()
 
 poll_comm_response :: Natural -> VM Ev
-poll_comm_response rpyi = return Mt 
+poll_comm_response rpyi = return Mt
+-}
 
 
 sendReq :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
 sendReq t q reqi rpyi = do
   {-p <- get_pl-}
   e <- get_ev
-  put_store_at reqi e
-  put_comm_request t q reqi rpyi
+  lift $ put_store_at reqi e
+  --put_comm_request t q reqi rpyi
 
 receiveResp :: Natural -> VM Ev
 receiveResp rpyi = do
-  poll_comm_response rpyi
+  lift $ get_store_at rpyi
+  --poll_comm_response rpyi
 
+{-
 put_par_request :: AnnoTerm -> (Natural, Natural) -> VM ()
 put_par_request t pr@(loc1, loc2) = return ()
+-}
 
 poll_par_response :: Natural -> VM Ev
-poll_par_response n = return Mt
+poll_par_response n = lift $ get_store_at n
 
 poll_par_responses :: (Natural,Natural) -> VM (Ev,Ev)
 poll_par_responses (n,m) = do
@@ -76,15 +83,18 @@ poll_par_responses (n,m) = do
   e2 <- poll_par_response m
   return (e1,e2)
 
+{-
 runParThread :: AnnoTerm -> (Natural, Natural) -> VM ()
 runParThread t pr@(loc1,loc2) = do
-  e <- get_store_at loc1
+  e <- lift $ get_store_at loc1
   put_par_request t pr
+
 
 runParThreads :: AnnoTerm -> AnnoTerm -> (Natural,Natural) -> (Natural,Natural) -> VM ()
 runParThreads t1 t2 t1_locs t2_locs = do
   runParThread t1 t1_locs
   runParThread t2 t2_locs
+-}
   
 
 build_comp :: AnnoTerm -> VM ()
@@ -121,9 +131,9 @@ build_comp t = do
       let loc_e1' = snd (range t1) - 1
       let loc_e2  = fst (range t2)
       let loc_e2' = snd (range t2) - 1
-      put_store_at loc_e1 e1
-      put_store_at loc_e2 e2
-      runParThreads t1 t2 (loc_e1,loc_e1') (loc_e2,loc_e2')
+      lift $ put_store_at loc_e1 e1
+      lift $ put_store_at loc_e2 e2
+      --runParThreads t1 t2 (loc_e1,loc_e1') (loc_e2,loc_e2')
       (e1r,e2r) <- poll_par_responses (loc_e1', loc_e2')
       put_ev $ PP e1r e2r
       
@@ -203,6 +213,7 @@ invokeUSM asp args = do
               (AspResponseMessage resBits) <- getResponse s
               return resBits
 
+{-
 toRemote :: Pl -> T -> Ev -> VM Ev
 toRemote pTo q initEvidence = do
   connectionServerSocket <- get_serverSocket  --get Comm Server socket
@@ -217,13 +228,7 @@ toRemote pTo q initEvidence = do
           NBS.sendAll s (BL.toStrict messageBits)
           (ResponseMessage _ _ e') <- getResponse s
           return e'
-            
-{-  Receive an attestation response
-    Returns:  evidence from response message  -}
-getResponse :: DA.FromJSON a => Socket -> IO a
-getResponse s = do
-  msg <- NBS.recv s 1024
-  JC.decodeGen msg
+-}
 
 {- ************************************************************* -}
 

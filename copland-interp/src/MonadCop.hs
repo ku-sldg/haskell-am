@@ -12,9 +12,13 @@ import qualified ServerProgArgs as SA
 import ClientProgArgs (getClientOptions, Client_Options(..))
 
 import Control.Monad.Reader
+import Control.Monad.Trans(liftIO)
 import System.Environment (lookupEnv)
 import qualified Data.ByteString as B (ByteString, readFile)
 import qualified Data.Map as M
+
+import Control.Concurrent.STM
+import Numeric.Natural
 
 {-  The Copland Monad  -}
 type COP = ReaderT Cop_Env IO
@@ -32,8 +36,34 @@ data Cop_Env =
             debug :: Bool,
             nameServer :: M.Map Pl Address,
             myKeyPath :: FilePath,
-            me :: Pl
+            me :: Pl,
+            st_store :: M.Map Natural (TMVar Ev)
           }
+
+
+put_store_at :: Natural -> Ev -> COP ()
+put_store_at n e = do
+  {-st <- get
+  let store = st_store st -}
+  store <- asks st_store
+  let maybeVar = M.lookup n store
+  case maybeVar of
+    Just v -> do
+      --let store' = M.insert n e store
+      liftIO $ atomically $ putTMVar v e 
+      --put (st {st_store = store'})
+    Nothing -> error $ "st_store not configured with entry at index: " ++ (show n) ++ "."
+
+get_store_at :: Natural -> COP Ev
+get_store_at n = do
+  store <- asks st_store
+  let maybeVar = M.lookup n store
+  case maybeVar of
+    Just v -> do
+      e <- liftIO $ atomically $ takeTMVar v
+      return e
+      
+    Nothing -> error $ "st_store not configured with entry at index: " ++ (show n) ++ "."
 
 lookupSecretKeyBytes :: COP B.ByteString
 lookupSecretKeyBytes = do
@@ -77,19 +107,19 @@ runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
 
-build_Cop_Env :: Client_Options -> M.Map Pl Address -> IO Cop_Env
-build_Cop_Env opts nameMap = do
+build_Cop_Env :: Client_Options -> M.Map Pl Address -> M.Map Natural (TMVar Ev) -> IO Cop_Env
+build_Cop_Env opts nameMap store = do
 
   let b = optSim opts
       d = optDebug opts
       pl = 0 -- TODO:  hardcoded
       
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl
+  return $ Cop_Env b d nameMap keyPath pl store
   {- TODO: ok to return place 0, since it will be updated? -}
 
-buildServerEnv :: SA.Server_Options -> M.Map Pl Address -> Pl -> IO Cop_Env
-buildServerEnv opts nameMap myPlace = do
+buildServerEnv :: SA.Server_Options -> M.Map Pl Address -> Pl -> M.Map Natural (TMVar Ev) -> IO Cop_Env
+buildServerEnv opts nameMap myPlace store = do
 
   let b = SA.server_optSim opts
       d = SA.server_optDebug opts
@@ -97,7 +127,7 @@ buildServerEnv opts nameMap myPlace = do
       -- TODO:  sanity check that myPlace is in nameMap
       
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl
+  return $ Cop_Env b d nameMap keyPath pl store
 
 lookupSecretKeyPath :: IO FilePath
 lookupSecretKeyPath = do

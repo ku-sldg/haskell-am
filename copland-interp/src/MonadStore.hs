@@ -17,6 +17,7 @@ import Control.Monad.Reader
 import Control.Monad.Trans(liftIO)
 import Numeric.Natural
 import qualified Data.Map as M
+import qualified Data.Set as S 
 
 import Control.Concurrent.STM
 
@@ -27,8 +28,10 @@ import Control.Concurrent.STM
 -}
 
 data  Store_Env = Store_Env
-  { st_store_map :: TMVar (M.Map (VM_ID,Natural) Natural)
-  , st_store :: TMVar (M.Map Natural Ev) }
+  { real_index_map :: TMVar (M.Map (VM_ID,Natural) Natural)
+  , st_store :: TMVar (M.Map Natural (TMVar Ev))
+  , available_indices :: TMVar (S.Set Natural)
+  }
 
 {-
 emptyState = Store_Env { st_store_map = M.empty
