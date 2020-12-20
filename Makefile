@@ -12,6 +12,9 @@ TESTC := copland-interp\:exe\:test-client-exe
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
 
+build_client :	./copland-interp/copland-interp.cabal
+		cd ./copland-interp/ ; stack build ${CLIENT}
+
 run:
 	cd copland-interp ; stack exec -- copland-client-exe -w -a
 
@@ -32,7 +35,7 @@ term:
 	cd copland-interp ; stack exec -- copland-client-exe -w -t ../t.hs
 
 termCompiled:
-	cd copland-interp ; stack exec -- copland-client-exe -w -compile -t ../t.hs
+	cd copland-interp ; stack exec -- copland-client-exe -w -compile
 
 termCompiledd:
 	cd copland-interp ; stack exec -- copland-client-exe -compile -t ../t.hs

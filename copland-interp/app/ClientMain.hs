@@ -239,7 +239,14 @@ get_term_ev inp einp = do
   return (t,ev)
 
   where
-    proto1 = ASPT CPY
+    tm_1 = (ASPT (ASPC 1 ["target.txt"]))
+    ln_1 = (LN tm_1 tm_1)
+    brs_1 = (BRS (ALL,NONE) tm_1 tm_1)
+    proto2 = AT 1 (AT 2 ln_1)
+    proto1 = AT 1 (AT 2 brs_1)
+
+      {-AT 1 (AT 2 ( LN (ASPT (ASPC 1 ["target.txt"]))
+                             (ASPT (ASPC 1 ["target.txt"])))) -}
              {-AT 1
              (LN
               (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))

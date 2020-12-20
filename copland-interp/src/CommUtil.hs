@@ -152,6 +152,13 @@ derive_comm_reqs' t nm pFrom res@(reqs,store) =
       let reqMap = M.insert reqi reqTMVar store
       let rpyMap = M.insert rpyi rpyTMVar reqMap
       return (newMsg : reqs, rpyMap)
+    ALN _ t1 t2 -> do
+      res' <- derive_comm_reqs' t1 nm pFrom res
+      derive_comm_reqs' t2 nm pFrom res'
+    ABRS _ _ t1 t2 -> do
+      res' <- derive_comm_reqs' t1 nm pFrom res
+      derive_comm_reqs' t2 nm pFrom res'
+          
 
 setupCommOne :: CommSetMessage -> IO ()
 setupCommOne (CommSetMessage pTo pFrom namesFrom t init_c final_c) = do
