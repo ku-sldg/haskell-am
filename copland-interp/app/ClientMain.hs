@@ -148,7 +148,8 @@ am_proto_1 = do
 
   nm <- liftIO $ getNameMap namesFile places
 
-  (reqs,store) <- liftIO $ derive_comm_reqs (annotated t) nm
+  (reqs,store) <- liftIO $ derive_comm_reqs (annotated t) nm 0 -- TODO: 0 ok?
+  liftIO $ putStrLn $ "Comm reqs/store: " ++ (show (length reqs)) ++ "\n"
   liftIO $ setupComm reqs
 
   case spawnServers of

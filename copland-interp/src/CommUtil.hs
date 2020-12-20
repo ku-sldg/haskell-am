@@ -18,7 +18,7 @@ import UDcore
 import Network.Socket as NS hiding (recv)
 import Text.Read(readMaybe)
 import Control.Exception (bracket)
-import Control.Monad(replicateM)
+import Control.Monad(replicateM, mapM_)
 import qualified Data.Map as M
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
 
@@ -135,26 +135,48 @@ isPrivileged (NS.SockAddrInet6 p _ _ _) = p < 1025
 isPrivileged _ = False
 
 
-derive_comm_reqs :: AnnoTerm -> M.Map Pl Address  ->
+derive_comm_reqs :: AnnoTerm -> M.Map Pl Address -> Pl ->
   IO ([CommSetMessage], M.Map Natural (TMVar Ev))
-derive_comm_reqs t nm = derive_comm_reqs' t nm ([], M.empty)
+derive_comm_reqs t nm pFrom = derive_comm_reqs' t nm pFrom ([], M.empty)
 
-derive_comm_reqs' :: AnnoTerm -> M.Map Pl Address ->
+derive_comm_reqs' :: AnnoTerm -> M.Map Pl Address -> Pl ->
   ([CommSetMessage], M.Map Natural (TMVar Ev)) ->
   IO ([CommSetMessage], M.Map Natural (TMVar Ev))
-derive_comm_reqs' t nm res@(reqs,store) =
+derive_comm_reqs' t nm pFrom res@(reqs,store) =
   case t of
     AASPT _ _ -> return res
     AAT (reqi,rpyi) q t' -> do
-      let newMsg = CommSetMessage q nm (unanno t) reqi rpyi
       reqTMVar <- atomically $ newEmptyTMVar
       rpyTMVar <- atomically $ newEmptyTMVar
+      let newMsg = CommSetMessage q pFrom nm (unanno t') reqTMVar rpyTMVar
       let reqMap = M.insert reqi reqTMVar store
       let rpyMap = M.insert rpyi rpyTMVar reqMap
       return (newMsg : reqs, rpyMap)
 
+setupCommOne :: CommSetMessage -> IO ()
+setupCommOne (CommSetMessage pTo pFrom namesFrom t init_c final_c) = do
+  _ <- CC.forkIO $ do
+    connectionServerSocket <- lookupPath COMM  --get Comm Server socket
+    --pFrom <- lift $ asks me
+    --namesFrom <- lift $ asks nameServer
+    initEvidence <- atomically $ takeTMVar init_c
+    resEv <- do
+      runUnixDomainClient connectionServerSocket
+        (dispatchAt pTo pFrom namesFrom t initEvidence)
+    atomically $ putTMVar final_c resEv
+  return ()
+  where dispatchAt pTo pFrom namesFrom t ev s = do
+          let messageBits = DA.encode (RequestMessage pTo pFrom namesFrom t ev)
+          putStrLn $ "sendAll: " ++ (show messageBits)
+          NBS.sendAll s (BL.toStrict messageBits)
+          (ResponseMessage _ _ e') <- getResponse s
+          return e'
+
 setupComm :: [CommSetMessage] -> IO ()
-setupComm ls = do
+setupComm ls = mapM_ setupCommOne ls
+
+{-
+  do
   connectionServerSocket <- lookupPath COMM --get_serverSocket  --get Comm Server socket
   --pFrom <- lift $ asks me
   --namesFrom <- lift $ asks nameServer
@@ -166,6 +188,7 @@ setupComm ls = do
           NBS.sendAll s (BL.toStrict messageBits)
           CommAckMessage <- getResponse s
           return ()
+-}
 
 {-  Receive an attestation response
     Returns:  evidence from response message  -}

@@ -17,6 +17,7 @@ import qualified Data.Binary as BI (Binary)
 import qualified Data.Map as M (Map)
 import System.Environment (lookupEnv)
 
+import Control.Concurrent.STM
 import Numeric.Natural
 
 {-  Identify Places (protocol participants)  -}
@@ -72,10 +73,15 @@ data CommSetMessage = CommSetMessage
     --fromPlace :: Pl,
     toNameMap :: M.Map Pl Address,
     toTerm :: T,
-    init_index :: Natural,
-    final_index :: Natural
+    init_cell :: TMVar Ev,
+    final_cell :: TMVar Ev
     --reqEv :: Ev
   } deriving (Show,Read,Generic)
+
+data CommSetList = CommSetList [CommSetMessage] deriving (Show,Read,Generic)
+
+data CommAckMessage =
+  CommAckMessage deriving (Show,Read,Generic)
 -}
 
 instance BI.Binary T where
@@ -236,15 +242,15 @@ data TestResponseMessage =
 
 data CommSetMessage = CommSetMessage
   { toPl :: Pl,
-    --fromPlace :: Pl,
+    fromPl :: Pl,
     toNameMap :: M.Map Pl Address,
     toTerm :: T,
-    init_index :: Natural,
-    final_index :: Natural
+    init_cell :: TMVar Ev,
+    final_cell :: TMVar Ev
     --reqEv :: Ev
-  } deriving (Show,Read,Generic)
+  } deriving ({-Show,Read,-}Generic)
 
-data CommSetList = CommSetList [CommSetMessage] deriving (Show,Read,Generic)
+data CommSetList = CommSetList [CommSetMessage] deriving ({-Show,Read,-}Generic)
 
 data CommAckMessage =
   CommAckMessage deriving (Show,Read,Generic)

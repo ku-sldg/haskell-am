@@ -44,11 +44,12 @@ TODO:  move this somewhere besides Interp.hs.
 -}
 fromRemote :: NS.Socket -> SA.Server_Options -> IO ()
 fromRemote conn opts = do
-  (RequestMessage pTo pFrom names t e) <- receiveReq conn
+  rreq@(RequestMessage pTo pFrom names t e) <- receiveReq conn
   --error $ (show names)
 
+  putStrLn $ "Req received: " ++ (show rreq) ++ "\n"
 
-  (reqs,store) <- derive_comm_reqs (annotated t) names
+  (reqs,store) <- derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
   setupComm reqs
   
   env <- buildServerEnv opts names pTo store

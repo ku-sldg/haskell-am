@@ -32,7 +32,7 @@ term:
 	cd copland-interp ; stack exec -- copland-client-exe -w -t ../t.hs
 
 termCompiled:
-	cd copland-interp ; stack exec -- copland-client-exe -w -compile -t ../t.hs -a
+	cd copland-interp ; stack exec -- copland-client-exe -w -compile -t ../t.hs
 
 termCompiledd:
 	cd copland-interp ; stack exec -- copland-client-exe -compile -t ../t.hs

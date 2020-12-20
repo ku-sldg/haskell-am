@@ -1,4 +1,4 @@
-AT 1 (ASPT (ASPC 1 ["target.txt"]))
+AT 1 (AT 2 (ASPT (ASPC 1 ["target.txt"])))
 
 (AT 1(LN (BRS (ALL,NONE) (ASPT CPY) (ASPT (ASPC 1 ["target.txt"]))) (ASPT SIG)))
 

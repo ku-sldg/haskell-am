@@ -191,6 +191,7 @@ instance FromJSON TestRequestMessage
 instance ToJSON TestResponseMessage
 instance FromJSON TestResponseMessage
 
+{-
 instance ToJSON CommSetMessage
 instance FromJSON CommSetMessage
 
@@ -199,6 +200,7 @@ instance FromJSON CommAckMessage
 
 instance ToJSON CommSetList
 instance FromJSON CommSetList
+-}
 
 
 
