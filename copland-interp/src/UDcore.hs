@@ -28,13 +28,15 @@ runUnixDomainClient socketPathname client = withSocketsDo $ do
 #endif
   where
     open pathname = do
+        putStrLn $ "opening socket with pathname: " ++ pathname
         sock <- socket AF_UNIX Stream defaultProtocol
         connect sock (SockAddrUnix pathname)
+        putStrLn $ "returning sock: " ++ (show sock)
         return sock
 
 -- | Running a server with an accepted socket identifier (pathname)
 
-maxQueued = 5 :: Int
+maxQueued = 10 :: Int
 
 runUnixDomainServer :: String -> (Socket -> IO a) -> IO a
 runUnixDomainServer socketPathname serverAction = withSocketsDo $ do
@@ -46,13 +48,17 @@ runUnixDomainServer socketPathname serverAction = withSocketsDo $ do
   where
     open pathname = do
       removeIfExists socketPathname
+      putStrLn $ "opening socket with pathname: " ++ pathname
       sock <- socket AF_UNIX Stream defaultProtocol
+      putStrLn $ "got sock: " ++ (show sock)
       bind sock (SockAddrUnix pathname)
       listen sock maxQueued
+      putStrLn $ "returning sock: " ++ (show sock)
       return sock
     loop sock = forever $ do
         --error "in server"
         (conn, _peer) <- accept sock
+        putStrLn $ "Accepted connection: " ++ (show conn)
         --error "past accept sock"
 #if MIN_VERSION_network(3,1,1)
         --error "3,1,1"

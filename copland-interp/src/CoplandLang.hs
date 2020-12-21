@@ -240,7 +240,13 @@ data TestResponseMessage =
   TestResponseMessage
   { outN :: Natural } deriving (Show,Read,Generic)
 
-data CommSetMessage = CommSetMessage
+data CommReqMessage =
+  ReqMessage CommSetMessage
+  | ParMessage CommParMessage
+  deriving ({-Show,Read,-}Generic)
+
+data CommSetMessage =
+  CommSetMessage
   { toPl :: Pl,
     fromPl :: Pl,
     toNameMap :: M.Map Pl Address,
@@ -248,12 +254,39 @@ data CommSetMessage = CommSetMessage
     init_cell :: TMVar Ev,
     final_cell :: TMVar Ev
     --reqEv :: Ev
-  } deriving ({-Show,Read,-}Generic)
+  }
+  deriving ({-Show,Read,-}Generic)
 
-data CommSetList = CommSetList [CommSetMessage] deriving ({-Show,Read,-}Generic)
+data CommParMessage =
+  CommParMessage
+  { parToPl :: Pl,
+    parReqNameMap :: M.Map Pl Address,
+    parTerm :: T,
+    par_init_cell :: TMVar Ev,
+    par_final_cell :: TMVar Ev
+  }
+  deriving ({-Show,Read,-}Generic)
+
+--Parallel Request Message
+data RequestMessagePar = RequestMessagePar
+  { toPlacePar :: Pl,
+    --fromPlacePar :: Pl,
+    reqNameMapPar :: M.Map Pl Address,
+    reqTermPar :: T,
+    reqEvPar :: Ev } deriving (Show,Read,Generic)
+
+--Parallel Response Message
+data ResponseMessagePar = ResponseMessagePar
+  { --respToPlacePar :: Pl,
+    --respFromPlacePar :: Pl,
+    respEvPar :: Ev } deriving (Show,Read,Generic)
+
+{-
+data CommReqList = CommReqList [CommReqMessage] deriving ({-Show,Read,-}Generic)
 
 data CommAckMessage =
   CommAckMessage deriving (Show,Read,Generic)
+-}
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}
@@ -284,6 +317,7 @@ data ServerType =
   | SIGN
   | ASP_SERV ASP_ID
   | STORE
+  | PAR
 
 -- socketPathname is currently a global constant here
 -- this must change, soon ....
@@ -292,6 +326,7 @@ lookupPath v = do
   let tag =
         case v of
         COMM -> "COMM"
+        PAR -> "PAR"
         SIGN -> "SIG"
         STORE -> "STORE"
         ASP_SERV i -> "ASP_" ++ (show i)

@@ -202,6 +202,12 @@ instance ToJSON CommSetList
 instance FromJSON CommSetList
 -}
 
+instance ToJSON RequestMessagePar
+instance FromJSON RequestMessagePar
+
+instance ToJSON ResponseMessagePar
+instance FromJSON ResponseMessagePar
+
 
 
 jsonOut :: T -> Ev -> Ev -> IO ()

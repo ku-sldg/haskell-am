@@ -8,6 +8,7 @@ SIG := copland-interp\:exe\:sig-server-exe
 STORE := copland-interp\:exe\:store-server-exe
 TESTS := copland-interp\:exe\:test-server-exe
 TESTC := copland-interp\:exe\:test-client-exe
+PAR := copland-interp\:exe\:par-server-exe
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
@@ -35,7 +36,7 @@ term:
 	cd copland-interp ; stack exec -- copland-client-exe -w -t ../t.hs
 
 termCompiled:
-	cd copland-interp ; stack exec -- copland-client-exe -w -compile
+	cd copland-interp ; stack exec -- copland-client-exe -w -compile #-t ../t.hs
 
 termCompiledd:
 	cd copland-interp ; stack exec -- copland-client-exe -compile -t ../t.hs
@@ -135,6 +136,9 @@ ghcitestclient:
 
 ghcigen:
 	cd copland-interp ; stack ghci --main-is ${GEN}
+
+ghcipar:
+	cd copland-interp ; stack ghci --main-is ${PAR}
 
 help:
 	@cd copland-interp ; stack exec -- copland-server-exe --help ;

@@ -127,7 +127,7 @@ handleSockBits :: (BS.ByteString -> IO BS.ByteString) -> NS.Socket -> IO ()
 handleSockBits f s = do
   --putStrLn "in handleSockBits"
   --error "handle before recv"
-  msg <- recv s 1024
+  msg <- recv s 2048
   --putStrLn $ "msg: " ++ (show msg)
   --error "handle after recv"
   resp <- f msg

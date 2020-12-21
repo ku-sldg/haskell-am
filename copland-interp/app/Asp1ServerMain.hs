@@ -31,14 +31,23 @@ import qualified Data.Binary as B (decode,encode,decodeOrFail)
 import qualified Data.Binary.Get as BG (ByteOffset)
 import qualified Data.ByteString.Lazy as BL (fromStrict,ByteString)
 
+import Control.Monad(forM)
+
 main :: IO ()
 main = do
   putStrLn "starting asp1 server......"
   startServer (ASP_SERV 1) doAt
 
+loiter :: Int -> IO ()
+loiter i = do
+  threadDelay 1000000
+  putStrLn $ "Waiting for " ++ (show i) ++ "seconds..."
+
 doAt :: BS.ByteString -> IO BS.ByteString
 doAt msg = do
   putStrLn "doAt"
+  forM [1..5] loiter
+  --threadDelay 5000000
   --error "herrrre"
   (AspRequestMessage args) <- decodeGen msg
   putStrLn $ "args: " ++ (show args)

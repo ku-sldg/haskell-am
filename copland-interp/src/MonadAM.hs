@@ -10,7 +10,7 @@ module MonadAM where
 import Copland
 import CryptoImpl as CI (doNonce)
 --import Interp (interp,getNameMap)
-import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath, COP, build_Cop_Env)
+import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath, COP{-, build_Cop_Env-})
 import ClientProgArgs
 
 import Control.Monad.Reader

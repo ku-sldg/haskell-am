@@ -61,8 +61,7 @@ get_store_at n = do
   case maybeVar of
     Just v -> do
       e <- liftIO $ atomically $ takeTMVar v
-      return e
-      
+      return e  
     Nothing -> error $ "st_store not configured with entry at index: " ++ (show n) ++ "."
 
 lookupSecretKeyBytes :: COP B.ByteString
@@ -86,6 +85,7 @@ getTheirSock pThem = do
    Nothing -> error "my client error:  server port is not initialized in environment nameserver"
    Just s -> return s
 
+{-
 getMySock :: Cop_Env -> IO Address
 getMySock env = do
   let p = me env
@@ -94,6 +94,7 @@ getMySock env = do
   case mString of
    Nothing -> error "server port is not initialized in environment nameserver"
    Just s -> return s
+-}
 
 --Debug-dependent output
 logc :: String -> COP ()
@@ -107,8 +108,9 @@ runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
 
-build_Cop_Env :: Client_Options -> M.Map Pl Address -> M.Map Natural (TMVar Ev) -> IO Cop_Env
-build_Cop_Env opts nameMap store = do
+
+build_Cop_Env_AM :: Client_Options -> M.Map Pl Address -> M.Map Natural (TMVar Ev) -> IO Cop_Env
+build_Cop_Env_AM opts nameMap store = do
 
   let b = optSim opts
       d = optDebug opts

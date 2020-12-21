@@ -26,19 +26,26 @@ import Control.Concurrent
 
 main :: IO ()
 main = do
+  putStrLn "Starting Connection Server..."
   startServer COMM doAt
 
 doAt msg = do
-  (RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
+  putStrLn $ "Beginning of doAt for ConnectionServerMain"
+  putStrLn $ "Raw Message received: " ++ (show msg)
+  req@(RequestMessage pTo pFrom names t e) <- decodeGen msg --decodeRequest msg
+  putStrLn $ "received RequestMessage: " ++ (show req)
   tcpSock <- getTheirSock pTo names
   sendAll tcpSock msg
-  respMsg <- recv tcpSock 1024
+  putStrLn $ "forwarding RequestMessage: " ++ (show msg)
+  
+  respMsg <- recv tcpSock 2048
 
   -- TODO: decode here?  Or only on client side (since all we do is forward message)?
   let (val :: Maybe ResponseMessage) = DA.decodeStrict respMsg
   case val of
    Nothing -> error $ "weird message received: " ++ (show respMsg)
-   Just res ->
+   Just res -> do
+     putStrLn $ "decoded ResonseMessage: " ++ (show res)
      return respMsg
 
 getTheirSock :: Pl -> M.Map Pl Address -> IO Socket

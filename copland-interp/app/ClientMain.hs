@@ -9,7 +9,7 @@
 module Main where
 
 import Copland
-import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env, runCOP, Cop_Env)
+import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_AM, runCOP, Cop_Env)
 import MonadAM
 import ExecCopland
 import MonadVM
@@ -123,6 +123,40 @@ run_vm_t t vm_st cop_env = do
   return $ st_ev res
 
 
+get_term_ev :: FilePath -> FilePath -> IO (T, Ev)
+get_term_ev inp einp = do
+  t <-
+    case inp of
+     "" -> return proto1
+     _ -> getTerm inp
+  ev <-
+    case einp of
+     "" -> return Mt
+     _ -> getEv einp
+
+  before_output t ev
+  return (t,ev)
+
+  where
+    tm_1 = (ASPT (ASPC 1 ["target.txt"]))
+    ln_1 = (LN tm_1 tm_1)
+    brs_1 = (BRS (ALL,NONE) tm_1 tm_1)
+    brp_1 = (BRP (ALL,NONE) tm_1 tm_1)
+    proto2 = AT 1 (AT 2 ln_1)
+    proto3 = (BRP (ALL,NONE) brp_1 brp_1) --AT 1 (AT 2 brp_1)
+    proto4 = (BRP (ALL,NONE) proto3 proto3)
+    proto1 = AT 1 proto4 --AT 1 proto4
+      {-AT 1 (AT 2 ( LN (ASPT (ASPC 1 ["target.txt"]))
+                             (ASPT (ASPC 1 ["target.txt"])))) -}
+             {-AT 1
+             (LN
+              (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
+              SIG) -}
+    before_output :: T -> Ev -> IO ()
+    before_output t ev = do
+      putStrLn $ "\n" ++ "Protocol Executed(Also in demoOutput/protoIn.hs): \n" ++ (prettyT t)
+      putStrLn $ "\n" ++ "Initial Evidence: \n" ++ (prettyEv ev) ++ "\n"
+
 
 
 am_proto_1 :: AM Ev
@@ -142,15 +176,11 @@ am_proto_1 = do
   {- Uncomment to use generated nonce as initial evidence -}
   n1 <- am_genNonce Mt
   n <- am_genNonce n1
-  let ev = n
+  let ev = Mt --n
 
   let places = getPlaces t
 
   nm <- liftIO $ getNameMap namesFile places
-
-  (reqs,store) <- liftIO $ derive_comm_reqs (annotated t) nm 0 -- TODO: 0 ok?
-  liftIO $ putStrLn $ "Comm reqs/store: " ++ (show (length reqs)) ++ "\n"
-  liftIO $ setupComm reqs
 
   case spawnServers of
    True -> do
@@ -158,8 +188,15 @@ am_proto_1 = do
      liftIO $ CC.threadDelay 10000
    False -> return ()
 
+  let annoT = annotated t
+  liftIO $ putStrLn $ "Annotated term executed: " ++ (show annoT)
+
+  (reqs,store) <- liftIO $ derive_comm_reqs annoT nm 0 -- TODO: 0 ok?
+  liftIO $ putStrLn $ "Comm reqs/store: " ++ (show (length reqs)) ++ "\n"
+  liftIO $ setupComm reqs
+
   --opts <- getClientOptions
-  cop_env <- liftIO $ build_Cop_Env opts nm store
+  cop_env <- liftIO $ build_Cop_Env_AM opts nm store
   
   -- if client compiles the received copland term,
   -- and executes the generated sequence of copland instructions.
@@ -224,37 +261,7 @@ after_output t ev resEv = do
        putStrLn $ "\n" ++ "Evidence Result: " ++ "\n" ++ (prettyEv resEv) ++ "\n"
        writeFile fp (prettyEv resEv)
 
-get_term_ev :: FilePath -> FilePath -> IO (T, Ev)
-get_term_ev inp einp = do
-  t <-
-    case inp of
-     "" -> return proto1
-     _ -> getTerm inp
-  ev <-
-    case einp of
-     "" -> return Mt
-     _ -> getEv einp
 
-  before_output t ev
-  return (t,ev)
-
-  where
-    tm_1 = (ASPT (ASPC 1 ["target.txt"]))
-    ln_1 = (LN tm_1 tm_1)
-    brs_1 = (BRS (ALL,NONE) tm_1 tm_1)
-    proto2 = AT 1 (AT 2 ln_1)
-    proto1 = AT 1 (AT 2 brs_1)
-
-      {-AT 1 (AT 2 ( LN (ASPT (ASPC 1 ["target.txt"]))
-                             (ASPT (ASPC 1 ["target.txt"])))) -}
-             {-AT 1
-             (LN
-              (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
-              SIG) -}
-    before_output :: T -> Ev -> IO ()
-    before_output t ev = do
-      putStrLn $ "\n" ++ "Protocol Executed(Also in demoOutput/protoIn.hs): \n" ++ (prettyT t)
-      putStrLn $ "\n" ++ "Initial Evidence: \n" ++ (prettyEv ev) ++ "\n"
 
 -- Attempt to read a value from the FIRST LINE of a file.
 -- Output a type(and filepath)-specific error message upon failure.

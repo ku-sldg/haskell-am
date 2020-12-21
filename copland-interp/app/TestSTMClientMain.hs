@@ -9,7 +9,7 @@
 module Main where
 
 import Copland
-import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env, runCOP, Cop_Env)
+import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_AM, runCOP, Cop_Env)
 import MonadAM
 --import ExecCopland
 import MonadVM

@@ -61,12 +61,16 @@ sendReq :: AnnoTerm -> Pl -> Natural -> Natural -> VM ()
 sendReq t q reqi rpyi = do
   {-p <- get_pl-}
   e <- get_ev
+  liftIO $ putStrLn $ "putting at store index: " ++ (show reqi)
   lift $ put_store_at reqi e
   --put_comm_request t q reqi rpyi
 
 receiveResp :: Natural -> VM Ev
 receiveResp rpyi = do
-  lift $ get_store_at rpyi
+  liftIO $ putStrLn $ "getting at store index: " ++ (show rpyi)
+  e <- lift $ get_store_at rpyi
+  liftIO $ putStrLn $ "got e1 at " ++ (show rpyi) ++ ": " ++ (show e)
+  return e
   --poll_comm_response rpyi
 
 {-
@@ -79,8 +83,13 @@ poll_par_response n = lift $ get_store_at n
 
 poll_par_responses :: (Natural,Natural) -> VM (Ev,Ev)
 poll_par_responses (n,m) = do
+  liftIO $ putStrLn $ "Polling for e1 at: " ++ (show n)
   e1 <- poll_par_response n
+  liftIO $ putStrLn $ "Polled e1: " ++ (show e1)
+
+  liftIO $ putStrLn $ "Polling for e2 at: " ++ (show m)
   e2 <- poll_par_response m
+  liftIO $ putStrLn $ "Polled e2: " ++ (show e2)
   return (e1,e2)
 
 {-
@@ -128,11 +137,15 @@ build_comp t = do
       {-p <- get_pl-}
       let (e1,e2) = splitEvm sp1 sp2 e
       let loc_e1  = fst (range t1)
-      let loc_e1' = snd (range t1) - 1
+      let loc_e1' = snd (range t1) + 1 --- 1
       let loc_e2  = fst (range t2)
-      let loc_e2' = snd (range t2) - 1
+      let loc_e2' = snd (range t2) + 1 --- 1
       lift $ put_store_at loc_e1 e1
       lift $ put_store_at loc_e2 e2
+      liftIO $ putStrLn $ "loc_e1: " ++ (show loc_e1)
+      liftIO $ putStrLn $ "loc_e1': " ++ (show loc_e1')
+      liftIO $ putStrLn $ "loc_e2: " ++ (show loc_e2)
+      liftIO $ putStrLn $ "loc_e2': " ++ (show loc_e2')
       --runParThreads t1 t2 (loc_e1,loc_e1') (loc_e2,loc_e2')
       (e1r,e2r) <- poll_par_responses (loc_e1', loc_e2')
       put_ev $ PP e1r e2r

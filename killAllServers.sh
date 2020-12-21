@@ -1,6 +1,7 @@
 #! /bin/bash
 
 pkill connection-server-exe
+pkill par-server-exe
 pkill sig-server-exe
 
 pkill asp1-server-exe

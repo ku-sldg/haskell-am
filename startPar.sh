@@ -9,10 +9,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export COPLAND_BUILD=${SCRIPT_DIR}
 
 cd ${SCRIPT_DIR}/copland-interp
-stack exec sig-server-exe &
-stack exec connection-server-exe &
-stack exec par-server-exe &
-
-stack exec asp1-server-exe &
-stack exec asp42-server-exe &
-stack exec  asp41-server-exe &
+stack exec par-server-exe

@@ -77,7 +77,7 @@ receiveResp conn goodPfrom = do
   --logc "inside doRecieveResponse"
   
   --p <- asks me
-  msg <- NBS.recv conn 1024
+  msg <- NBS.recv conn 2048
   let (val :: Maybe ResponseMessage) = DA.decodeStrict msg
   case val of
       Nothing -> error $ "weird message received: " ++ (show msg)
@@ -103,7 +103,7 @@ receiveReq :: NS.Socket -> IO RequestMessage
 receiveReq conn = do
   --logc "inside doRecieveRequest"
 
-  msg <-  NBS.recv conn 1024
+  msg <-  NBS.recv conn 2048
   let (val :: Maybe RequestMessage) = DA.decodeStrict msg
   case val of
    Nothing -> error $ "weird message received: " ++ (show msg)
