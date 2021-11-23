@@ -22,7 +22,7 @@ import Numeric.Natural
 import Copland
 import CommUtil
 import UDcore
-import ExecCopland
+--import ExecCopland
 import ServerAppUtil (startServer)
 import MonadStore
 
@@ -77,7 +77,7 @@ doAt env msg = do
 
     --_ -> error "Unexpected msg type in StoreServerMain doAt()"
 
-getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
+getTheirSock :: Plc -> M.Map Plc Address -> IO Socket
 getTheirSock pThem nameServer = do
   let mString = M.lookup pThem nameServer
   case mString of

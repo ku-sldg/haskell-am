@@ -29,7 +29,7 @@ import qualified Data.Map as M
       st_serverSocket - Unix Domain Socket identifier (filename)
 -}
 
-data  VM_St = VM_St { st_ev :: Ev
+data  VM_St = VM_St { st_ev :: EvidenceC
                     {-, st_stack :: Stack Ev -}
                     {-, st_store :: M.Map Natural Ev -}
                     {-, st_index :: Int -}
@@ -98,10 +98,10 @@ get_asp_socket i = do
    Nothing -> error $ "No socket registered for ASP " ++ (show i) ++ "."
 
 
-get_ev :: VM Ev
+get_ev :: VM EvidenceC
 get_ev = gets st_ev
 
-put_ev :: Ev -> VM ()
+put_ev :: EvidenceC -> VM ()
 put_ev newEv = modify (\s -> s{ st_ev = newEv })
 
 {-

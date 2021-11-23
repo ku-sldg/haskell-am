@@ -17,7 +17,7 @@ import qualified Data.Binary as BI (encode)
 import qualified Data.Map as M
 
 {----- Shared qc -----}
-maxPl :: Pl
+maxPl :: Plc
 maxPl = 10
 
 maxArgs :: Int
@@ -48,7 +48,7 @@ genArgs = do
   numArgs <- choose (0,maxArgs)
   return (argList numArgs)
 
-genPl :: Gen Pl
+genPl :: Gen Plc
 genPl = choose (0, maxPl)
 
 maxNumNames :: Int
@@ -60,13 +60,13 @@ genAddress = do
   res <- choose addrRange
   return (show res)
 
-genPlAddr :: Gen (Pl,Address)
+genPlAddr :: Gen (Plc,Address)
 genPlAddr = do
   pl <- genPl
   addr <- genAddress
   return (pl,addr)
 
-genNameMap :: Gen (M.Map Pl Address)
+genNameMap :: Gen (M.Map Plc Address)
 genNameMap = do
   numNames <- choose (0,maxNumNames)
   l <- replicateM numNames genPlAddr
@@ -98,10 +98,10 @@ instance Arbitrary RequestMessage where
   
 {---------- Term qc ----------}
 
-instance Arbitrary T where
+instance Arbitrary Term where
   arbitrary = sized $ \n -> genTerm (rem n 25)
   
-genTerm :: Int -> Gen T
+genTerm :: Int -> Gen Term
 genTerm n =
   let base_gen = oneof [genUSM, genHSH, genSIG] in
   case n of 0 -> base_gen
@@ -111,18 +111,20 @@ genTerm n =
                               (n,genBRp (n-1)),
                               (1,base_gen)]
 
-genSIG :: Gen T
+genSIG :: Gen Term
 genSIG = do
   return (ASPT SIG)
 
-genHSH :: Gen T
+genHSH :: Gen Term
 genHSH = do
   return (ASPT HSH)
 
 genUSM = do
   i <- genPl
   args <- genArgs
-  return (ASPT $ ASPC i args)
+  tpl <- genPl
+  tid <- genPl
+  return (ASPT $ ASPC $ ASP_PARAMSC i args tpl tid)
 
 genLN n = do
   t0 <- genTerm n
@@ -157,10 +159,10 @@ genBRp n = do
 
 {---------- Evidence qc ----------}
 
-instance Arbitrary Ev where
+instance Arbitrary EvidenceC where
   arbitrary = sized $ \n -> genEv (rem n 25)
   
-genEv :: Int -> Gen Ev
+genEv :: Int -> Gen EvidenceC
 genEv n =
   case n of 0 -> oneof [genMt]
             _ ->
@@ -180,28 +182,34 @@ genBS = do
   let bits = BI.encode p
   return (BL.toStrict bits)
 
-genMt :: Gen Ev
+genMt :: Gen EvidenceC
 genMt = return Mt
 
 genU n = do
   i <- genPl
-  --p <- genPl
+  p <- genPl
+  tpl <- genPl
+  tid <- genPl
   args <- genArgs
   bs <- genBS
   ev <- genEv n
-  return $ U i args bs ev
+  return $ U (ASP_PARAMSC i args tpl tid) p bs ev
 
 genG n = do
-  --i <- genPl
+  p <- genPl
   bs <- genBS
   ev <- genEv n
-  return $ G bs ev
+  return $ G p bs ev
 
-genH :: Gen Ev
+genEvT :: Gen Evidence
+genEvT = return Mtt -- TODO:  make this real
+
+genH :: Gen EvidenceC
 genH = do
   bs <- genBS
-  --i <- genPl
-  return $ H bs
+  p <- genPl
+  et <- genEvT
+  return $ H p bs et
 
 genN n = do
   p <- genPl

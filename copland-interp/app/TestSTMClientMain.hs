@@ -13,7 +13,7 @@ import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_AM, 
 import MonadAM
 --import ExecCopland
 import MonadVM
-import Interp (getNameMap,interp)
+--import Interp (getNameMap,interp)
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)

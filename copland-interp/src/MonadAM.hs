@@ -31,9 +31,9 @@ type AM = ReaderT AM_Env (StateT AM_St IO)
 
 -}
 data AM_Env =
-  AM_Env { sig_map :: M.Map Pl ASP_ID,
-           hsh_map :: M.Map Pl ASP_ID,
-           asp_map :: M.Map (Pl,ASP_ID) ASP_ID,
+  AM_Env { sig_map :: M.Map Plc ASP_ID,
+           hsh_map :: M.Map Plc ASP_ID,
+           asp_map :: M.Map (Plc,ASP_ID) ASP_ID,
            nonce_check_asp :: ASP_ID
           } deriving (Show)
 
@@ -65,7 +65,7 @@ runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
      runStateT (runReaderT k env) st
 
-am_get_sig_asp :: Pl -> AM ASP_ID
+am_get_sig_asp :: Plc -> AM ASP_ID
 am_get_sig_asp p = do
   m <- asks sig_map
   let maybeId = M.lookup p m
@@ -73,7 +73,7 @@ am_get_sig_asp p = do
    Just i -> return i
    Nothing -> error $ "appraisal ASP_ID for SIG at place " ++ (show p) ++ " not registered."
 
-am_get_hsh_asp :: Pl -> AM ASP_ID
+am_get_hsh_asp :: Plc -> AM ASP_ID
 am_get_hsh_asp p = do
   m <- asks hsh_map
   let maybeId = M.lookup p m
@@ -81,7 +81,7 @@ am_get_hsh_asp p = do
    Just i -> return i
    Nothing -> error $ "appraisal asp for HSH at place " ++ (show p) ++ " not registered."
 
-am_get_asp_asp :: Pl -> ASP_ID -> AM ASP_ID
+am_get_asp_asp :: Plc -> ASP_ID -> AM ASP_ID
 am_get_asp_asp p i = do
   m <- asks asp_map
   let maybeId = M.lookup (p,i) m
@@ -97,7 +97,7 @@ am_updateNonce bs = do
   put (AM_St newMap x newId)
   return id
 
-am_genNonce :: Ev -> AM Ev
+am_genNonce :: EvidenceC  -> AM EvidenceC 
 am_genNonce e = do
   bs <- liftIO $ CI.doNonce
   new_id <- am_updateNonce bs
@@ -155,23 +155,23 @@ am_checkNonce e = do
 
 
 -- TODO:  refactor to fold
-ev_nonce_list' :: Ev -> [(Int,BS)] -> [(Int,BS)]
+ev_nonce_list' :: EvidenceC  -> [(Int,BS)] -> [(Int,BS)]
 ev_nonce_list' e ls =
   case e of
    N i bs e' -> (i,bs) : (ev_nonce_list' e' ls)
    _ -> ls
 
-ev_nonce_list :: Ev -> [(Int,BS)]
+ev_nonce_list :: EvidenceC  -> [(Int,BS)]
 ev_nonce_list e = ev_nonce_list' e []
 
-n_to_term :: (Int,BS) -> AM T
+n_to_term :: (Int,BS) -> AM Term
 n_to_term (i,bs) = do
   n_asp <- asks nonce_check_asp
   let arg1 = (show i)
       arg2 = (show bs) in
   {-let arg1 = BL.toStrict $ D.encode i
       arg2 = bs in -}
-   return $ ASPT $ ASPC n_asp [arg1,arg2]
+   return $ ASPT $ undefined --ASPC n_asp [arg1,arg2]
 
 check_nonces' :: [(Int,BS)] -> AM [Bool]
 check_nonces' ls =
@@ -186,13 +186,13 @@ check_nonces ls = do
   bools <- check_nonces' ls
   return (and bools)
 
-check_nonces_ev :: Ev -> AM Bool
+check_nonces_ev :: EvidenceC  -> AM Bool
 check_nonces_ev e = do
   let ls = ev_nonce_list e
   check_nonces ls
   
 
-nlist_to_term :: [(Int,BS)] -> AM T
+nlist_to_term :: [(Int,BS)] -> AM Term
 nlist_to_term ls =
   case ls of
    [] -> return $ ASPT $ CPY
@@ -201,7 +201,7 @@ nlist_to_term ls =
      rest <- (nlist_to_term ls')
      return $ LN v rest
 
-ev_nonce_term :: Ev -> AM T
+ev_nonce_term :: EvidenceC -> AM Term
 ev_nonce_term e = do
   let ls = ev_nonce_list e
   nlist_to_term ls
@@ -284,7 +284,12 @@ gen_from_ev' e = return CPY
 -}
 
 
-gen_from_ev' :: Ev -> Ev_T -> AM T
+gen_from_ev' :: EvidenceC -> Evidence -> AM Term
+gen_from_ev' e et = undefined
+
+
+{-
+gen_from_ev' :: EvidenceC -> Evidence -> AM Term
 gen_from_ev' e et = do
   --liftIO $ putStrLn $ "\nterm in gen_appriasel_term': \n" ++ (prettyT t) ++ "\n"
   liftIO $ putStrLn $ "\nevidence in gen_appriasal_term': \n" ++ (prettyEv e) ++ "\n"
@@ -306,10 +311,10 @@ gen_from_ev' e et = do
       _ -> error "evidence mismath on Mt Mtt"
    U i args bs e' ->
      case et of
-      Ut p i_t args_t e'_t -> do
+      Ut p (ASP_PARAMSC i_t args_t _ _) e'_t -> do
         app_id <- am_get_asp_asp p i_t
         t2 <- gen_from_ev' e' e'_t
-        let t1 = ASPT $ (ASPC app_id ((show bs) : args_t))
+        let t1 = ASPT $ undefined --(ASPC app_id ((show bs) : args_t))
         let res = BRP (NONE,NONE) t1 t2
         liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
           (prettyT res) ++ "\n"
@@ -323,7 +328,7 @@ gen_from_ev' e et = do
             evBitsArg = show evBits
             sigArg = show bs
         t2 <- gen_from_ev' e' e'_t
-        let t1 = ASPT $ (ASPC sig_id [evBitsArg,sigArg])
+        let t1 = ASPT $ undefined --(ASPC sig_id [evBitsArg,sigArg])
             res = BRP (NONE,NONE) t1 t2
         liftIO $ putStrLn $ "\nreterming in gen_appriasel_term': \n" ++
           (prettyT res) ++ "\n"
@@ -331,10 +336,10 @@ gen_from_ev' e et = do
       _ -> error "evidence mismath on G Gt"
    H bs ->
      case et of
-      Ht p -> do
+      Ht p _ -> do
         hsh_id <- am_get_hsh_asp p
         let hshArg = show bs
-        return $ ASPT $ (ASPC hsh_id [hshArg]) -- TODO: custom args here?  e or Mt?
+        return $ ASPT $ undefined --(ASPC hsh_id [hshArg]) -- TODO: custom args here?  e or Mt?
       _ -> error "evidence mismath on H Ht"
    SS e1 e2 ->
      case et of
@@ -368,7 +373,7 @@ gen_from_ev' e et = do
            NONE -> Mt
 
 
-
+-}
 
 
 
@@ -456,15 +461,15 @@ gen_appraisal_term' t p e = do
            NONE -> Mt
 -}
 
-t_to_evt'' :: ASP -> Pl -> Ev_T -> Ev_T
+t_to_evt'' :: ASP -> Plc -> Evidence -> Evidence
 t_to_evt'' t p e =
   case t of
-    ASPC i args -> Ut p i args e
+    ASPC params -> Ut p params e
     SIG -> Gt p e
-    HSH -> Ht p
+    HSH -> Ht p e
     CPY -> e
 
-t_to_evt' :: T -> Pl -> Ev_T -> Ev_T
+t_to_evt' :: Term -> Plc -> Evidence -> Evidence
 t_to_evt' t p e =
   case t of
    ASPT a -> t_to_evt'' a p e
@@ -491,10 +496,10 @@ t_to_evt' t p e =
            NONE -> Mtt
      
 
-t_to_evt :: T -> Ev_T -> Ev_T
+t_to_evt :: Term -> Evidence -> Evidence
 t_to_evt t e = t_to_evt' t 0 e
 
-gen_appraisal_term :: T -> {-Ev ->-} Ev -> Ev_T -> AM T
+gen_appraisal_term :: Term -> {-Ev ->-} EvidenceC -> Evidence -> AM Term
 gen_appraisal_term t {-initEv-} resEv initEv_T = do
   am_clear_app_nonces
   --t1 <- ev_nonce_term initEv
@@ -504,7 +509,7 @@ gen_appraisal_term t {-initEv-} resEv initEv_T = do
   return t2
 
 
-appraise_ev :: Ev -> [Bool]
+appraise_ev :: EvidenceC -> [Bool]
 appraise_ev e =
   case e of
    SS e1 e2 -> -- TODO:  this will become PP evidence once AVM supports BRP

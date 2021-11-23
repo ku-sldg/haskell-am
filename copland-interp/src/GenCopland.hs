@@ -101,14 +101,14 @@ respsToFile fp b n = do
 
 termsToFile :: FilePath -> Bool -> Int -> IO ()
 termsToFile fp b n = do
-  (terms::[T]) <- sampleNarb n
+  (terms::[Term]) <- sampleNarb n
   termsToFile' fp b terms
 
 {----- Ev samples to file -----}
 
 evsToFile :: FilePath -> Bool -> Int -> IO ()
 evsToFile fp b n = do
-  (evs::[Ev]) <- sampleNarb n
+  (evs::[EvidenceC]) <- sampleNarb n
   termsToFile' fp b evs
 
 arbsToFile :: forall a . (ToJSON a, FromJSON a,Read a,Show a,Arbitrary a) => FilePath -> Bool -> Int -> IO ()

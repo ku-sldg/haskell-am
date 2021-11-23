@@ -22,13 +22,17 @@ fromStr s = pretty (T.pack s)
 instance Pretty ASP where
   pretty t =
     case t of
-      (ASPC i args) ->
-        hsep [(fromStr usmStr), (viaShow i), (viaShow args)]
+      (ASPC (ASP_PARAMSC i args p tid)) ->
+        hsep [(fromStr usmStr),
+              (viaShow i),
+              (viaShow args),
+              (viaShow p),
+              (viaShow tid)]
       (SIG) -> (fromStr sigStr)
       (HSH) -> (fromStr hshStr)
       (CPY) -> (fromStr "CPY") --TODO: add static cpyStr
 
-instance Pretty T where
+instance Pretty Term where
   pretty t =
     case t of
         ASPT a -> pretty a
@@ -47,7 +51,7 @@ instance Show T where
 -}
 
 
-prettyT :: T -> String
+prettyT :: Term -> String
 prettyT = renderString . layoutPretty defaultLayoutOptions . pretty
 
 --prettyT s = prettyT' 
@@ -57,17 +61,17 @@ shorb b =
   let len = 4 in
   B.append (B.take len b) "..."
 
-instance Pretty Ev where
+instance Pretty EvidenceC where
   pretty e =
     case e of
     Mt -> (fromStr mtStr)
     U i args b e' ->
       hsep [(fromStr uStr), {-(viaShow p),-} (viaShow i), (viaShow args),
             (viaShow (shorb b)), parens (pretty e')]
-    G b e' ->
-      (hsep [(fromStr gStr){-, (viaShow p)-}]) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
-    H b ->
-      hsep [(fromStr hStr){-, (viaShow p)-}, (viaShow (shorb b))]
+    G p b e' ->
+      (hsep [(fromStr gStr), (viaShow p)]) <+> align (vsep [parens (pretty e'), (viaShow (shorb b))])
+    H p b e ->
+      hsep [(fromStr hStr), (viaShow p), (viaShow (shorb b)), (viaShow e)]
     N n b e' ->
       (fromStr nStr) <+> align (vsep [(viaShow n), (viaShow (shorb b)),
                                       parens (pretty e')])
@@ -81,7 +85,7 @@ instance Show Ev where
   showsPrec _ = renderShowS . layoutPretty defaultLayoutOptions . pretty
 -}
 
-prettyEv :: Ev -> String
+prettyEv :: EvidenceC -> String
 prettyEv = renderString . layoutPretty defaultLayoutOptions . pretty
 
 

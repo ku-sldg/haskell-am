@@ -26,7 +26,7 @@ source-repository head
 
 library
   exposed-modules:
-      Copland, CoplandLang, JsonCopland, CryptoImpl, CommImpl, Interp, QcCopland, GenCopland, StringConstants, DisplayCopland, ClientProgArgs, ServerProgArgs, GenProgArgs, Appraise, MonadCop, MonadAM, CommUtil, Comm, ExecCopland, MonadVM, MonadStore, MonadTestSTM, UDcore, ServerAppUtil, DemoStates
+      Copland, CoplandLang, JsonCopland, CryptoImpl, CommImpl, QcCopland, GenCopland, StringConstants, DisplayCopland, ClientProgArgs, ServerProgArgs, GenProgArgs, Appraise, MonadCop, MonadAM, CommUtil, Comm, MonadVM, CoplandLang_Extracted, IO_Stubs, MonadCVM, Impl_VM, MonadStore, MonadTestSTM, UDcore, ServerAppUtil, DemoStates
   other-modules:
       Paths_copland_interp
   hs-source-dirs:

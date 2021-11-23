@@ -19,7 +19,7 @@ import qualified Data.Aeson as DA (decodeStrict, encode)
 import Copland
 import CommUtil
 import UDcore
-import ExecCopland
+--import ExecCopland
 import ServerAppUtil (startServer)
 
 import Control.Concurrent
@@ -48,7 +48,7 @@ doAt msg = do
      putStrLn $ "decoded ResonseMessage: " ++ (show res)
      return respMsg
 
-getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
+getTheirSock :: Plc -> M.Map Plc Address -> IO Socket
 getTheirSock pThem nameServer = do
   let mString = M.lookup pThem nameServer
   case mString of

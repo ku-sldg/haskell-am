@@ -47,12 +47,12 @@ main'' opts@(Gen_Options numTerms reqB respB termB evB inFile outFile dataB) = d
                   False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
       2 -> do
-        (terms::[T]) <- case dataB of
+        (terms::[Term]) <- case dataB of
                   True -> jsonFromFileToVals inFile
                   False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
       3 -> do
-        (terms::[Ev]) <- case dataB of
+        (terms::[EvidenceC]) <- case dataB of
                   True -> jsonFromFileToVals inFile
                   False -> fromFileToVals inFile
         termsToFile' outFile dataB terms

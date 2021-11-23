@@ -7,8 +7,8 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Crypto.Sign.Ed25519 (SecretKey(..), toPublicKey, verify)
 
-type GoldenUsmMap = M.Map (ASP_ID,Pl,[ARG]) BS
-type GoldenKimMap = M.Map (ASP_ID,Pl,[ARG]) BS
+type GoldenUsmMap = M.Map (ASP_ID,Plc,[ARG]) BS
+type GoldenKimMap = M.Map (ASP_ID,Plc,[ARG]) BS
 
 {-
 goldenUsms :: IO GoldenUsmMap

@@ -19,7 +19,7 @@ import qualified Data.Aeson as DA (decodeStrict, encode)
 import Copland
 import CommUtil
 import UDcore
-import ExecCopland
+--import ExecCopland
 import ServerAppUtil (startServer)
 
 import qualified DemoStates as DS (vm_state_init)
@@ -71,8 +71,8 @@ doAt msg = do
   
 
 
-buildServerEnvPar :: {-SA.Server_Options ->-} Bool -> Bool -> M.Map Pl Address -> Pl ->
-  M.Map Natural (TMVar Ev) -> IO Cop_Env
+buildServerEnvPar :: {-SA.Server_Options ->-} Bool -> Bool -> M.Map Plc Address -> Plc ->
+  M.Map Natural (TMVar EvidenceC) -> IO Cop_Env
 buildServerEnvPar {-opts-} b d nameMap myPlace store = do
 
   {-
@@ -96,7 +96,7 @@ receiveReqPar conn = do
    Nothing -> error $ "weird message received: " ++ (show msg)
    Just res -> return res
 
-sendRespPar :: NS.Socket -> {-Pl -> Pl ->-} Ev -> IO ()
+sendRespPar :: NS.Socket -> {-Pl -> Pl ->-} EvidenceC -> IO ()
 sendRespPar conn {-pFrom pTo-} e = do
   --pFrom <- asks me
   let rm = (ResponseMessagePar {-pTo pFrom-} e)
@@ -113,7 +113,7 @@ fromRemotePar rreq@(RequestMessagePar pTo names t e) {-conn-} {-opts-} = do
 
   putStrLn $ "Par Req received: " ++ (show rreq) ++ "\n"
 
-  (reqs,store) <- derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
+  (reqs,store) <- undefined --derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
   setupComm reqs
 
   let sim_bool = False
@@ -131,7 +131,7 @@ fromRemotePar rreq@(RequestMessagePar pTo names t e) {-conn-} {-opts-} = do
   -- TODO: give option of non-compiled?
   vm_st <- DS.vm_state_init e
   putStrLn $ "HHHEEERE_PAR"
-  res <- run_vm (annotated t) vm_st env
+  res <- undefined --run_vm (annotated t) vm_st env
   let e' = st_ev res
         {- False -> do
            putStrLn $ "HERE"
@@ -148,7 +148,7 @@ fromRemotePar rreq@(RequestMessagePar pTo names t e) {-conn-} {-opts-} = do
 
 
 
-getTheirSock :: Pl -> M.Map Pl Address -> IO Socket
+getTheirSock :: Plc -> M.Map Plc Address -> IO Socket
 getTheirSock pThem nameServer = do
   let mString = M.lookup pThem nameServer
   case mString of

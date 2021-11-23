@@ -29,7 +29,7 @@ import Control.Concurrent.STM
 
 data  Store_Env = Store_Env
   { real_index_map :: TMVar (M.Map (VM_ID,Natural) Natural)
-  , st_store :: TMVar (M.Map Natural (TMVar Ev))
+  , st_store :: TMVar (M.Map Natural (TMVar EvidenceC))
   , available_indices :: TMVar (S.Set Natural)
   }
 

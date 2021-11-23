@@ -91,7 +91,7 @@ instance FromJSON SP where
     {-, allNullaryToStringTag = False -}
     }
 
-instance ToJSON Ev where
+instance ToJSON Evidence where
   toJSON = genericToJSON defaultOptions {
     sumEncoding =
        defaultTaggedObject {
@@ -101,7 +101,7 @@ instance ToJSON Ev where
     {-, allNullaryToStringTag = False -}
     }
 
-instance FromJSON Ev where
+instance FromJSON Evidence where
   parseJSON = genericParseJSON defaultOptions {
     sumEncoding =
        defaultTaggedObject {
@@ -109,6 +109,44 @@ instance FromJSON Ev where
          contentsFieldName = "data"
          }
     {-, allNullaryToStringTag = False -}
+    }
+    
+instance ToJSON EvidenceC where
+  toJSON = genericToJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
+    {-, allNullaryToStringTag = False -}
+    }
+
+instance FromJSON EvidenceC where
+  parseJSON = genericParseJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
+    {-, allNullaryToStringTag = False -}
+    }
+
+instance ToJSON ASP_PARAMS where
+  toJSON = genericToJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
+    }
+
+instance FromJSON ASP_PARAMS where
+  parseJSON = genericParseJSON defaultOptions {
+    sumEncoding =
+       defaultTaggedObject {
+         tagFieldName = "constructor",
+         contentsFieldName = "data"
+         }
     }
 
 instance ToJSON ASP where
@@ -129,7 +167,7 @@ instance FromJSON ASP where
          }
     }
 
-instance ToJSON T where
+instance ToJSON Term where
   toJSON = genericToJSON defaultOptions {
     sumEncoding =
        defaultTaggedObject {
@@ -138,7 +176,7 @@ instance ToJSON T where
          }
     }
 
-instance FromJSON T where
+instance FromJSON Term where
   parseJSON = genericParseJSON defaultOptions {
     sumEncoding =
        defaultTaggedObject {
@@ -210,7 +248,7 @@ instance FromJSON ResponseMessagePar
 
 
 
-jsonOut :: T -> Ev -> Ev -> IO ()
+jsonOut :: Term -> EvidenceC -> EvidenceC -> IO ()
 jsonOut t ev resEv = do
   let jsonProtoInFile = "../demoOutput/jsonIn.hs"
       jsonEvOutFile = "../demoOutput/jsonOut.hs"

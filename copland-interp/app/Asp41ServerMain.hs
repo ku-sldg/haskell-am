@@ -38,9 +38,9 @@ main = do
   putStrLn "starting asp41 server......"
   startServer (ASP_SERV 41) doAt
 
-type GoldenUsmMap = M.Map (ASP_ID,Pl,[ARG]) BS
+type GoldenUsmMap = M.Map (ASP_ID,Plc,[ARG]) BS
 
-addGoldenUsm :: ASP_ID -> Pl -> [ARG] -> BS -> GoldenUsmMap -> GoldenUsmMap
+addGoldenUsm :: ASP_ID -> Plc -> [ARG] -> BS -> GoldenUsmMap -> GoldenUsmMap
 addGoldenUsm i p args bs m =
   M.insert (i,p,args) bs m
   
@@ -50,7 +50,7 @@ goldenUsms = do
   let u10 = addGoldenUsm 1 0 ["target.txt"] uBits M.empty
   return u10
 
-getGoldenUsm :: ASP_ID -> Pl -> [ARG] -> IO BS
+getGoldenUsm :: ASP_ID -> Plc -> [ARG] -> IO BS
 getGoldenUsm i p args = do
   golden <- goldenUsms
   let maybeBS = M.lookup (i,p,args) golden
@@ -58,7 +58,7 @@ getGoldenUsm i p args = do
    Nothing -> error $ "No golden value for USM with asp_id " ++ (show i) ++ " at place " ++ (show p)
    Just bs -> return bs
 
-appraiseUsm :: ASP_ID -> Pl -> [ARG] -> BS -> IO (Bool,BS)
+appraiseUsm :: ASP_ID -> Plc -> [ARG] -> BS -> IO (Bool,BS)
 appraiseUsm i p args bs = do
   goldenVal <- getGoldenUsm i p args
   return ((bs == goldenVal),goldenVal)

@@ -11,9 +11,9 @@ module Main where
 import Copland
 import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_AM, runCOP, Cop_Env)
 import MonadAM
-import ExecCopland
+--import ExecCopland
 import MonadVM
-import Interp (getNameMap,interp)
+--import Interp (getNameMap,interp)
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)
@@ -80,7 +80,7 @@ vm_state_init e = do
 -}
 
         
-am_main :: AM Ev -> AM_Env -> IO ()
+am_main :: AM EvidenceC  -> AM_Env -> IO ()
 am_main proto init = do
   (resEv, resState) <- runAM_with_env proto init
   return ()
@@ -92,7 +92,7 @@ runAM_with_st am_computation am_st = do
       fresh_AM_St = am_st
   runAM am_computation fresh_AM_Env fresh_AM_St
 -}
-runAM_with_env :: AM Ev -> AM_Env -> IO (Ev, AM_St)
+runAM_with_env :: AM EvidenceC  -> AM_Env -> IO (EvidenceC, AM_St)
 runAM_with_env am_computation am_env = do
   let da_AM_Env = am_env
       da_AM_St = empty_AM_state
@@ -106,24 +106,24 @@ runAM_fresh am_computation = do
   runAM am_computation fresh_AM_Env fresh_AM_St
 -}
 
-nameMap_from_term :: T -> IO (M.Map Pl Address)
+nameMap_from_term :: Term -> IO (M.Map Plc Address)
 nameMap_from_term t = do
   let places = getPlaces t
   res <- genNameServer places
   return res
 
-run_vm_t ::  T -> VM_St -> Cop_Env  -> IO (Ev)
+run_vm_t ::  Term -> VM_St -> Cop_Env  -> IO (EvidenceC)
 run_vm_t t vm_st cop_env = do
   opts <- getClientOptions
   {-let instrs = (instr_compiler t) -}
   --vm_st <- DS.vm_state_init e
   putStrLn "INVOKING run_vm"
-  res <- run_vm (annotated t) vm_st cop_env
+  res <- undefined --run_vm (annotated t) vm_st cop_env
   putStrLn "RAN run_vm"
   return $ st_ev res
 
 
-get_term_ev :: FilePath -> FilePath -> IO (T, Ev)
+get_term_ev :: FilePath -> FilePath -> IO (Term, EvidenceC)
 get_term_ev inp einp = do
   t <-
     case inp of
@@ -138,7 +138,7 @@ get_term_ev inp einp = do
   return (t,ev)
 
   where
-    tm_1 = (ASPT (ASPC 1 ["target.txt"]))
+    tm_1 = (ASPT (ASPC (ASP_PARAMSC 1 ["target.txt"] 1 1)))
     ln_1 = (LN tm_1 tm_1)
     brs_1 = (BRS (ALL,NONE) tm_1 tm_1)
     brp_1 = (BRP (ALL,NONE) tm_1 tm_1)
@@ -152,14 +152,14 @@ get_term_ev inp einp = do
              (LN
               (BRP (ALL,NONE) CPY (ASP 1 ["target.txt"]))
               SIG) -}
-    before_output :: T -> Ev -> IO ()
+    before_output :: Term -> EvidenceC -> IO ()
     before_output t ev = do
       putStrLn $ "\n" ++ "Protocol Executed(Also in demoOutput/protoIn.hs): \n" ++ (prettyT t)
       putStrLn $ "\n" ++ "Initial Evidence: \n" ++ (prettyEv ev) ++ "\n"
 
 
 
-am_proto_1 :: AM Ev
+am_proto_1 :: AM EvidenceC
 am_proto_1 = do
   opts <- liftIO $ getClientOptions
   let termFile = optTermIn opts
@@ -180,7 +180,7 @@ am_proto_1 = do
 
   let places = getPlaces t
 
-  nm <- liftIO $ getNameMap namesFile places
+  nm <- undefined --liftIO $ getNameMap namesFile places
 
   case spawnServers of
    True -> do
@@ -188,10 +188,10 @@ am_proto_1 = do
      liftIO $ CC.threadDelay 10000
    False -> return ()
 
-  let annoT = annotated t
-  liftIO $ putStrLn $ "Annotated term executed: " ++ (show annoT)
+  let annoT = undefined --annotated t
+  liftIO $ putStrLn $ "Annotated term executed: " ++ undefined --(show annoT)
 
-  (reqs,store) <- liftIO $ derive_comm_reqs annoT nm 0 -- TODO: 0 ok?
+  (reqs,store) <- liftIO $ undefined --derive_comm_reqs annoT nm 0 -- TODO: 0 ok?
   liftIO $ putStrLn $ "Comm reqs/store: " ++ (show (length reqs)) ++ "\n"
   liftIO $ setupComm reqs
 
@@ -208,7 +208,7 @@ am_proto_1 = do
              -- or simply interprets the received copland term
              False -> do
                --error "HEY"
-               liftIO $ runCOP (interp t ev) cop_env
+               undefined --liftIO $ runCOP (interp t ev) cop_env
 
   liftIO $ putStrLn $ "\n\nEVIDENCE: " ++ (show resEv) ++ "\n\n"
 
@@ -235,7 +235,7 @@ am_proto_1 = do
   liftIO $ after_output t ev resEv
   return resEv
 
-after_output :: T -> Ev -> Ev -> IO ()
+after_output :: Term -> EvidenceC -> EvidenceC -> IO ()
 after_output t ev resEv = do
   opts <- getClientOptions
   let jsonFlag = optJson opts
@@ -256,7 +256,7 @@ after_output t ev resEv = do
      print_write_ev_result resEv fp
 
    where
-     print_write_ev_result :: Ev -> FilePath -> IO ()
+     print_write_ev_result :: EvidenceC  -> FilePath -> IO ()
      print_write_ev_result resEv fp = do
        putStrLn $ "\n" ++ "Evidence Result: " ++ "\n" ++ (prettyEv resEv) ++ "\n"
        writeFile fp (prettyEv resEv)
@@ -274,11 +274,11 @@ readFileGen fp typeString = do
        Just t -> return t
        _ -> error $ "Failed to parse " ++ typeString ++ " from file: " ++ fp
        
-getTerm :: FilePath -> IO T
+getTerm :: FilePath -> IO Term
 getTerm fp = readFileGen fp "T"
 
-getEv :: FilePath -> IO Ev
-getEv fp = readFileGen fp "Ev"
+getEv :: FilePath -> IO EvidenceC 
+getEv fp = readFileGen fp "EvidenceC"
 
 {- Hard-coded provisioning.
    TODO: Make this user-facing.
@@ -291,10 +291,10 @@ provision = do
   {-bits <- CI.doHashFile "../kimTarget.txt"
   B.writeFile "goldenKimBits.txt" bits-}
 
-getPlaces :: T -> [Pl]
+getPlaces :: Term -> [Plc]
 getPlaces t = getPlaces' t []
 
-getPlaces' :: T -> [Pl] -> [Pl]
+getPlaces' :: Term -> [Plc] -> [Plc]
 getPlaces' t pls =
   case t of
    AT p t' -> union [p] (getPlaces' t' pls)

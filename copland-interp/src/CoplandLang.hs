@@ -21,13 +21,15 @@ import Control.Concurrent.STM
 import Numeric.Natural
 
 {-  Identify Places (protocol participants)  -}
-type Pl = Int
+type Plc = Int
 {-  Arguments to measurement commands (USM/KIM)  -}
 type ARG = String
-{-  Raw bits (results of measurement, hashes, nonces)  -}
-type BS = B.ByteString
+
+type Loc = Int
 
 type ASP_ID = Int
+type TARG_ID = Int
+type N_ID = Int
 
 {-  Evidence splitting functions.
     ALL-  keep all evidence
@@ -37,26 +39,33 @@ data SP = ALL | NONE
 
 instance BI.Binary SP where
 
+data ASP_PARAMS
+  = ASP_PARAMSC ASP_ID [ARG] Plc TARG_ID
+  deriving (Generic,Eq,Read,Show)
+
+instance BI.Binary ASP_PARAMS where
+
 data ASP
   = CPY
   | SIG
   | HSH
-  | ASPC ASP_ID [ARG]
+  | ASPC ASP_PARAMS
   deriving (Generic,Read,Show)
 
 instance BI.Binary ASP where
   
 -- Attestation Protocol Descrption Term.
-data T
+data Term
   = ASPT ASP
-  | AT Pl T
-  | LN T T
-  | BRS (SP,SP) T T
-  | BRP (SP,SP) T T  
+  | AT Plc Term
+  | LN Term Term
+  | BRS (SP,SP) Term Term
+  | BRP (SP,SP) Term Term  
   deriving (Generic,Read,Show)
 
 {- TODO: shorthand notation for ASP terms, avoid ASPT x -}
 
+{-
 type Range = (Natural,Natural)
 
 data AnnoTerm
@@ -126,37 +135,45 @@ unanno a =
     ALN _ t1 t2 -> LN (unanno t1) (unanno t2)
     ABRS _ sp t1 t2 -> BRS sp (unanno t1) (unanno t2)
     ABRP _ sp t1 t2 -> BRP sp (unanno t1) (unanno t2)
-    
+   -}
 
+
+{-  Raw bits (results of measurement, hashes, nonces)  -}
+type BS = B.ByteString
+
+type RawEv = ([]) BS
+
+data EvC
+  = EvC RawEv Evidence
 
 
 -- Concrete Evidence returned from an execution.
-data Ev
+data EvidenceC
   = Mt
-  | U ASP_ID [ARG] BS Ev
-  | G BS Ev
-  | H BS
-  | N Int BS Ev
-  | SS Ev Ev
-  | PP Ev Ev
+  | N N_ID BS EvidenceC
+  | U ASP_PARAMS Plc BS EvidenceC
+  | G Plc BS EvidenceC
+  | H Plc BS Evidence
+  | SS EvidenceC EvidenceC
+  | PP EvidenceC EvidenceC
   deriving (Generic,Eq, Read, Show)
 
-instance BI.Binary Ev where
+instance BI.Binary EvidenceC  where
 --instance NFData Ev where
 
 
 -- Place-lifted Evidence, used as intermediate for generating appraisal term
-data Ev_T
+data Evidence
   = Mtt
-  | Ut Pl ASP_ID [ARG] Ev_T
-  | Gt Pl Ev_T
-  | Ht Pl
-  | Nt Int Ev_T
-  | SSt Ev_T Ev_T
-  | PPt Ev_T Ev_T
-  deriving (Generic,Eq, Read, Show)
+  | Ut Plc ASP_PARAMS Evidence
+  | Gt Plc Evidence
+  | Ht Plc Evidence
+  | Nt N_ID Evidence
+  | SSt Evidence Evidence
+  | PPt Evidence Evidence
+  deriving (Generic,Eq,Read, Show)
 
-instance BI.Binary Ev_T where
+instance BI.Binary Evidence where
 
 
 {-------- Comm Types --------}
@@ -167,17 +184,17 @@ type VM_ID = Natural
 
 --Attestation Request Message
 data RequestMessage = RequestMessage
-  { toPlace :: Pl,
-    fromPlace :: Pl,
-    reqNameMap :: M.Map Pl Address,
-    reqTerm :: T,
-    reqEv :: Ev } deriving (Show,Read,Generic)
+  { toPlace :: Plc,
+    fromPlace :: Plc,
+    reqNameMap :: M.Map Plc Address,
+    reqTerm :: Term,
+    reqEv :: EvidenceC } deriving (Show,Read,Generic)
 
 --Attestation Response Message
 data ResponseMessage = ResponseMessage
-  { respToPlace :: Pl,
-    respFromPlace :: Pl,
-    respEv :: Ev } deriving (Show,Read,Generic)
+  { respToPlace :: Plc,
+    respFromPlace :: Plc,
+    respEv :: EvidenceC } deriving (Show,Read,Generic)
 
 --Attestation Request Message
 data SigRequestMessage = SigRequestMessage
@@ -198,7 +215,7 @@ data AspResponseMessage = AspResponseMessage
 data StoreSetMessage = StoreSetMessage
   { myId  :: VM_ID,
     init_ev_id :: Natural,
-    inEv  :: Ev } deriving (Show,Read,Generic)
+    inEv  :: EvidenceC } deriving (Show,Read,Generic)
 
 data StoreGetMessage = StoreGetMessage
   { get_id :: Natural } deriving (Show,Read,Generic)
@@ -216,7 +233,7 @@ data StoreAckMessage =
 --Store Response Message
 data StoreResponseMessage =
   StoreResponseMessage
-  { outEv :: Ev } deriving (Show,Read,Generic)
+  { outEv :: EvidenceC } deriving (Show,Read,Generic)
 
 {-
 --Test Inc Message
@@ -247,39 +264,39 @@ data CommReqMessage =
 
 data CommSetMessage =
   CommSetMessage
-  { toPl :: Pl,
-    fromPl :: Pl,
-    toNameMap :: M.Map Pl Address,
-    toTerm :: T,
-    init_cell :: TMVar Ev,
-    final_cell :: TMVar Ev
+  { toPl :: Plc,
+    fromPl :: Plc,
+    toNameMap :: M.Map Plc Address,
+    toTerm :: Term,
+    init_cell :: TMVar EvidenceC,
+    final_cell :: TMVar EvidenceC
     --reqEv :: Ev
   }
   deriving ({-Show,Read,-}Generic)
 
 data CommParMessage =
   CommParMessage
-  { parToPl :: Pl,
-    parReqNameMap :: M.Map Pl Address,
-    parTerm :: T,
-    par_init_cell :: TMVar Ev,
-    par_final_cell :: TMVar Ev
+  { parToPl :: Plc,
+    parReqNameMap :: M.Map Plc Address,
+    parTerm :: Term,
+    par_init_cell :: TMVar EvidenceC,
+    par_final_cell :: TMVar EvidenceC
   }
   deriving ({-Show,Read,-}Generic)
 
 --Parallel Request Message
 data RequestMessagePar = RequestMessagePar
-  { toPlacePar :: Pl,
-    --fromPlacePar :: Pl,
-    reqNameMapPar :: M.Map Pl Address,
-    reqTermPar :: T,
-    reqEvPar :: Ev } deriving (Show,Read,Generic)
+  { toPlacePar :: Plc,
+    --fromPlacePar :: Plc,
+    reqNameMapPar :: M.Map Plc Address,
+    reqTermPar :: Term,
+    reqEvPar :: EvidenceC } deriving (Show,Read,Generic)
 
 --Parallel Response Message
 data ResponseMessagePar = ResponseMessagePar
-  { --respToPlacePar :: Pl,
-    --respFromPlacePar :: Pl,
-    respEvPar :: Ev } deriving (Show,Read,Generic)
+  { --respToPlacePar :: Plc,
+    --respFromPlacePar :: Plc,
+    respEvPar :: EvidenceC } deriving (Show,Read,Generic)
 
 {-
 data CommReqList = CommReqList [CommReqMessage] deriving ({-Show,Read,-}Generic)
@@ -290,15 +307,15 @@ data CommAckMessage =
   
 {- Cannonical way of taking concrete evidence to its bits
    (Prep for signing, hashing, etc.).  -}
-encodeEv :: Ev -> BS
+encodeEv :: EvidenceC -> BS
 encodeEv e =
   case e of
   Mt -> B.empty
   U _ _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)
-  G bs _ -> bs
-  H bs -> bs
+  G _ bs _ -> bs
+  H _ bs _ -> bs
   N _ bs e' ->
     let e1bs = (encodeEv e') in
         (B.append e1bs bs)

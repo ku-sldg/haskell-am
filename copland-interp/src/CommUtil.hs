@@ -67,25 +67,25 @@ client_resolve_open_localhost portString = do
 
 
 
-genNameServer :: [Pl] -> IO (M.Map Pl String)
+genNameServer :: [Plc] -> IO (M.Map Plc String)
 genNameServer pls = do
   ports <- replicateM (length pls) newTCPPortString
   let pairs = zip pls ports
   return (M.fromList pairs)
 
 
-readNameMap :: FilePath -> IO (M.Map Pl String)
+readNameMap :: FilePath -> IO (M.Map Plc String)
 readNameMap fp = do
       s <- readFile fp
       let ss = lines s
           pairs = map readPlacePort ss
       return (M.fromList pairs)
 
-readPlacePort :: String -> (Pl, String)
+readPlacePort :: String -> (Plc, String)
 readPlacePort s =
   let (sNum,sPortString') = break (== ':') s in
   let sPortString = dropWhile (== ' ') (drop 1 sPortString') in
-  let (maybePl :: Maybe Pl) = readMaybe sNum in
+  let (maybePl :: Maybe Plc) = readMaybe sNum in
   case maybePl of
    Nothing -> error "could not parse place number in file"
    Just pl ->
@@ -134,7 +134,7 @@ isPrivileged (NS.SockAddrInet p _) = p < 1025
 isPrivileged (NS.SockAddrInet6 p _ _ _) = p < 1025
 isPrivileged _ = False
 
-
+{-
 derive_comm_reqs :: AnnoTerm -> M.Map Pl Address -> Pl ->
   IO ([CommReqMessage], M.Map Natural (TMVar Ev))
 derive_comm_reqs t nm pFrom = derive_comm_reqs' t nm pFrom ([], M.empty)
@@ -176,7 +176,8 @@ derive_comm_reqs' t nm pFrom res@(reqs,store) =
           e2Map  = M.insert loc_e2  e2_tmvar_init e1Map'
           e2Map' = M.insert loc_e2' e2_tmvar_final e2Map
       return (newMsg1 : newMsg2 : reqs, e2Map')
-          
+-}
+                 
       
 
 setupReqOne :: CommReqMessage -> IO ()

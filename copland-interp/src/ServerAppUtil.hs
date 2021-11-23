@@ -18,10 +18,10 @@ import Copland
 import Comm
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
-import Interp (interp)
+--import Interp (interp)
 import MonadCop (runCOP, buildServerEnv)
 import MonadVM
-import ExecCopland (run_vm)
+--import ExecCopland (run_vm)
 import qualified DemoStates as DS (vm_state_init)
 
 import qualified Data.ByteString.Char8 as C
@@ -49,7 +49,7 @@ fromRemote conn opts = do
 
   putStrLn $ "Req received: " ++ (show rreq) ++ "\n"
 
-  (reqs,store) <- derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
+  (reqs,store) <- undefined --derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
   setupComm reqs
   
   env <- buildServerEnv opts names pTo store
@@ -62,11 +62,11 @@ fromRemote conn opts = do
            {-let instrs = instr_compiler t -}
            vm_st <- DS.vm_state_init e
            putStrLn $ "HHHEEERE"
-           res <- run_vm (annotated t) vm_st env
+           res <- undefined --run_vm (annotated t) vm_st env
            return $ st_ev res
          False -> do
            putStrLn $ "HERE"
-           runCOP (interp t e) env
+           undefined--runCOP (interp t e) env
   
   --e' <- run_interp t e env
   --putStrLn $ "evidence gathered: " ++ (show e')
@@ -100,7 +100,7 @@ spawn_a_server sim debug compile addr = do
   let sopts = SA.Server_Options sim debug addr compile
   void $ CC.forkIO $ start_standalone_server sopts
   
-spawn_the_servers :: M.Map Pl Address -> Bool -> Bool -> Bool -> IO ()
+spawn_the_servers :: M.Map Plc Address -> Bool -> Bool -> Bool -> IO ()
 spawn_the_servers nm simB debugB compileB = do
   let ps = M.toList nm
       snds = map snd ps

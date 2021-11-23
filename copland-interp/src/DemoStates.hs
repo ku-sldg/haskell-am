@@ -38,7 +38,7 @@ am_env_init =
 
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 
-vm_state_init :: Ev -> IO VM_St
+vm_state_init :: EvidenceC  -> IO VM_St
 vm_state_init e = do
   -- Register Comm Server
   commSocketPath <- lookupPath COMM

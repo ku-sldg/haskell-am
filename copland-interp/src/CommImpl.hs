@@ -27,7 +27,7 @@ import qualified Data.Map as M(Map)
       t-   term for remote entity to execute
       e-   initial evidence supplied to remote entity
     Returns: message id used in request -}     
-sendReq :: NS.Socket -> Pl -> Pl -> M.Map Pl Address -> T -> Ev -> IO ()
+sendReq :: NS.Socket -> Plc -> Plc -> M.Map Plc Address -> Term -> EvidenceC -> IO ()
 sendReq conn pTo pFrom namesFrom t e = do
   --logc "inside doSendReq"
   --logc $ "pTo: " ++ (show pTo)
@@ -57,7 +57,7 @@ sendReq conn pTo pFrom namesFrom t e = do
       mid- message id (should match message id from corresponding request)
       pTo- intended recipient of response
       e-   resulting evidence gathered  -}
-sendResp :: NS.Socket -> Pl -> Pl -> Ev -> IO ()
+sendResp :: NS.Socket -> Plc -> Plc -> EvidenceC -> IO ()
 sendResp conn pFrom pTo e = do
   --pFrom <- asks me
   let rm = (ResponseMessage pTo pFrom e)
@@ -72,7 +72,7 @@ sendResp conn pFrom pTo e = do
       goodMid-   expected message id (from corresponding request id)
       goodPfrom- expected source place
     Returns:  evidence from response message  -}
-receiveResp :: NS.Socket -> Pl -> IO ResponseMessage
+receiveResp :: NS.Socket -> Plc -> IO ResponseMessage
 receiveResp conn goodPfrom = do
   --logc "inside doRecieveResponse"
   
