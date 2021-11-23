@@ -12,7 +12,7 @@ module DemoStates where
 
 import Copland
 import MonadAM
-import MonadVM
+import MonadVM_Old
 
 import qualified Data.Map as M
 

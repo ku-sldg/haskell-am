@@ -1,7 +1,9 @@
 module IO_Stubs where
 
 --import Copland
-import CoplandLang_Extracted(ASP_PARAMS(..), RawEv, BS, Plc, EvC(..), Term, Loc)
+--import CoplandLang_Extracted(ASP_PARAMS(..), RawEv, BS, Plc, EvC(..), Term, Loc)
+import BS (BS)
+import Term_Defs(ASP_PARAMS(..), RawEv, Plc, EvC(..), Term, Loc)
 import CryptoImpl (doHash, doSign)
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Data.ByteString as B (ByteString, readFile, concat)

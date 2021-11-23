@@ -23,7 +23,7 @@ import UDcore
 import ServerAppUtil (startServer)
 
 import qualified DemoStates as DS (vm_state_init)
-import MonadVM (st_ev)
+import MonadVM_Old (st_ev)
 import MonadCop(Cop_Env(..), lookupSecretKeyPath)
 
 

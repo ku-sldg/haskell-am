@@ -12,7 +12,7 @@ import Copland
 import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_AM, runCOP, Cop_Env)
 import MonadAM
 --import ExecCopland
-import MonadVM
+import MonadVM_Old
 --import Interp (getNameMap,interp)
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
