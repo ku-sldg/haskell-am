@@ -3,9 +3,10 @@ module Impl_VM where
 import qualified Prelude
 import qualified GenStMonad
 import qualified MonadVM
+import qualified StVM
 import qualified Term_Defs
 
-copland_compile :: Term_Defs.AnnoTermPar -> MonadVM.CVM ()
+copland_compile :: Term_Defs.AnnoTermPar -> StVM.CVM ()
 copland_compile t =
   case t of {
    Term_Defs.Coq_aasp_par a ->
