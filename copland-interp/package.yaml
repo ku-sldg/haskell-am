@@ -21,6 +21,22 @@ description:         Please see the README on GitHub at <https://github.com/ampe
 
 dependencies:
 - base >= 4.7 && < 5
+- network
+- bytestring
+- stm
+- containers
+- binary
+- cryptohash
+- nonce
+- ed25519
+- mtl
+- directory
+- text
+- base16-bytestring
+- aeson
+- prettyprinter
+- optparse-applicative
+- QuickCheck
 
 library:
   source-dirs: src

@@ -1,3 +1,5 @@
+Coq_asp (ASPC (Coq_asp_paramsC 1 [] 1 1))
+
 AT 1 (BRP (ALL,NONE) (BRP (ALL,NONE) (ASPT (ASPC 1 ["target.txt"])) (ASPT (ASPC 1 ["target.txt"]))) (BRP (ALL,NONE) (ASPT (ASPC 1 ["target.txt"])) (ASPT (ASPC 1 ["target.txt"]))))
 
 AT 1 (AT 2 (ASPT (ASPC 1 ["target.txt"])))

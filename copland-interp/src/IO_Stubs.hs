@@ -1,8 +1,6 @@
 module IO_Stubs where
 
---import Copland
---import CoplandLang_Extracted(ASP_PARAMS(..), RawEv, BS, Plc, EvC(..), Term, Loc)
-import BS (BS)
+import BS (BS, empty_bs)
 import Term_Defs(ASP_PARAMS(..), RawEv, Plc, EvC(..), Term, Loc)
 import CryptoImpl (doHash, doSign)
 import System.IO.Unsafe (unsafePerformIO)
@@ -13,8 +11,8 @@ import Control.Monad.IO.Class (liftIO)
 encodeEvRaw :: RawEv -> BS
 encodeEvRaw e = B.concat e
 
-do_asp' :: ASP_PARAMS -> CVM BS
-do_asp' params = undefined
+do_asp' :: ASP_PARAMS -> RawEv -> CVM BS
+do_asp' params e = return empty_bs
 
 
 lookupSecretKeyBytesIO :: FilePath -> IO BS
@@ -50,11 +48,34 @@ doRemote_session' t pTo e = undefined
 do_wait_par_thread :: Loc -> CVM EvC
 do_wait_par_thread l = undefined
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--import Copland
+--import CoplandLang_Extracted(ASP_PARAMS(..), RawEv, BS, Plc, EvC(..), Term, Loc)
+
 {-
 parallel_vm_thread :: Loc -> EvC
 parallel_vm_thread l = undefined
 -}
-
 
 {-
 Definition do_asp (params :ASP_PARAMS) (mpl:Plc) (x:Event_ID) : BS.

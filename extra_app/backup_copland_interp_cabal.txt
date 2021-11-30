@@ -1,0 +1,333 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: bfdcf242124c712c6e4d705d8effad745d93621398bcd21bed423f03346fdb8b
+
+name:           copland-interp
+version:        0.1.0.0
+description:    Please see the README on GitHub at https://github.com/ku-sldg/haskell-am
+homepage:       https://github.com/ku-sldg/haskell-am
+bug-reports:    https://github.com/ku-sldg/haskell-am/issues
+author:         Adam Petz
+maintainer:     ampetz@ku.edu
+copyright:      ITTC, University of Kansas
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/ampetz/copland-interp
+
+library
+  exposed-modules:
+      Copland, CoplandLang, JsonCopland, CryptoImpl, CommImpl, QcCopland, GenCopland, StringConstants, DisplayCopland, ClientProgArgs, ServerProgArgs, GenProgArgs, Appraise, MonadCop, MonadAM, CommUtil, Comm, Axioms_Io, MonadVM, MonadVM_Old, BS, Term_Defs, Term_Defs_Deriving, IO_Stubs, GenStMonad, StVM, Impl_VM, Impl_VM_Extracted, Test_Extract, MonadStore, MonadTestSTM, UDcore, ServerAppUtil, DemoStates
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+              , mtl
+              , bytestring
+              , ed25519
+              , memory
+              , cryptonite
+              , cryptohash
+              , base16-bytestring
+              , nonce
+              , text
+              , aeson
+              , containers
+              , stm
+              , transformers
+              , binary
+              , QuickCheck
+              , prettyprinter
+              , optparse-applicative
+              , directory
+              , crypto-rng
+              , deepseq
+              , parallel
+              , network
+              , forkable-monad
+  default-language: Haskell2010
+
+executable copland-server-exe
+  main-is: ServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+  default-language: Haskell2010
+
+executable copland-client-exe
+  main-is: ClientMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , copland-interp
+    , mtl
+    , threads
+    , stm
+    , containers
+    , bytestring
+    , directory
+    , ed25519
+    , network
+    , aeson
+              --, courier
+  default-language: Haskell2010
+
+executable test-server-exe
+  main-is: TestSTMServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , copland-interp
+    , mtl
+    , threads
+    , stm
+    , containers
+    , bytestring
+    , directory
+    , network
+    , aeson
+    , network
+  default-language: Haskell2010
+
+executable test-client-exe
+  main-is: TestSTMClientMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , copland-interp
+    , mtl
+    , threads
+    , stm
+    , containers
+    , bytestring
+    , directory
+    , ed25519
+    , aeson
+    , network
+              --, courier
+  default-language: Haskell2010
+  
+executable copland-gen-exe
+  main-is: GenMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable connection-server-exe
+  main-is: ConnectionServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable par-server-exe
+  main-is: ParServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable store-server-exe
+  main-is: StoreServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable sig-server-exe
+  main-is: SigServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519
+              --, courier
+  default-language: Haskell2010
+
+executable asp1-server-exe
+  main-is: Asp1ServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519,
+              binary
+              --, courier
+  default-language: Haskell2010
+
+executable asp42-server-exe
+  main-is: Asp42ServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519,
+              binary
+              --, courier
+  default-language: Haskell2010
+
+executable asp41-server-exe
+  main-is: Asp41ServerMain.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+              , copland-interp
+              , mtl
+              , threads
+              , stm
+              , containers
+              , bytestring
+              , directory
+              , network
+              , aeson
+              , ed25519,
+              binary
+              --, courier
+  default-language: Haskell2010
+
+test-suite copland-interp-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_copland_interp
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , copland-interp
+  default-language: Haskell2010

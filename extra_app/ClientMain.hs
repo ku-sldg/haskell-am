@@ -180,7 +180,7 @@ am_proto_1 = do
 
   let places = getPlaces t
 
-  nm <- undefined --liftIO $ getNameMap namesFile places
+  nm <- undefined --[] -- <- liftIO $ getNameMap namesFile places
 
   case spawnServers of
    True -> do

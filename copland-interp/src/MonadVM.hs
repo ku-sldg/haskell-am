@@ -55,21 +55,21 @@ split_ev sp =
         GenStMonad.bind (add_tracem ((:) (Term_Defs.Coq_split i p) ([])))
           (\_ -> GenStMonad.ret ((,) e1 e2)))))
 
-tag_ASP :: Term_Defs.ASP_PARAMS -> Term_Defs.Plc -> StVM.CVM
+tag_ASP :: Term_Defs.ASP_PARAMS -> Term_Defs.Plc -> Term_Defs.EvC -> StVM.CVM
            Term_Defs.Event_ID
-tag_ASP params mpl =
+tag_ASP params mpl e =
   GenStMonad.bind inc_id (\x ->
     GenStMonad.bind
-      (add_tracem ((:) (Term_Defs.Coq_umeas x mpl params) ([]))) (\_ ->
-      GenStMonad.ret x))
+      (add_tracem ((:) (Term_Defs.Coq_umeas x mpl params (Term_Defs.get_et e))
+        ([]))) (\_ -> GenStMonad.ret x))
 
 invoke_ASP :: Term_Defs.ASP_PARAMS -> StVM.CVM Term_Defs.EvC
 invoke_ASP params =
   GenStMonad.bind get_ev (\e ->
     GenStMonad.bind get_pl (\p ->
-      GenStMonad.bind (tag_ASP params p) (\_ ->
-        GenStMonad.bind (IO_Stubs.do_asp' params) (\bs ->
-          GenStMonad.ret (Evidence_Bundlers.cons_uu bs e params p)))))
+      GenStMonad.bind (tag_ASP params p e) (\_ ->
+        GenStMonad.bind (IO_Stubs.do_asp' params (Term_Defs.get_bits e))
+          (\bs -> GenStMonad.ret (Evidence_Bundlers.cons_uu bs e params p)))))
 
 tag_SIG :: Term_Defs.Plc -> Term_Defs.EvC -> StVM.CVM Term_Defs.Event_ID
 tag_SIG p e =
@@ -98,9 +98,8 @@ hashEv =
   GenStMonad.bind get_pl (\p ->
     GenStMonad.bind get_ev (\e ->
       GenStMonad.bind (tag_HSH p e) (\_ ->
-        GenStMonad.bind
-          (IO_Stubs.do_hash' (Evidence_Bundlers.encodeEvBits e)) (\bs ->
-          GenStMonad.ret (Evidence_Bundlers.cons_hh bs e p)))))
+        GenStMonad.bind (IO_Stubs.do_hash' (Evidence_Bundlers.encodeEvBits e))
+          (\bs -> GenStMonad.ret (Evidence_Bundlers.cons_hh bs e p)))))
 
 copyEv :: StVM.CVM Term_Defs.EvC
 copyEv =

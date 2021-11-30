@@ -18,6 +18,15 @@ type Arg = Prelude.String
 data ASP_PARAMS =
    Coq_asp_paramsC ASP_ID (([]) Arg) Plc TARG_ID
 
+data Evidence =
+   Coq_mt
+ | Coq_uu ASP_PARAMS Plc Evidence
+ | Coq_gg Plc Evidence
+ | Coq_hh Plc Evidence
+ | Coq_nn N_ID
+ | Coq_ss Evidence Evidence
+ | Coq_pp Evidence Evidence
+
 data ASP =
    CPY
  | ASPC ASP_PARAMS
@@ -36,15 +45,6 @@ data Term =
  | Coq_lseq Term Term
  | Coq_bseq Split Term Term
  | Coq_bpar Split Term Term
-
-data Evidence =
-   Coq_mt
- | Coq_uu ASP_PARAMS Plc Evidence
- | Coq_gg Plc Evidence
- | Coq_hh Plc Evidence
- | Coq_nn N_ID
- | Coq_ss Evidence Evidence
- | Coq_pp Evidence Evidence
 
 type RawEv = ([]) BS.BS
 
@@ -69,7 +69,7 @@ type Loc = Prelude.Int
 
 data Ev =
    Coq_copy Prelude.Int Plc
- | Coq_umeas Prelude.Int Plc ASP_PARAMS
+ | Coq_umeas Prelude.Int Plc ASP_PARAMS Evidence
  | Coq_sign Prelude.Int Plc Evidence
  | Coq_hash Prelude.Int Plc Evidence
  | Coq_req Prelude.Int Plc Plc Term Evidence
