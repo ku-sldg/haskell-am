@@ -8,6 +8,7 @@
 module MonadAM where
 
 import Copland
+import BS
 import CryptoImpl as CI (doNonce)
 --import Interp (interp,getNameMap)
 import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath, COP{-, build_Cop_Env-})
@@ -97,12 +98,14 @@ am_updateNonce bs = do
   put (AM_St newMap x newId)
   return id
 
+{-
 am_genNonce :: EvidenceC  -> AM EvidenceC 
 am_genNonce e = do
   bs <- liftIO $ CI.doNonce
   new_id <- am_updateNonce bs
   --let my_place = 0 -- TODO:  should we make this more general?
   return $ N new_id bs e
+-}
 
 am_getNonce :: Int -> AM BS
 am_getNonce i = do
@@ -154,6 +157,7 @@ am_checkNonce e = do
    {- TODO: better return type/error handling for non-nonce case? -}
 
 
+{-
 -- TODO:  refactor to fold
 ev_nonce_list' :: EvidenceC  -> [(Int,BS)] -> [(Int,BS)]
 ev_nonce_list' e ls =
@@ -163,7 +167,9 @@ ev_nonce_list' e ls =
 
 ev_nonce_list :: EvidenceC  -> [(Int,BS)]
 ev_nonce_list e = ev_nonce_list' e []
+-}
 
+{-
 n_to_term :: (Int,BS) -> AM Term
 n_to_term (i,bs) = do
   n_asp <- asks nonce_check_asp
@@ -172,6 +178,7 @@ n_to_term (i,bs) = do
   {-let arg1 = BL.toStrict $ D.encode i
       arg2 = bs in -}
    return $ ASPT $ undefined --ASPC n_asp [arg1,arg2]
+-}
 
 check_nonces' :: [(Int,BS)] -> AM [Bool]
 check_nonces' ls =
@@ -186,12 +193,15 @@ check_nonces ls = do
   bools <- check_nonces' ls
   return (and bools)
 
+{-
 check_nonces_ev :: EvidenceC  -> AM Bool
 check_nonces_ev e = do
   let ls = ev_nonce_list e
   check_nonces ls
+-}
   
 
+{-
 nlist_to_term :: [(Int,BS)] -> AM Term
 nlist_to_term ls =
   case ls of
@@ -200,11 +210,14 @@ nlist_to_term ls =
      v <- n_to_term p
      rest <- (nlist_to_term ls')
      return $ LN v rest
+-}
 
+{-
 ev_nonce_term :: EvidenceC -> AM Term
 ev_nonce_term e = do
   let ls = ev_nonce_list e
   nlist_to_term ls
+-}
 
 {-
 gen_evt' :: T -> T -> Ev -> Pl -> Ev_T
@@ -284,8 +297,10 @@ gen_from_ev' e = return CPY
 -}
 
 
+{-
 gen_from_ev' :: EvidenceC -> Evidence -> AM Term
 gen_from_ev' e et = undefined
+-}
 
 
 {-
@@ -459,7 +474,7 @@ gen_appraisal_term' t p e = do
           case sp of
            ALL -> e
            NONE -> Mt
--}
+
 
 t_to_evt'' :: ASP -> Plc -> Evidence -> Evidence
 t_to_evt'' t p e =
@@ -468,6 +483,7 @@ t_to_evt'' t p e =
     SIG -> Gt p e
     HSH -> Ht p e
     CPY -> e
+
 
 t_to_evt' :: Term -> Plc -> Evidence -> Evidence
 t_to_evt' t p e =
@@ -494,7 +510,7 @@ t_to_evt' t p e =
           case sp of
            ALL -> e
            NONE -> Mtt
-     
+    
 
 t_to_evt :: Term -> Evidence -> Evidence
 t_to_evt t e = t_to_evt' t 0 e
@@ -507,6 +523,7 @@ gen_appraisal_term t {-initEv-} resEv initEv_T = do
   t2 <- gen_from_ev' resEv resEv_t
   --return $ LN t1 t2
   return t2
+
 
 
 appraise_ev :: EvidenceC -> [Bool]
@@ -522,3 +539,4 @@ appraise_ev e =
       aBool : e'bs
    Mt -> []
    _ -> error "shouldn't happen because of gen_appraisal_term definition"
+-}

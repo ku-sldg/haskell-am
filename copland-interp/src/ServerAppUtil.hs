@@ -20,7 +20,7 @@ import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 --import Interp (interp)
 import MonadCop (runCOP, buildServerEnv)
-import MonadVM_Old
+--import MonadVM_Old
 --import ExecCopland (run_vm)
 import qualified DemoStates as DS (vm_state_init)
 
@@ -63,7 +63,7 @@ fromRemote conn opts = do
            vm_st <- DS.vm_state_init e
            putStrLn $ "HHHEEERE"
            res <- undefined --run_vm (annotated t) vm_st env
-           return $ st_ev res
+           return $ undefined --st_ev res
          False -> do
            putStrLn $ "HERE"
            undefined--runCOP (interp t e) env

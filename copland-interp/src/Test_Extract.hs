@@ -3,6 +3,7 @@ module Test_Extract where
 import StVM (Coq_cvm_st(..))
 import Term_Defs (AnnoTermPar(..), AnnoTermPar(..),ASP(..),ASP_PARAMS(..),EvC(..), Evidence(..))
 import Term_Defs_Deriving
+import StVM_Deriving
 import Impl_VM_Extracted (run_cvm)
 import CryptoImpl (doNonce)
 
@@ -15,7 +16,7 @@ main = do
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show t) ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"
-  res <- run_cvm t st
+  res <- run_cvm t st undefined -- TODO: get real Cop_Env
   putStrLn $ "Result CVM state: \n" ++ (show res) ++ "\n"
  
 

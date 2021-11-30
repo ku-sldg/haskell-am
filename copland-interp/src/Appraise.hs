@@ -2,13 +2,14 @@
 module Appraise where
 
 import Copland
+import BS
 
 import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Crypto.Sign.Ed25519 (SecretKey(..), toPublicKey, verify)
 
-type GoldenUsmMap = M.Map (ASP_ID,Plc,[ARG]) BS
-type GoldenKimMap = M.Map (ASP_ID,Plc,[ARG]) BS
+type GoldenUsmMap = M.Map (ASP_ID,Plc,[Arg]) BS
+type GoldenKimMap = M.Map (ASP_ID,Plc,[Arg]) BS
 
 {-
 goldenUsms :: IO GoldenUsmMap

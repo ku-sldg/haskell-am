@@ -31,6 +31,7 @@ library
       ClientProgArgs
       Comm
       CommImpl
+      CommTypes
       CommUtil
       ConcreteEvidence
       Copland
@@ -52,12 +53,12 @@ library
       MonadStore
       MonadTestSTM
       MonadVM
-      MonadVM_Old
       QcCopland
       ServerAppUtil
       ServerProgArgs
       StringConstants
       StVM
+      StVM_Deriving
       Term_Defs
       Term_Defs_Deriving
       Test_Extract
@@ -89,6 +90,36 @@ library
 executable copland-interp-exe
   main-is: Main.hs
   other-modules:
+      ServerMain
+      Paths_copland_interp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , aeson
+    , base >=4.7 && <5
+    , base16-bytestring
+    , binary
+    , bytestring
+    , containers
+    , copland-interp
+    , cryptohash
+    , directory
+    , ed25519
+    , mtl
+    , network
+    , nonce
+    , optparse-applicative
+    , prettyprinter
+    , stm
+    , text
+  default-language: Haskell2010
+
+executable server-main-exe
+  main-is: Main.hs
+  other-modules:
+      ServerMain
       Paths_copland_interp
   hs-source-dirs:
       app

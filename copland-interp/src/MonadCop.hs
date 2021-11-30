@@ -37,11 +37,11 @@ data Cop_Env =
             nameServer :: M.Map Plc Address,
             myKeyPath :: FilePath,
             me :: Plc,
-            st_store :: M.Map Natural (TMVar EvidenceC)
+            st_store :: M.Map Natural (TMVar RawEv)
           }
 
 
-put_store_at :: Natural -> EvidenceC -> COP ()
+put_store_at :: Natural -> RawEv -> COP ()
 put_store_at n e = do
   {-st <- get
   let store = st_store st -}
@@ -54,7 +54,7 @@ put_store_at n e = do
       --put (st {st_store = store'})
     Nothing -> error $ "st_store not configured with entry at index: " ++ (show n) ++ "."
 
-get_store_at :: Natural -> COP EvidenceC
+get_store_at :: Natural -> COP RawEv
 get_store_at n = do
   store <- asks st_store
   let maybeVar = M.lookup n store
@@ -109,7 +109,7 @@ runCOP k env =
      runReaderT k env
 
 
-build_Cop_Env_AM :: Client_Options -> M.Map Plc Address -> M.Map Natural (TMVar EvidenceC) -> IO Cop_Env
+build_Cop_Env_AM :: Client_Options -> M.Map Plc Address -> M.Map Natural (TMVar RawEv) -> IO Cop_Env
 build_Cop_Env_AM opts nameMap store = do
 
   let b = optSim opts
@@ -120,7 +120,7 @@ build_Cop_Env_AM opts nameMap store = do
   return $ Cop_Env b d nameMap keyPath pl store
   {- TODO: ok to return place 0, since it will be updated? -}
 
-buildServerEnv :: SA.Server_Options -> M.Map Plc Address -> Plc -> M.Map Natural (TMVar EvidenceC) -> IO Cop_Env
+buildServerEnv :: SA.Server_Options -> M.Map Plc Address -> Plc -> M.Map Natural (TMVar RawEv) -> IO Cop_Env
 buildServerEnv opts nameMap myPlace store = do
 
   let b = SA.server_optSim opts

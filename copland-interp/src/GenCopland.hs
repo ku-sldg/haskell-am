@@ -21,7 +21,7 @@ import qualified Data.ByteString.Lazy as BL (appendFile, append, readFile, ByteS
 import qualified System.Directory as SD (removeFile)
 import qualified Data.ByteString.Lazy.Char8 as C (putStrLn,lines)
 
-appendJsonToFile :: (ToJSON a,FromJSON a,Read a,Show a,Arbitrary a) => FilePath -> Bool -> a -> IO ()
+appendJsonToFile :: (ToJSON a,FromJSON a,Read a,Show a{-,Arbitrary a-}) => FilePath -> Bool -> a -> IO ()
 appendJsonToFile fp b t = do
   case b of
    True -> do
@@ -38,7 +38,7 @@ appendJsonToFile fp b t = do
       _ -> let bsl = BL.append bs "\n" in
             BL.appendFile fp bsl
 
-termsToFile' :: (ToJSON a,FromJSON a,Read a,Show a,Arbitrary a) => FilePath -> Bool -> [a] -> IO ()
+termsToFile' :: (ToJSON a,FromJSON a,Read a,Show a{-,Arbitrary a-}) => FilePath -> Bool -> [a] -> IO ()
 termsToFile' fp b ts = do
   SD.removeFile fp `catch` handleExists 
   mapM_ (appendJsonToFile fp b) ts
@@ -108,7 +108,7 @@ termsToFile fp b n = do
 
 evsToFile :: FilePath -> Bool -> Int -> IO ()
 evsToFile fp b n = do
-  (evs::[EvidenceC]) <- sampleNarb n
+  (evs :: [RawEv]) <- return [] --(evs::[RawEv]) <- sampleNarb n
   termsToFile' fp b evs
 
 arbsToFile :: forall a . (ToJSON a, FromJSON a,Read a,Show a,Arbitrary a) => FilePath -> Bool -> Int -> IO ()

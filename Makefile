@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 export COPLAND_BUILD=${CURDIR}
 
+MAIN := copland-interp\:exe\:copland-interp-exe
 SERV := copland-interp\:exe\:copland-server-exe
 CLIENT := copland-interp\:exe\:copland-client-exe
 GEN := copland-interp\:exe\:copland-gen-exe
@@ -114,7 +115,7 @@ ptwo:
 	cd copland-interp ; stack exec -- copland-server-exe -r "3002"
 
 ghci:
-	cd copland-interp ; stack ghci --main-is ${SERV}
+	cd copland-interp ; stack ghci --main-is ${MAIN}
 
 ghciserv:
 	cd copland-interp ; stack ghci --main-is ${SERV}

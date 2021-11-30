@@ -12,7 +12,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module JsonCopland where
 
-import CoplandLang
+--import Term_Defs
+import CommTypes
+--import CoplandLang
+import Term_Defs
+import BS
 
 import Data.Aeson
 import Control.Exception
@@ -110,7 +114,8 @@ instance FromJSON Evidence where
          }
     {-, allNullaryToStringTag = False -}
     }
-    
+
+{-
 instance ToJSON EvidenceC where
   toJSON = genericToJSON defaultOptions {
     sumEncoding =
@@ -130,6 +135,7 @@ instance FromJSON EvidenceC where
          }
     {-, allNullaryToStringTag = False -}
     }
+-}
 
 instance ToJSON ASP_PARAMS where
   toJSON = genericToJSON defaultOptions {
@@ -248,7 +254,7 @@ instance FromJSON ResponseMessagePar
 
 
 
-jsonOut :: Term -> EvidenceC -> EvidenceC -> IO ()
+jsonOut :: Term -> RawEv -> RawEv {-EvidenceC -> EvidenceC-} -> IO ()
 jsonOut t ev resEv = do
   let jsonProtoInFile = "../demoOutput/jsonIn.hs"
       jsonEvOutFile = "../demoOutput/jsonOut.hs"

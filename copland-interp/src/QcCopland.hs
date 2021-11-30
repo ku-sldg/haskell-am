@@ -4,11 +4,12 @@
   Date:  06/14/2019
 -}
 
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances #-}
 module QcCopland where
 
 
 import Copland
+import BS
 
 import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, sized, oneof, frequency)
 import Control.Monad(replicateM)
@@ -23,6 +24,9 @@ maxPl = 10
 maxArgs :: Int
 maxArgs = 3
 
+maxEvLength :: Int
+maxEvLength = 5
+
 {-
 genBS :: Gen BS
 genBS = do
@@ -31,19 +35,19 @@ genBS = do
   return (BL.toStrict bits)
 -}
 
-argString :: Int -> ARG
+argString :: Int -> Arg
 argString n =
   let numStr = show n in
   "arg" ++ numStr
   {-let s = "arg" ++ numStr in
   BL.toStrict $ BI.encode s -}
 
-argList :: Int -> [ARG]
+argList :: Int -> [Arg]
 argList n =
   let nums = [1..n] in
   map argString nums
 
-genArgs :: Gen [ARG]
+genArgs :: Gen [Arg]
 genArgs = do
   numArgs <- choose (0,maxArgs)
   return (argList numArgs)
@@ -80,7 +84,7 @@ genReqMessage n = do
   q <- genPl
   m <- genNameMap
   t <- genTerm n
-  e <- genEv n
+  e <- genEv --n
   return $ RequestMessage p q m t e
 
 instance Arbitrary ResponseMessage where
@@ -90,7 +94,7 @@ genRespMessage :: Int -> Gen ResponseMessage
 genRespMessage n = do
   p <- genPl
   q <- genPl
-  e <- genEv n
+  e <- genEv --n
   return $ ResponseMessage p q e
 
 instance Arbitrary RequestMessage where
@@ -113,28 +117,28 @@ genTerm n =
 
 genSIG :: Gen Term
 genSIG = do
-  return (ASPT SIG)
+  return (Coq_asp SIG)
 
 genHSH :: Gen Term
 genHSH = do
-  return (ASPT HSH)
+  return (Coq_asp HSH)
 
 genUSM = do
   i <- genPl
   args <- genArgs
   tpl <- genPl
   tid <- genPl
-  return (ASPT $ ASPC $ ASP_PARAMSC i args tpl tid)
+  return (Coq_asp $ ASPC $ Coq_asp_paramsC i args tpl tid)
 
 genLN n = do
   t0 <- genTerm n
   t1 <- genTerm n
-  return (LN t0 t1)
+  return (Coq_lseq t0 t1)
 
 genAT n = do
   p <- genPl
   t <- genTerm n
-  return (AT p t)
+  return (Coq_att p t)
 
 genSP n = do
   x <- oneof [return True, return False]
@@ -147,18 +151,59 @@ genBRs n = do
   sp2 <- genSP n
   t0 <- genTerm n
   t1 <- genTerm n
-  return (BRS (sp1,sp2) t0 t1)
+  return (Coq_bseq (sp1,sp2) t0 t1)
 
 genBRp n = do
   sp1 <- genSP n
   sp2 <- genSP n
   t0 <- genTerm n
   t1 <- genTerm n
-  return (BRP (sp1,sp2) t0 t1)
+  return (Coq_bpar (sp1,sp2) t0 t1)
 
 
 {---------- Evidence qc ----------}
 
+
+
+
+
+genBS :: Gen BS
+genBS = do
+  p <- genPl
+  let bits = BI.encode p
+  return (BL.toStrict bits)
+  
+
+evString :: Int -> BS
+evString n =
+  {-let numStr = show n in
+  "arg" ++ numStr -}
+  {-let s = "arg" ++ numStr in
+  BL.toStrict $ BI.encode s -}
+  BL.toStrict $ BI.encode n
+
+
+evList :: Int -> [BS]
+evList n =
+  let nums = [1..n] in
+  map evString nums
+
+genEv :: Gen [BS]
+genEv = do
+  numArgs <- choose (0,maxEvLength)
+  return (evList numArgs)
+
+{-
+instance Arbitrary RawEv where
+  arbitrary = genEv --sized $ \n -> genEv --sized $ \n -> genEv (rem n 25)
+-}
+{-
+genEv :: Gen RawEv
+genEv = return [] -- TODO: make this more sophisicated?
+-}
+
+
+{-
 instance Arbitrary EvidenceC where
   arbitrary = sized $ \n -> genEv (rem n 25)
   
@@ -175,13 +220,18 @@ genEv n =
                          (r,(genU (n-1))),
                          (p,genH),
                          (p,genMt)]
+-}
 
+{-
 genBS :: Gen BS
 genBS = do
   p <- genPl
   let bits = BI.encode p
   return (BL.toStrict bits)
+-}
 
+
+{-
 genMt :: Gen EvidenceC
 genMt = return Mt
 
@@ -227,3 +277,4 @@ genPP n = do
   ev1 <- genEv n
   ev2 <- genEv n
   return $ PP ev1 ev2
+-}
