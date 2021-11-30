@@ -21,5 +21,5 @@ put = SL.put
 get :: St s s
 get = SL.get
 
---execSt :: (St a1 a2) -> a1 -> COP a1
+execSt :: (St a1 a2) -> a1 -> COP a1
 execSt m st = SL.execStateT m st 

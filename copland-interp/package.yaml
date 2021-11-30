@@ -39,7 +39,12 @@ dependencies:
 - QuickCheck
 
 library:
-  source-dirs: src
+  source-dirs:
+  - src
+  - extracted_src
+
+#library:
+#  source-dird: src/extracted_src
 
 executables:
   copland-interp-exe:

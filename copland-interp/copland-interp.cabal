@@ -33,18 +33,14 @@ library
       CommImpl
       CommTypes
       CommUtil
-      ConcreteEvidence
       Copland
       CoplandLang
       CryptoImpl
-      Datatypes
       DemoStates
       DisplayCopland
-      Evidence_Bundlers
       GenCopland
       GenProgArgs
       GenStMonad
-      Impl_VM
       Impl_VM_Extracted
       IO_Stubs
       JsonCopland
@@ -52,21 +48,26 @@ library
       MonadCop
       MonadStore
       MonadTestSTM
-      MonadVM
       QcCopland
       ServerAppUtil
       ServerProgArgs
       StringConstants
-      StVM
       StVM_Deriving
-      Term_Defs
       Term_Defs_Deriving
       Test_Extract
       UDcore
+      ConcreteEvidence
+      Datatypes
+      Evidence_Bundlers
+      Impl_VM
+      MonadVM
+      StVM
+      Term_Defs
   other-modules:
       Paths_copland_interp
   hs-source-dirs:
       src
+      extracted_src
   build-depends:
       QuickCheck
     , aeson

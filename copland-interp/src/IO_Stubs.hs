@@ -7,6 +7,9 @@ import System.IO.Unsafe (unsafePerformIO)
 import StVM (CVM)
 import qualified Data.ByteString as B (ByteString, readFile, concat)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad (liftM)
+import MonadCop(lookupSecretKeyBytes, myKeyPath)
+import Control.Monad.Reader (asks)
 
 encodeEvRaw :: RawEv -> BS
 encodeEvRaw e = B.concat e
@@ -21,16 +24,19 @@ lookupSecretKeyBytesIO fp = do
   bs <- B.readFile fp
   return bs
 
+{-
 get_key_simpl :: IO BS
 get_key_simpl = do
   --kp <- lookupSecretKeyPath
   let kp = "./key0.txt" in
     lookupSecretKeyBytesIO kp
+-}
 
 do_sig' :: BS -> CVM BS
-do_sig' bs = liftIO $ do
-  key_bits <- get_key_simpl
-  doSign key_bits bs
+do_sig' bs = do --liftIO $ do
+  fp <- asks myKeyPath
+  key_bits <- liftIO $ B.readFile fp --lookupSecretKeyBytes --get_key_simpl
+  liftIO $ doSign key_bits bs
 {-
 do_sig :: BS -> BS
 do_sig bs = unsafePerformIO (do_sig_IO bs)
