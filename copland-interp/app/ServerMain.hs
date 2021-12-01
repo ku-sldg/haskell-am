@@ -6,7 +6,7 @@
 
 module ServerMain where
 
-import ServerAppUtil (start_standalone_server)
+--import ServerAppUtil (start_standalone_server)
 
 import ServerProgArgs (getServerOptions)
 
@@ -17,6 +17,7 @@ main = do
 serverMain :: IO ()
 serverMain = do
   opts <- getServerOptions
-  start_standalone_server opts
+  return ()
+  --start_standalone_server opts
 
 

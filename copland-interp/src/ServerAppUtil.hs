@@ -22,7 +22,9 @@ import qualified ServerProgArgs as SA (Server_Options(..))
 import MonadCop (runCOP, buildServerEnv)
 --import MonadVM_Old
 --import ExecCopland (run_vm)
-import qualified DemoStates as DS (vm_state_init)
+--import qualified DemoStates as DS (vm_state_init)
+import Impl_VM_Extracted (run_cvm)
+import StVM (Coq_cvm_st(..))
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString as BS (ByteString)
@@ -42,6 +44,8 @@ import Control.Monad (forever, void)
 
 TODO:  move this somewhere besides Interp.hs.
 -}
+
+{-
 fromRemote :: NS.Socket -> SA.Server_Options -> IO ()
 fromRemote conn opts = do
   rreq@(RequestMessage pTo pFrom names t e) <- receiveReq conn
@@ -79,7 +83,35 @@ fromRemote conn opts = do
   sendResp conn pTo pFrom e'
   NS.close conn
 
+-}
 
+get_my_pl :: SA.Server_Options -> Plc
+get_my_pl opts =
+  case (SA.server_serverType opts) of
+    CVM_SERV params -> cvm_params_plc params
+    _ -> error "Expected CVM_SERV server type, got something else..."
+
+sample_aspmap :: M.Map ASP_ID String
+sample_aspmap = M.fromList [(1, s)]
+  where s = "" -- TODO: put asp socket here, TODO: don't hardcode...
+
+fromRemote :: SA.Server_Options -> {-BS.ByteString ->-} NS.Socket -> IO BS.ByteString
+fromRemote opts conn = do
+  rreq@(RequestMessage pTo pFrom names t e) <- receiveReq conn
+
+  store <- undefined
+  let me = get_my_pl opts
+  env <- buildServerEnv opts names me store sample_aspmap
+  let st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0)
+  --res <- run_cvm t st env
+
+
+  
+  return undefined
+
+
+
+{-
 start_standalone_server :: SA.Server_Options -> IO ()
 start_standalone_server opts = do
   let pString = SA.server_serverPort opts
@@ -91,8 +123,11 @@ start_standalone_server opts = do
   addr <- resolve portString
   sock <- open addr
   putStrLn $ "starting server" ++ " at portttt: " ++ portString
-  serve_requests sock opts {-void $ CC.forkIO $-} 
+  serve_requests sock opts {-void $ CC.forkIO $-}
+-}
 
+
+{-
 serve_requests :: NS.Socket -> SA.Server_Options -> IO ()
 serve_requests sock opts = forever $ do
   putStrLn $ "BEFORE CONNECTION"
@@ -104,17 +139,23 @@ serve_requests sock opts = forever $ do
     CVM_SERV _ -> 
       void $ CC.forkIO $ fromRemote conn opts
     _ -> return ()
+-}
 
+
+{-
 spawn_a_server :: Bool -> Bool -> Address -> IO ()
 spawn_a_server sim debug addr = do
   let sopts = SA.Server_Options sim debug addr undefined
   void $ CC.forkIO $ start_standalone_server sopts
-  
+-}
+
+  {-
 spawn_the_servers :: M.Map Plc Address -> Bool -> Bool -> IO ()
 spawn_the_servers nm simB debugB = do
   let ps = M.toList nm
       snds = map snd ps
   mapM_ (spawn_a_server simB debugB) snds
+-}
 
 
 
@@ -124,7 +165,7 @@ spawn_the_servers nm simB debugB = do
 
 
 
-
+{-
 
 startServer :: ServerType -> (BS.ByteString -> IO BS.ByteString) -> IO ()
 startServer x f = do
@@ -142,3 +183,4 @@ handleSockBits f s = do
   --error "handle after recv"
   resp <- f msg
   sendAll s resp
+-}

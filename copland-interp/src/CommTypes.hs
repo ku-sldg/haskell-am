@@ -164,6 +164,8 @@ data ServerType =
   {-| PAR -}
   deriving (Show)
 
+
+{-
 -- socketPathname is currently a global constant here
 -- this must change, soon ....
 lookupPath :: ServerType -> IO FilePath
@@ -189,3 +191,4 @@ lookupPath v = do
            Nothing ->
              error $ "Missing both COPLAND_BUILD(for default path) and " ++ custom_path ++ "(for custom path) environment variables.  Must have one or the other to connect to the " ++ tag ++ "Server."
   return socketPath
+-}
