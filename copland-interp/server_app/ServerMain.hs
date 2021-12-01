@@ -18,9 +18,9 @@ main = do
 
 serverMain' :: IO ()
 serverMain' = do
-  --opts <- getServerOptions
-  let opts = sample_server_args
-  start_server opts
+  opts' <- getServerOptions
+  --let opts = sample_server_args
+  start_server opts'
   return ()
   --start_standalone_server opts
 

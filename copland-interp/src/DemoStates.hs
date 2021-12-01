@@ -29,8 +29,14 @@ one_plc = 1
 one_addr :: Address
 one_addr = "CVM1"
 
+two_plc :: Plc
+two_plc = 2
+
+two_addr :: Address
+two_addr = "CVM2"
+
 sample_client_name_map :: M.Map Plc Address
-sample_client_name_map = M.fromList [(zero_plc, zero_addr), (one_plc, one_addr)]
+sample_client_name_map = M.fromList [(zero_plc, zero_addr), (one_plc, one_addr), (two_plc, two_addr)]
 
 sample_server_args :: SA.Server_Options
 sample_server_args =

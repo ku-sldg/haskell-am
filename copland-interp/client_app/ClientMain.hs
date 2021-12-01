@@ -23,7 +23,7 @@ import qualified CryptoImpl as CI (doHashFile)
 import UDcore
 import CommUtil
 
-import Impl_VM_Extracted (run_cvm)
+import Impl_VM_Extracted (run_cvm_rawev, run_cvm')
 import CryptoImpl (doNonce)
 import Term_Defs_Deriving
 import StVM_Deriving
@@ -58,11 +58,18 @@ main :: IO ()
 main = do
   let t'_par = Coq_aasp_par (ASPC (Coq_asp_paramsC 1 [] 1 1)) --(Coq_aasp_par (CPY))
   let tsig_par = (Coq_aasp_par SIG)
+  let t_par = Coq_alseq_par t'_par tsig_par
+  --let at_par_term = Coq_aatt_par DS.one_plc t
+  
   let t' = Coq_asp (ASPC (Coq_asp_paramsC 1 [] 1 1))
   let tsig = Coq_asp SIG 
-  let t_par = Coq_alseq_par t'_par tsig_par
   let t = Coq_lseq t' tsig
-  let at_t = Coq_aatt_par DS.one_plc t
+  let at_term = Coq_att DS.two_plc t
+
+  let at_term' = Coq_att DS.one_plc at_term
+
+  let at_term'' = Coq_lseq at_term' at_term
+
   nval <- doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
       sa = DS.sample_client_args
@@ -72,10 +79,10 @@ main = do
       myAsps = DS.sample_aspmap
   env <- build_Cop_Env_Client sa nm mypl store myAsps
     --build_Cop_Env_AM sa nm mypl store myAsps
-  putStrLn $ "\n" ++ "Term executed: \n" ++ (show at_t) ++ "\n"
+  putStrLn $ "\n" ++ "Term executed: \n" ++ (show at_term'') ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"
   --putStrLn $ "Starting CVM env: \n" ++ (show env) ++ "\n"
-  res <- run_cvm at_t st env -- TODO: get real Cop_Env
+  res <- run_cvm' at_term'' st env -- TODO: get real Cop_Env
   putStrLn $ "Result CVM state: \n" ++ (show res) ++ "\n"
 
 

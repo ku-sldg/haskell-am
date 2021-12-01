@@ -23,6 +23,15 @@ runclient:
 runserver:
 	cd copland-interp ; stack exec -- server-main-exe
 
+runserver_one:
+	cd copland-interp ; stack exec -- server-main-exe -r "CVM1" -p 1 -c "SIG1"
+
+runserver_two:
+	cd copland-interp ; stack exec -- server-main-exe -r "CVM2" -p 2 -c "SIG2"
+
+runserver_help:
+	cd copland-interp ; stack exec -- server-main-exe --help
+
 run:
 	cd copland-interp ; stack exec -- copland-client-exe -w -a
 
