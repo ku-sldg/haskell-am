@@ -13,8 +13,55 @@ module DemoStates where
 import Copland
 import MonadAM
 --import MonadVM_Old
+import qualified ServerProgArgs as SA (Server_Options(..))
 
 import qualified Data.Map as M
+
+zero_plc :: Plc
+zero_plc = 0
+
+zero_addr :: Address
+zero_addr = "CVM0"
+
+one_plc :: Plc
+one_plc = 1
+
+one_addr :: Address
+one_addr = "CVM1"
+
+sample_client_name_map :: M.Map Plc Address
+sample_client_name_map = M.fromList [(zero_plc, zero_addr), (one_plc, one_addr)]
+
+sample_server_args :: SA.Server_Options
+sample_server_args =
+  let cvm_ps :: CVM_SERV_Params
+      cvm_ps = CVM_SERV_Params one_plc "SIG1"
+      stype = CVM_SERV cvm_ps in
+  SA.Server_Options False True one_addr stype
+
+sample_client_args :: SA.Server_Options
+sample_client_args =
+  let cvm_ps :: CVM_SERV_Params
+      cvm_ps = CVM_SERV_Params zero_plc "SIG0"
+      stype = CVM_SERV cvm_ps in
+  SA.Server_Options False True zero_addr stype
+
+
+sample_aspmap :: M.Map ASP_ID String
+sample_aspmap = M.fromList [(1, s)]
+  where s = "" -- TODO: put asp socket here, TODO: don't hardcode...
+
+
+
+
+
+
+
+
+
+
+
+
 
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP components.  -}
@@ -24,6 +71,8 @@ am_state_init :: AM_St
 am_state_init = empty_AM_state {- TODO: is this ok? -}
 -}
 
+
+{-
 am_env_init :: AM_Env
 am_env_init = 
   let -- Maps place to the asp_id that checks signatures from that place.
@@ -39,6 +88,10 @@ am_env_init =
 
 
 vm_state_init = undefined
+-}
+
+
+
 {-
 {- This is a hard-coded initial state for demo/testing purposes.
    TODO:  Need to make this user-facing, provide an external registration process for ASP, SIG, and Comm Server components.  -} 

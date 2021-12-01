@@ -23,8 +23,10 @@ import MonadCop (runCOP, buildServerEnv)
 --import MonadVM_Old
 --import ExecCopland (run_vm)
 --import qualified DemoStates as DS (vm_state_init)
-import Impl_VM_Extracted (run_cvm)
+import Impl_VM_Extracted (run_cvm_rawev)
 import StVM (Coq_cvm_st(..))
+import DemoStates
+import StVM_Deriving
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString as BS (ByteString)
@@ -91,23 +93,22 @@ get_my_pl opts =
     CVM_SERV params -> cvm_params_plc params
     _ -> error "Expected CVM_SERV server type, got something else..."
 
-sample_aspmap :: M.Map ASP_ID String
-sample_aspmap = M.fromList [(1, s)]
-  where s = "" -- TODO: put asp socket here, TODO: don't hardcode...
-
-fromRemote :: SA.Server_Options -> {-BS.ByteString ->-} NS.Socket -> IO BS.ByteString
+fromRemote :: SA.Server_Options -> {-BS.ByteString ->-} NS.Socket -> IO ()
 fromRemote opts conn = do
   rreq@(RequestMessage pTo pFrom names t e) <- receiveReq conn
 
-  store <- undefined
+  print "received RequestMessage: "
+  print rreq
+  let store = M.empty
   let me = get_my_pl opts
   env <- buildServerEnv opts names me store sample_aspmap
   let st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0)
-  --res <- run_cvm t st env
 
+  print "init state: "
+  print st 
+  res_rawev <- run_cvm_rawev t st env
 
-  
-  return undefined
+  sendResp conn pFrom me res_rawev
 
 
 
@@ -158,9 +159,19 @@ spawn_the_servers nm simB debugB = do
 -}
 
 
+start_server :: SA.Server_Options -> IO ()
+start_server opts = do
+  let addr = SA.server_serverPort opts
+      servType = SA.server_serverType opts
+  case (servType) of
+    CVM_SERV params -> start_server' addr (fromRemote opts)
+    _ -> return ()
+    
 
 
-
+start_server' :: Address -> (NS.Socket -> IO a) -> IO a
+start_server' path f =
+  runUnixDomainServer path f
 
 
 

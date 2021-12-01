@@ -109,6 +109,20 @@ runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
 
+build_Cop_Env_Client ::
+  SA.Server_Options -> M.Map Plc Address -> Plc ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
+  IO Cop_Env
+build_Cop_Env_Client opts nameMap pl store aspMap = do
+
+  let b = SA.server_optSim opts
+      d = SA.server_optDebug opts
+      --pl = 0 -- TODO:  hardcoded
+      
+  keyPath <- lookupSecretKeyPath
+  return $ Cop_Env b d nameMap keyPath pl store aspMap
+  {- TODO: ok to return place 0, since it will be updated? -}
+
 
 build_Cop_Env_AM ::
   Client_Options -> M.Map Plc Address ->
@@ -134,7 +148,8 @@ buildServerEnv opts nameMap myPlace store aspMap = do
       d = SA.server_optDebug opts
       pl = myPlace -- TODO:  Do we even need this in Cop_Env??
       -- TODO:  sanity check that myPlace is in nameMap
-      
+
+  print "HERE"
   keyPath <- lookupSecretKeyPath
   return $ Cop_Env b d nameMap keyPath pl store aspMap
 

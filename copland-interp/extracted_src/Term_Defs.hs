@@ -2,6 +2,7 @@ module Term_Defs where
 
 import qualified Prelude
 import qualified BS
+import qualified Datatypes
 
 type Plc = Prelude.Int
 
@@ -85,4 +86,27 @@ data AnnoTermPar =
  | Coq_alseq_par AnnoTermPar AnnoTermPar
  | Coq_abseq_par Split AnnoTermPar AnnoTermPar
  | Coq_abpar_par Loc Split AnnoTermPar Term
+
+anno_par :: Term -> Loc -> (,) Loc AnnoTermPar
+anno_par t loc =
+  case t of {
+   Coq_asp a -> (,) loc (Coq_aasp_par a);
+   Coq_att p t0 -> (,) loc (Coq_aatt_par p t0);
+   Coq_lseq t1 t2 ->
+    case anno_par t1 loc of {
+     (,) loc' t1' ->
+      case anno_par t2 loc' of {
+       (,) loc'' t2' -> (,) loc'' (Coq_alseq_par t1' t2')}};
+   Coq_bseq spl t1 t2 ->
+    case anno_par t1 loc of {
+     (,) loc' t1' ->
+      case anno_par t2 loc' of {
+       (,) loc'' t2' -> (,) loc'' (Coq_abseq_par spl t1' t2')}};
+   Coq_bpar spl t1 t2 ->
+    case anno_par t1 (Prelude.succ loc) of {
+     (,) loc' t1' -> (,) loc' (Coq_abpar_par loc spl t1' t2)}}
+
+annotated_par :: Term -> AnnoTermPar
+annotated_par x =
+  Datatypes.snd (anno_par x 0)
 

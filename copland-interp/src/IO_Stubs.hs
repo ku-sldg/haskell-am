@@ -1,15 +1,23 @@
 module IO_Stubs where
 
 import BS (BS, empty_bs)
-import Term_Defs(ASP_PARAMS(..), RawEv, Plc, EvC(..), Term, Loc)
+import Term_Defs(ASP_PARAMS(..), RawEv, Plc, EvC(..), Term, Loc, get_bits, Evidence(..), EvC(..))
 import CryptoImpl (doHash, doSign)
 import System.IO.Unsafe (unsafePerformIO)
 import StVM (CVM)
+import CommTypes
+import CommImpl
+import UDcore
+
+
 import qualified Data.ByteString as B (ByteString, readFile, concat)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad (liftM)
-import MonadCop(lookupSecretKeyBytes, myKeyPath)
+import MonadCop(lookupSecretKeyBytes, myKeyPath, me, nameServer, getTheirSock)
 import Control.Monad.Reader (asks)
+import Control.Monad.State.Lazy (lift)
+import qualified Network.Socket as NS
+import qualified Data.Map as M(Map)
 
 encodeEvRaw :: RawEv -> BS
 encodeEvRaw e = B.concat e
@@ -48,8 +56,23 @@ do_hash' bs = return (doHash bs)
 do_start_par_thread :: Loc -> Term -> RawEv -> CVM ()
 do_start_par_thread loc t e = undefined
 
+sendRec :: Plc -> Plc -> M.Map Plc Address ->
+           Term -> RawEv -> NS.Socket -> IO ResponseMessage
+sendRec pTo pFrom namesFrom t e conn = do
+  sendReq pTo pFrom namesFrom t e conn
+  receiveResp conn pFrom
+
 doRemote_session' :: Term -> Plc -> EvC -> CVM EvC
-doRemote_session' t pTo e = undefined
+doRemote_session' t pTo e = do
+  addr <- lift $ getTheirSock pTo
+  myPl <- asks me
+  ns <- asks nameServer
+  rm <- liftIO $ runUnixDomainClient addr (sendRec pTo myPl ns t (get_bits e))
+  let res = (Coq_evc (respEv rm) Coq_mt)
+  return res
+
+  
+  --return undefined
 
 do_wait_par_thread :: Loc -> CVM EvC
 do_wait_par_thread l = undefined

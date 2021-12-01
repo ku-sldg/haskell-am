@@ -27,8 +27,9 @@ import qualified Data.Map as M(Map)
       t-   term for remote entity to execute
       e-   initial evidence supplied to remote entity
     Returns: message id used in request -}     
-sendReq :: NS.Socket -> Plc -> Plc -> M.Map Plc Address -> Term -> RawEv -> IO ()
-sendReq conn pTo pFrom namesFrom t e = do
+sendReq :: Plc -> Plc -> M.Map Plc Address ->
+           Term -> RawEv -> NS.Socket -> IO ()
+sendReq pTo pFrom namesFrom t e conn = do
   --logc "inside doSendReq"
   --logc $ "pTo: " ++ (show pTo)
   --nextMID <- liftIO $ doRNG

@@ -2,8 +2,8 @@ SHELL := /bin/bash
 export COPLAND_BUILD=${CURDIR}
 
 MAIN := copland-interp\:exe\:copland-interp-exe
-SERV := copland-interp\:exe\:copland-server-exe
-CLIENT := copland-interp\:exe\:copland-client-exe
+SERV := copland-interp\:exe\:server-main-exe
+CLIENT := copland-interp\:exe\:client-main-exe
 GEN := copland-interp\:exe\:copland-gen-exe
 SIG := copland-interp\:exe\:sig-server-exe
 STORE := copland-interp\:exe\:store-server-exe
@@ -16,6 +16,12 @@ all:	./copland-interp/copland-interp.cabal
 
 build_client :	./copland-interp/copland-interp.cabal
 		cd ./copland-interp/ ; stack build ${CLIENT}
+
+runclient:
+	cd copland-interp ; stack exec -- client-main-exe
+
+runserver:
+	cd copland-interp ; stack exec -- server-main-exe
 
 run:
 	cd copland-interp ; stack exec -- copland-client-exe -w -a

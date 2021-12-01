@@ -7,6 +7,7 @@ import StVM_Deriving
 import Impl_VM_Extracted (run_cvm)
 import CryptoImpl (doNonce)
 import MonadCop (build_Cop_Env_AM)
+import DemoStates
 
 main :: IO ()
 main = do
