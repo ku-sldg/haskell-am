@@ -34,7 +34,6 @@ library
       CommTypes
       CommUtil
       Copland
-      CoplandLang
       CryptoImpl
       DemoStates
       DisplayCopland

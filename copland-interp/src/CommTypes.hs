@@ -143,16 +143,26 @@ data CommAckMessage =
 -}
 
 
-
+data CVM_SERV_Params = CVM_SERV_Params
+  { cvm_params_plc :: Plc,
+    {-cvm_params_port :: String, -}
+    cvm_params_sig_port :: String
+    {-cvm_params_store_port :: String, -}
+  }
+  deriving (Show)
+                     
 
 
 
 data ServerType =
-  COMM
-  | SIGN
-  | ASP_SERV ASP_ID
+  {-COMM -}
+  SIGN
   | STORE
-  | PAR
+  | ASP_SERV ASP_ID
+  | CVM_SERV CVM_SERV_Params
+
+  {-| PAR -}
+  deriving (Show)
 
 -- socketPathname is currently a global constant here
 -- this must change, soon ....
@@ -160,11 +170,12 @@ lookupPath :: ServerType -> IO FilePath
 lookupPath v = do
   let tag =
         case v of
-        COMM -> "COMM"
-        PAR -> "PAR"
+        {-COMM -> "COMM"
+        PAR -> "PAR" -}
         SIGN -> "SIG"
         STORE -> "STORE"
         ASP_SERV i -> "ASP_" ++ (show i)
+        CVM_SERV params -> "CVM_" -- ++ (cvm_params_port params)
   let custom_path = "COPLAND_" ++ tag ++ "_SOCKET"
   maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
   maybeSocketPath  <- lookupEnv $ custom_path

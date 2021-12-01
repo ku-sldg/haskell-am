@@ -8,7 +8,8 @@
 
 module DisplayCopland where
 
-import CoplandLang
+import Term_Defs
+import Term_Defs_Deriving
 import StringConstants
 
 import Data.Text.Prettyprint.Doc
@@ -22,7 +23,7 @@ fromStr s = pretty (T.pack s)
 instance Pretty ASP where
   pretty t =
     case t of
-      (ASPC (ASP_PARAMSC i args p tid)) ->
+      (ASPC (Coq_asp_paramsC i args p tid)) ->
         hsep [(fromStr usmStr),
               (viaShow i),
               (viaShow args),
@@ -35,14 +36,14 @@ instance Pretty ASP where
 instance Pretty Term where
   pretty t =
     case t of
-        ASPT a -> pretty a
+        Coq_asp a -> pretty a
         {-(NONCE) -> (fromStr nonceStr) -}
-        (AT p t') -> nest 2 (vsep ["@_" <> (viaShow p), (pretty t')])
-        (LN t1 t2) ->
+        (Coq_att p t') -> nest 2 (vsep ["@_" <> (viaShow p), (pretty t')])
+        (Coq_lseq t1 t2) ->
           vsep [(fromStr lnStr), (indent 2 (pretty t1)), (indent 2 (pretty t2))]
-        (BRS (sp1,sp2) t1 t2) ->
+        (Coq_bseq (sp1,sp2) t1 t2) ->
           vsep [(fromStr (brsStr ++ " (" ++ (show sp1) ++ "," ++ (show sp2) ++ ")")), (indent 2 (pretty t1)), (indent 2 (pretty t2))]
-        (BRP (sp1,sp2) t1 t2) ->
+        (Coq_bpar (sp1,sp2) t1 t2) ->
           vsep [(fromStr (brpStr ++ " (" ++ (show sp1) ++ "," ++ (show sp2) ++ ")")), (indent 2 (pretty t1)), (indent 2 (pretty t2))]
 
   {-
@@ -61,6 +62,7 @@ shorb b =
   let len = 4 in
   B.append (B.take len b) "..."
 
+{-
 instance Pretty EvidenceC where
   pretty e =
     case e of
@@ -87,6 +89,7 @@ instance Show Ev where
 
 prettyEv :: EvidenceC -> String
 prettyEv = renderString . layoutPretty defaultLayoutOptions . pretty
+-}
 
 
 
@@ -98,7 +101,7 @@ prettyEv = renderString . layoutPretty defaultLayoutOptions . pretty
 
 
 
-
+{-
 
 df :: IO ()
 df = do
@@ -108,6 +111,7 @@ df = do
     t = LN (AT 4 (ASPT SIG)) (LN (ASPT HSH) (AT 3 (AT 4 (ASPT SIG))))--(LN r s)
     --q = LN (LN (LN NONCE NONCE) NONCE) (LN SIG SIG)
   putStrLn (prettyT t)
+-}
 
 {-
 as :: IO ()

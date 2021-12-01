@@ -179,7 +179,7 @@ derive_comm_reqs' t nm pFrom res@(reqs,store) =
 -}
                  
       
-
+{-
 setupReqOne :: CommReqMessage -> IO ()
 setupReqOne m =
   case m of
@@ -202,6 +202,10 @@ setupReqOne m =
         setupReqParOne m'
   return () -}
 
+
+-}
+
+{-
 setupReqParOne :: CommParMessage -> IO ()
 setupReqParOne (CommParMessage pTo namesFrom t init_c final_c) = do
   --_ <- CC.forkIO $ do
@@ -237,7 +241,9 @@ setupReqParOne (CommParMessage pTo namesFrom t init_c final_c) = do
           NBS.sendAll s (BL.toStrict messageBits)
           (ResponseMessagePar e') <- getResponse s
           return e'
+-}
 
+{-
 setupReqCommOne :: CommSetMessage -> IO ()
 setupReqCommOne (CommSetMessage pTo pFrom namesFrom t init_c final_c) = do
   --_ <- CC.forkIO $ do
@@ -261,6 +267,7 @@ setupReqCommOne (CommSetMessage pTo pFrom namesFrom t init_c final_c) = do
 
 setupComm :: [CommReqMessage] -> IO ()
 setupComm ls = mapM_ setupReqOne ls
+-}
 
 {-
   do

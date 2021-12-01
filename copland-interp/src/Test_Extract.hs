@@ -15,7 +15,7 @@ main = do
   let t = Coq_alseq_par t' tsig
   nval <- doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
-  env <- build_Cop_Env_AM undefined undefined undefined 
+  env <- build_Cop_Env_AM undefined undefined undefined undefined
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show t) ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"
   --putStrLn $ "Starting CVM env: \n" ++ (show env) ++ "\n"

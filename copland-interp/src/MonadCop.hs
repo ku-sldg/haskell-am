@@ -37,7 +37,8 @@ data Cop_Env =
             nameServer :: M.Map Plc Address,
             myKeyPath :: FilePath,
             me :: Plc,
-            st_store :: M.Map Natural (TMVar RawEv)
+            st_store :: M.Map Natural (TMVar RawEv),
+            asp_sockets :: M.Map ASP_ID String
           }
 
 
@@ -109,19 +110,25 @@ runCOP k env =
      runReaderT k env
 
 
-build_Cop_Env_AM :: Client_Options -> M.Map Plc Address -> M.Map Natural (TMVar RawEv) -> IO Cop_Env
-build_Cop_Env_AM opts nameMap store = do
+build_Cop_Env_AM ::
+  Client_Options -> M.Map Plc Address ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
+  IO Cop_Env
+build_Cop_Env_AM opts nameMap store aspMap = do
 
   let b = optSim opts
       d = optDebug opts
       pl = 0 -- TODO:  hardcoded
       
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl store
+  return $ Cop_Env b d nameMap keyPath pl store aspMap
   {- TODO: ok to return place 0, since it will be updated? -}
 
-buildServerEnv :: SA.Server_Options -> M.Map Plc Address -> Plc -> M.Map Natural (TMVar RawEv) -> IO Cop_Env
-buildServerEnv opts nameMap myPlace store = do
+buildServerEnv ::
+  SA.Server_Options -> M.Map Plc Address -> Plc ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
+  IO Cop_Env
+buildServerEnv opts nameMap myPlace store aspMap = do
 
   let b = SA.server_optSim opts
       d = SA.server_optDebug opts
@@ -129,7 +136,7 @@ buildServerEnv opts nameMap myPlace store = do
       -- TODO:  sanity check that myPlace is in nameMap
       
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl store
+  return $ Cop_Env b d nameMap keyPath pl store aspMap
 
 lookupSecretKeyPath :: IO FilePath
 lookupSecretKeyPath = do

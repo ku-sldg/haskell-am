@@ -52,7 +52,7 @@ fromRemote conn opts = do
   --(reqs,store) <- undefined --derive_comm_reqs (annotated t) names pTo -- TODO: Check pTo here
   --setupComm reqs
 
-  store <- undefined
+  
   
   env <- buildServerEnv opts names pTo store undefined
 
@@ -99,15 +99,11 @@ serve_requests sock opts = forever $ do
   (conn, peer) <- NS.accept sock
   putStrLn $ "Connection from " ++ show peer
   --error (show opts)
-  let server_type = SA.server_serverType opts
-  case server_type of
-    CVM_SERV _ -> 
-      void $ CC.forkIO $ fromRemote conn opts
-    _ -> return ()
+  void $ CC.forkIO $ fromRemote conn opts
 
 spawn_a_server :: Bool -> Bool -> Address -> IO ()
 spawn_a_server sim debug addr = do
-  let sopts = SA.Server_Options sim debug addr undefined
+  let sopts = SA.Server_Options sim debug addr
   void $ CC.forkIO $ start_standalone_server sopts
   
 spawn_the_servers :: M.Map Plc Address -> Bool -> Bool -> IO ()
