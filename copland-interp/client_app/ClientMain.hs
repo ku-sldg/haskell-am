@@ -56,10 +56,13 @@ clientMain = do
 
 main :: IO ()
 main = do
+  {-
   let t'_par = Coq_aasp_par (ASPC (Coq_asp_paramsC 1 [] 1 1)) --(Coq_aasp_par (CPY))
   let tsig_par = (Coq_aasp_par SIG)
   let t_par = Coq_alseq_par t'_par tsig_par
   --let at_par_term = Coq_aatt_par DS.one_plc t
+-}
+  
   
   let t' = Coq_asp (ASPC (Coq_asp_paramsC 1 [] 1 1))
   let tsig = Coq_asp SIG 
@@ -77,7 +80,8 @@ main = do
       mypl = DS.zero_plc
       store = undefined
       myAsps = DS.sample_aspmap
-  env <- build_Cop_Env_Client sa nm mypl store myAsps
+      mySigSock = DS.sig_zero_addr
+  env <- build_Cop_Env_Client sa nm mypl store myAsps mySigSock
     --build_Cop_Env_AM sa nm mypl store myAsps
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show at_term'') ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"

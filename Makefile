@@ -23,11 +23,26 @@ runclient:
 runserver:
 	cd copland-interp ; stack exec -- server-main-exe
 
+runserver_zero:
+	cd copland-interp ; stack exec -- server-main-exe -r "CVM0" -p 1 -c "SIG0"
+
 runserver_one:
 	cd copland-interp ; stack exec -- server-main-exe -r "CVM1" -p 1 -c "SIG1"
 
 runserver_two:
 	cd copland-interp ; stack exec -- server-main-exe -r "CVM2" -p 2 -c "SIG2"
+
+runsigserver_zero:
+	cd copland-interp ; stack exec -- server-main-exe -r "SIG0" --sign_server
+
+runsigserver_one:
+	cd copland-interp ; stack exec -- server-main-exe -r "SIG1" --sign_server
+
+runsigserver_two:
+	cd copland-interp ; stack exec -- server-main-exe -r "SIG2" --sign_server
+
+runaspserver_one:
+	cd copland-interp ; stack exec -- server-main-exe -r "ASP1" -a 1
 
 runserver_help:
 	cd copland-interp ; stack exec -- server-main-exe --help

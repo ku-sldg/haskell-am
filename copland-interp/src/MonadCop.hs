@@ -36,6 +36,7 @@ data Cop_Env =
             debug :: Bool,
             nameServer :: M.Map Plc Address,
             myKeyPath :: FilePath,
+            sig_socket :: Address,
             me :: Plc,
             st_store :: M.Map Natural (TMVar RawEv),
             asp_sockets :: M.Map ASP_ID String
@@ -97,6 +98,17 @@ getMySock env = do
    Just s -> return s
 -}
 
+
+getAspSock :: ASP_ID -> COP Address
+getAspSock id = do
+  {-let p = me env
+  let m = nameServer env -}
+  aspmap <- asks asp_sockets
+  let mString = M.lookup id aspmap
+  case mString of
+   Nothing -> error "asp port is not initialized in COP environment"
+   Just s -> return s
+
 --Debug-dependent output
 logc :: String -> COP ()
 logc s = do
@@ -111,19 +123,19 @@ runCOP k env =
 
 build_Cop_Env_Client ::
   SA.Server_Options -> M.Map Plc Address -> Plc ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
   IO Cop_Env
-build_Cop_Env_Client opts nameMap pl store aspMap = do
+build_Cop_Env_Client opts nameMap pl store aspMap sigSock = do
 
   let b = SA.server_optSim opts
       d = SA.server_optDebug opts
       --pl = 0 -- TODO:  hardcoded
       
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl store aspMap
+  return $ Cop_Env b d nameMap keyPath sigSock pl store aspMap
   {- TODO: ok to return place 0, since it will be updated? -}
 
-
+{-
 build_Cop_Env_AM ::
   Client_Options -> M.Map Plc Address ->
   M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
@@ -137,21 +149,24 @@ build_Cop_Env_AM opts nameMap store aspMap = do
   keyPath <- lookupSecretKeyPath
   return $ Cop_Env b d nameMap keyPath pl store aspMap
   {- TODO: ok to return place 0, since it will be updated? -}
+-}
 
-buildServerEnv ::
-  SA.Server_Options -> M.Map Plc Address -> Plc ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
+buildServerEnv :: Bool -> Bool -> 
+  {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
   IO Cop_Env
-buildServerEnv opts nameMap myPlace store aspMap = do
+buildServerEnv b d nameMap myPlace store aspMap sigSock = do
 
+  {-
   let b = SA.server_optSim opts
       d = SA.server_optDebug opts
       pl = myPlace -- TODO:  Do we even need this in Cop_Env??
       -- TODO:  sanity check that myPlace is in nameMap
+  -}
 
-  print "HERE"
+  --print "HERE"
   keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl store aspMap
+  return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
 
 lookupSecretKeyPath :: IO FilePath
 lookupSecretKeyPath = do

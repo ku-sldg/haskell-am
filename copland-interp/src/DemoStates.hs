@@ -35,27 +35,36 @@ two_plc = 2
 two_addr :: Address
 two_addr = "CVM2"
 
+sig_zero_addr :: Address
+sig_zero_addr = "SIG0"
+
+sig_one_addr :: Address
+sig_one_addr = "SIG1"
+
+asp_one_addr :: Address
+asp_one_addr = "ASP1"
+
 sample_client_name_map :: M.Map Plc Address
 sample_client_name_map = M.fromList [(zero_plc, zero_addr), (one_plc, one_addr), (two_plc, two_addr)]
 
 sample_server_args :: SA.Server_Options
 sample_server_args =
   let cvm_ps :: CVM_SERV_Params
-      cvm_ps = CVM_SERV_Params one_plc "SIG1"
+      cvm_ps = CVM_SERV_Params one_plc sig_one_addr
       stype = CVM_SERV cvm_ps in
   SA.Server_Options False True one_addr stype
 
 sample_client_args :: SA.Server_Options
 sample_client_args =
   let cvm_ps :: CVM_SERV_Params
-      cvm_ps = CVM_SERV_Params zero_plc "SIG0"
+      cvm_ps = CVM_SERV_Params zero_plc sig_zero_addr
       stype = CVM_SERV cvm_ps in
   SA.Server_Options False True zero_addr stype
 
 
 sample_aspmap :: M.Map ASP_ID String
 sample_aspmap = M.fromList [(1, s)]
-  where s = "" -- TODO: put asp socket here, TODO: don't hardcode...
+  where s = asp_one_addr -- TODO: don't hardcode...
 
 
 

@@ -41,9 +41,14 @@ data SigRequestMessage = SigRequestMessage
 data SigResponseMessage = SigResponseMessage
   { sigBits :: BS } deriving (Show,Read,Generic)
 
+{-
 --Attestation Request Message
 data AspRequestMessage = AspRequestMessage
   { aspArgs :: [Arg] } deriving (Show,Read,Generic)
+-}
+data AspRequestMessage = AspRequestMessage
+  { aspArgs :: ASP_PARAMS,
+    aspInputEv :: RawEv} deriving (Show,Read,Generic)
 
 --Attestation Response Message
 data AspResponseMessage = AspResponseMessage
