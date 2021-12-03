@@ -9,8 +9,8 @@ import CryptoImpl (doHash, doSign)
 import System.IO.Unsafe (unsafePerformIO)
 import StVM (CVM)
 import CommTypes
-import CommImpl
 import UDcore
+import Comm
 
 
 import qualified Data.ByteString as B (ByteString, readFile, concat)
@@ -97,11 +97,12 @@ do_hash' bs = return (doHash bs)
 do_start_par_thread :: Loc -> Term -> RawEv -> CVM ()
 do_start_par_thread loc t e = undefined
 
-
+{-
 gen_client_session :: BS -> NS.Socket -> IO BS
 gen_client_session msg conn = do
   NBS.sendAll conn msg
   NBS.recv conn 2048
+-}
 
 {-
 sendRec' :: Plc -> Plc -> M.Map Plc Address ->
@@ -115,6 +116,7 @@ sendRec' pTo pFrom namesFrom t e =
 
 --(ToJSON a,FromJSON a,Read a,Show a{-,Arbitrary a-}) =>
 
+{-
 sendRec' :: (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
             a -> NS.Socket -> IO b
 sendRec' rm conn = do
@@ -125,6 +127,7 @@ sendRec' rm conn = do
   decodeGen msg'
   --res <- decodeGen msg' --(res :: ResponseMessage) <- decodeGen msg'
   --return res
+-}
 
 
 {-
@@ -148,10 +151,12 @@ sendRec pTo pFrom namesFrom t e conn = do
   return res
 -}
 
+{-
 gen_run_client ::  (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
                    Address -> a -> IO b
 gen_run_client addr reqm = do
   runUnixDomainClient addr (sendRec' reqm)
+-}
   
   
 

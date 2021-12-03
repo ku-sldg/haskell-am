@@ -19,7 +19,7 @@ import Comm
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 --import Interp (interp)
-import MonadCop (runCOP, buildServerEnv)
+import MonadCop (runCOP, build_Cop_Env)
 --import MonadVM_Old
 --import ExecCopland (run_vm)
 --import qualified DemoStates as DS (vm_state_init)
@@ -29,6 +29,7 @@ import DemoStates
 import StVM_Deriving
 import BS
 import CryptoImpl (doSign)
+import ServerAppHandlers
 
 import qualified Data.ByteString.Char8 as C
 --import qualified Data.ByteString as BS (ByteString)
@@ -92,7 +93,7 @@ fromRemote conn opts = do
 -}
 
 
-
+{-
 gen_server_session :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>
                       (a -> IO b) -> NS.Socket -> IO ()
 gen_server_session f conn = do
@@ -101,6 +102,7 @@ gen_server_session f conn = do
   msg' <- f msg_decoded
   let msg'_encoded =  DA.encode msg'
   NBS.sendAll conn (BL.toStrict msg'_encoded)
+-}
 
 
 {-
@@ -112,6 +114,7 @@ gen_server_session f conn = do
 -}
 
 
+{-
 get_my_pl :: SA.Server_Options -> Plc
 get_my_pl opts =
   case (SA.server_serverType opts) of
@@ -123,7 +126,9 @@ get_my_sig_sock opts =
   case (SA.server_serverType opts) of
     CVM_SERV params -> cvm_params_sig_port params
     _ -> error "Expected CVM_SERV server type, got something else..."
+-}
 
+{-
 handle_remote :: CVM_SERV_Params -> Bool -> Bool -> RequestMessage -> IO ResponseMessage
 handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
   --rreq@(RequestMessage pTo pFrom names t e) <- decodeGen msg
@@ -145,6 +150,7 @@ handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
 
   let rm = (ResponseMessage pFrom pTo res_rawev)
   return rm
+-}
 
   {-
   let messageBits = DA.encode rm
@@ -211,6 +217,7 @@ handle_remote opts conn = do
 -}
 
 
+{-
 lookupSecretKeyBytesIO :: FilePath -> IO BS
 lookupSecretKeyBytesIO fp = do
   --fp <- asks myKeyPath
@@ -223,8 +230,11 @@ get_key_simpl = do
   --kp <- lookupSecretKeyPath
   let kp = "./key0.txt" in
     lookupSecretKeyBytesIO kp
+-}
 
 
+
+{-
 handle_sig :: SigRequestMessage -> IO SigResponseMessage
 handle_sig msg@(SigRequestMessage eBits) = do
   --msg <- NBS.recv conn 2048
@@ -243,11 +253,15 @@ handle_sig msg@(SigRequestMessage eBits) = do
   kb <- get_key_simpl
   sBits <- doSign kb eBits
   return (SigResponseMessage sBits)
+-}
 
+
+{-
 handle_asp :: AspRequestMessage -> IO AspResponseMessage
 handle_asp msg@(AspRequestMessage _ _) = do
   let sBits = empty_bs
   return (AspResponseMessage sBits)
+-}
 
 
   {-

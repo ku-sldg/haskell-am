@@ -8,11 +8,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module CryptoImpl where
 
+import BS(BS)
+
+
 import Crypto.Sign.Ed25519 (createKeypair, sign, toPublicKey, verify, SecretKey(..))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as CH (pack)
 import qualified Crypto.Nonce as CN
 import qualified Crypto.Hash.SHA256 as H (hash)
+import System.Environment (lookupEnv)
 
 doNonce :: IO (B.ByteString)
 doNonce = do
@@ -39,6 +43,37 @@ doFakeKim i q p = CH.pack $ "k" ++ (show i) ++ "_" ++ (show q) ++ "at" ++ (show 
 doFakeSign p = (CH.pack ((show p) ++ "sig"))
 doFakeHash p = (CH.pack ((show p) ++ "hash"))
 doFakeNonce p = (CH.pack ((show p) ++ "nonce"))
+
+lookupSecretKeyBytesIO :: FilePath -> IO BS
+lookupSecretKeyBytesIO fp = do
+  --fp <- asks myKeyPath
+  bs <- B.readFile fp
+  return bs
+
+
+get_key_simpl :: IO BS
+get_key_simpl = do
+  --kp <- lookupSecretKeyPath
+  let kp = "./key0.txt" in
+    lookupSecretKeyBytesIO kp
+
+lookupSecretKeyPath :: IO FilePath
+lookupSecretKeyPath = do
+  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
+  maybeKeysPath  <- lookupEnv "COPLAND_KEY"
+  keyPath <-
+        case maybeKeysPath of
+        Just kp -> return kp
+        Nothing ->
+          case maybeBuildPath of
+           Just s -> do
+             return $ s ++ "/keys/key0.txt"
+           Nothing ->
+             error "Missing both COPLAND_BUILD(for default key) and COPLAND_KEY(for custom key) environment variables.  Must have one or the other to identify a signing key."
+
+  return keyPath
+
+
 
 test :: IO ()
 test = do

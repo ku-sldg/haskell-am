@@ -14,6 +14,7 @@ import qualified ServerProgArgs as SA (Server_Options(..))
 import MonadCop
 import MonadAM
 import UDcore
+import BS (BS)
 
 import Network.Socket as NS hiding (recv)
 import Text.Read(readMaybe)
@@ -23,11 +24,43 @@ import qualified Data.Map as M
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
 
 import Control.Concurrent.STM
-import qualified Data.Aeson as DA (decodeStrict, encode, FromJSON)
+import qualified Data.Aeson as DA (decodeStrict, encode, ToJSON, FromJSON)
 import qualified Network.Socket.ByteString as NBS (recv, sendAll)
 import qualified Data.ByteString.Lazy as BL (fromStrict, toStrict)
 import Numeric.Natural
 import Control.Monad.Trans(liftIO)
+
+
+gen_client_session :: BS -> NS.Socket -> IO BS
+gen_client_session msg conn = do
+  NBS.sendAll conn msg
+  NBS.recv conn 2048
+
+gen_run_client ::  (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
+                   Address -> a -> IO b
+gen_run_client addr reqm = do
+  runUnixDomainClient addr (sendRec' reqm)
+
+
+gen_server_session :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>
+                      (a -> IO b) -> NS.Socket -> IO ()
+gen_server_session f conn = do
+  msg <- NBS.recv conn 2048
+  msg_decoded <- decodeGen msg
+  msg' <- f msg_decoded
+  let msg'_encoded =  DA.encode msg'
+  NBS.sendAll conn (BL.toStrict msg'_encoded)
+
+sendRec' :: (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
+            a -> NS.Socket -> IO b
+sendRec' rm conn = do
+  --let msg = sendRec' pTo pFrom namesFrom t e
+  let messageBits = DA.encode rm
+      msg = BL.toStrict messageBits
+  msg' <- gen_client_session msg conn
+  decodeGen msg'
+  --res <- decodeGen msg' --(res :: ResponseMessage) <- decodeGen msg'
+  --return res
 
 resolve port = do
         let hints = defaultHints {

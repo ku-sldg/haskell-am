@@ -9,9 +9,9 @@ module MonadAM where
 
 import Copland
 import BS
-import CryptoImpl as CI (doNonce)
+import CryptoImpl as CI (doNonce, lookupSecretKeyPath)
 --import Interp (interp,getNameMap)
-import MonadCop (Cop_Env(..), runCOP, lookupSecretKeyPath, COP{-, build_Cop_Env-})
+import MonadCop (Cop_Env(..), runCOP, COP{-, build_Cop_Env-})
 import ClientProgArgs
 
 import Control.Monad.Reader

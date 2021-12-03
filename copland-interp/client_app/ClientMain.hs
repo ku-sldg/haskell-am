@@ -9,7 +9,7 @@
 module Main where
 
 import Copland
-import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_Client, runCOP, Cop_Env)
+import MonadCop (build_Cop_Env, runCOP, Cop_Env)
 --import MonadAM
 --import ExecCopland
 --import MonadVM_Old
@@ -17,14 +17,13 @@ import MonadCop (lookupSecretKeyBytesIO, lookupSecretKeyPath, build_Cop_Env_Clie
 import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
 --import qualified Appraise as APP (appraiseUsm)
-import qualified CryptoImpl as CI (doHashFile)
+import qualified CryptoImpl as CI (doHashFile, lookupSecretKeyBytesIO, lookupSecretKeyPath, doNonce)
 --import ServerAppUtil(spawn_the_servers)
 --import qualified DemoStates as DS (am_env_init, vm_state_init)
 import UDcore
 import CommUtil
 
 import Impl_VM_Extracted (run_cvm_rawev, run_cvm')
-import CryptoImpl (doNonce)
 import Term_Defs_Deriving
 import StVM_Deriving
 import StVM (Coq_cvm_st(..))
@@ -73,15 +72,15 @@ main = do
 
   let at_term'' = Coq_lseq at_term' at_term
 
-  nval <- doNonce
+  nval <- CI.doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
-      sa = DS.sample_client_args
+      --sa = DS.sample_client_args
       nm = DS.sample_client_name_map
       mypl = DS.zero_plc
       store = undefined
       myAsps = DS.sample_aspmap
       mySigSock = DS.sig_zero_addr
-  env <- build_Cop_Env_Client sa nm mypl store myAsps mySigSock
+  env <- build_Cop_Env False True nm mypl store myAsps mySigSock
     --build_Cop_Env_AM sa nm mypl store myAsps
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show at_term'') ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"

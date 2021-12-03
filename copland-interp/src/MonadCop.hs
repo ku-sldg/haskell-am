@@ -10,10 +10,11 @@ module MonadCop where
 import Copland
 import qualified ServerProgArgs as SA
 import ClientProgArgs (getClientOptions, Client_Options(..))
+import CryptoImpl (lookupSecretKeyBytesIO, lookupSecretKeyPath)
 
 import Control.Monad.Reader
 import Control.Monad.Trans(liftIO)
-import System.Environment (lookupEnv)
+--import System.Environment (lookupEnv)
 import qualified Data.ByteString as B (ByteString, readFile)
 import qualified Data.Map as M
 
@@ -69,15 +70,19 @@ get_store_at n = do
 lookupSecretKeyBytes :: COP B.ByteString
 lookupSecretKeyBytes = do
   fp <- asks myKeyPath
+  liftIO $ lookupSecretKeyBytesIO fp
+  {-
   bs <- liftIO $ B.readFile fp
-  return bs
+  return bs -}
 
+{-
 --TODO: refactor this IO function after moving appraisal into the COP monad, or after more general public key management.
 lookupSecretKeyBytesIO :: FilePath -> IO B.ByteString
 lookupSecretKeyBytesIO fp = do
   --fp <- asks myKeyPath
   bs <- B.readFile fp
   return bs
+-}
   
 getTheirSock :: Plc -> COP Address
 getTheirSock pThem = do
@@ -121,6 +126,8 @@ runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
 
+
+{-
 build_Cop_Env_Client ::
   SA.Server_Options -> M.Map Plc Address -> Plc ->
   M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
@@ -134,6 +141,7 @@ build_Cop_Env_Client opts nameMap pl store aspMap sigSock = do
   keyPath <- lookupSecretKeyPath
   return $ Cop_Env b d nameMap keyPath sigSock pl store aspMap
   {- TODO: ok to return place 0, since it will be updated? -}
+-}
 
 {-
 build_Cop_Env_AM ::
@@ -151,6 +159,7 @@ build_Cop_Env_AM opts nameMap store aspMap = do
   {- TODO: ok to return place 0, since it will be updated? -}
 -}
 
+{-
 buildServerEnv :: Bool -> Bool -> 
   {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
   M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
@@ -167,19 +176,22 @@ buildServerEnv b d nameMap myPlace store aspMap sigSock = do
   --print "HERE"
   keyPath <- lookupSecretKeyPath
   return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
+-}
 
-lookupSecretKeyPath :: IO FilePath
-lookupSecretKeyPath = do
-  maybeBuildPath <- lookupEnv "COPLAND_BUILD" -- TODO: fix hardcoding
-  maybeKeysPath  <- lookupEnv "COPLAND_KEY"
-  keyPath <-
-        case maybeKeysPath of
-        Just kp -> return kp
-        Nothing ->
-          case maybeBuildPath of
-           Just s -> do
-             return $ s ++ "/keys/key0.txt"
-           Nothing ->
-             error "Missing both COPLAND_BUILD(for default key) and COPLAND_KEY(for custom key) environment variables.  Must have one or the other to identify a signing key."
+build_Cop_Env :: Bool -> Bool -> 
+  {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
+  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
+  IO Cop_Env
+build_Cop_Env b d nameMap myPlace store aspMap sigSock = do
 
-  return keyPath
+  {-
+  let b = SA.server_optSim opts
+      d = SA.server_optDebug opts
+      pl = myPlace -- TODO:  Do we even need this in Cop_Env??
+      -- TODO:  sanity check that myPlace is in nameMap
+  -}
+
+  --print "HERE"
+  keyPath <- lookupSecretKeyPath
+  return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
+

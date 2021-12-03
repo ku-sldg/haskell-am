@@ -1,4 +1,3 @@
-module Comm (module CommImpl, module CommUtil) where
+module Comm (module CommUtil) where
 
-import CommImpl
 import CommUtil
