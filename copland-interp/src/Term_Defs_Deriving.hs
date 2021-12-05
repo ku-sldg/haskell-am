@@ -5,7 +5,6 @@
 module Term_Defs_Deriving where
 
 import Term_Defs
---import StVM
 
 import GHC.Generics (Generic)
 import qualified Data.Binary as BI (Binary)
@@ -22,7 +21,6 @@ deriving instance Show Evidence
 deriving instance Show EvC
 deriving instance Show Ev
 deriving instance Show AnnoTermPar
---deriving instance Show RawEv
 
 
 
@@ -35,13 +33,15 @@ deriving instance Read EvC
 deriving instance Read Ev
 deriving instance Read AnnoTermPar
 
+
+
 deriving instance Generic Evidence
 deriving instance Generic ASP
 deriving instance Generic ASP_PARAMS
 deriving instance Generic SP
 deriving instance Generic Term
 
---deriving instance Show Coq_cvm_st
+
 
 instance BI.Binary SP where
 instance BI.Binary ASP_PARAMS where

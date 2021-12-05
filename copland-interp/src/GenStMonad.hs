@@ -5,7 +5,7 @@ import qualified Prelude
 import qualified Control.Monad.State.Lazy as SL
 import MonadCop (COP)
 
-type St s = SL.StateT s COP--(Prelude.IO)
+type St s = SL.StateT s COP
 
 ret :: a -> St s a
 ret = SL.return

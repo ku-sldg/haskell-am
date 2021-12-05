@@ -19,20 +19,15 @@ handle_asp msg@(AspRequestMessage _ _) = do
   return (AspResponseMessage sBits)
 
 
-
 handle_remote :: CVM_SERV_Params -> Bool -> Bool ->
                  RequestMessage -> IO ResponseMessage
 handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
-  --rreq@(RequestMessage pTo pFrom names t e) <- decodeGen msg
 
   print "received RequestMessage: "
   print rreq
   let store = M.empty
       me = cvm_params_plc params
-      --ss = cvm_params_sig_port params
       sm = cvm_params_sig_mech params
-      --me = get_my_pl opts
-      --ss = get_my_sig_sock opts
   
   let env = Cop_Env b d names sm me store sample_aspmap
   let st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0)
@@ -47,19 +42,6 @@ handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
 
 handle_sig :: SigRequestMessage -> IO SigResponseMessage
 handle_sig msg@(SigRequestMessage eBits) = do
-  --msg <- NBS.recv conn 2048
-  --(SigRequestMessage eBits) <- decodeGen msg
-
-  {-
-  kp <- lookupSecretKeyPath
-  priKeyBits <- lookupSecretKeyBytesIO kp
-  let priKey = SecretKey priKeyBits
-      sig = dsign priKey eBits
-      sigBS = unSignature sig
-
-  
-  let sBits = sigBS
-  -}
   kb <- get_key_simpl
   sBits <- doSign kb eBits
   return (SigResponseMessage sBits)

@@ -15,7 +15,6 @@ import CommTypes(Sign_Mechanism)
 
 import Control.Monad.Reader
 import Control.Monad.Trans(liftIO)
---import System.Environment (lookupEnv)
 import qualified Data.ByteString as B (ByteString, readFile)
 import qualified Data.Map as M
 
@@ -30,8 +29,10 @@ type COP = ReaderT Cop_Env IO
       simulation- true for real crypto operations, false for simulated
       debug- true for verbose debug output
       nameServer-  mapping from place ID to concrete address
-      myKeyPath-  fully qualified filePath for this place's private key bits
+      sig_mechanism-  signing mechanism (key or sig server handle)
       me- place ID of currently executing entity
+      st_store-  evidence store shared amongst instances
+      asp_sockets-  mapping with pointers to asp server socket addresses
 -}
 
 
@@ -40,11 +41,9 @@ data Cop_Env =
             debug :: Bool,
             nameServer :: M.Map Plc Address,
             sig_mechanism :: Sign_Mechanism,
-            {-myKeyPath :: FilePath,
-            sig_socket :: Address, -}
             me :: Plc,
             st_store :: M.Map Natural (TMVar RawEv),
-            asp_sockets :: M.Map ASP_ID String
+            asp_sockets :: M.Map ASP_ID Address
           }
 
 
@@ -77,49 +76,20 @@ lookupSecretKeyBytes = do
   case sm of
     Sign_Keypath fp ->
       liftIO $ lookupSecretKeyBytesIO fp
-    _ -> error "ERROR:  interpreter is not configured with local access to key bytes"
-
-      {-
-  fp <- asks myKeyPath
-  liftIO $ lookupSecretKeyBytesIO fp
-  -}
-  {-
-  bs <- liftIO $ B.readFile fp
-  return bs -}
-
-{-
---TODO: refactor this IO function after moving appraisal into the COP monad, or after more general public key management.
-lookupSecretKeyBytesIO :: FilePath -> IO B.ByteString
-lookupSecretKeyBytesIO fp = do
-  --fp <- asks myKeyPath
-  bs <- B.readFile fp
-  return bs
--}
+    _ ->
+      error "ERROR:  interpreter is not configured with local access to key bytes"
   
 getTheirSock :: Plc -> COP Address
 getTheirSock pThem = do
   m <- asks nameServer
   let mString = M.lookup pThem m
   case mString of
-   Nothing -> error "my client error:  server port is not initialized in environment nameserver"
+   Nothing ->
+     error "my client error:  server port is not initialized in environment nameserver"
    Just s -> return s
-
-{-
-getMySock :: Cop_Env -> IO Address
-getMySock env = do
-  let p = me env
-  let m = nameServer env
-  let mString = M.lookup p m
-  case mString of
-   Nothing -> error "server port is not initialized in environment nameserver"
-   Just s -> return s
--}
-
 
 getAspSock :: ASP_ID -> COP Address
 getAspSock id = do
-  {-let p = me env
-  let m = nameServer env -}
   aspmap <- asks asp_sockets
   let mString = M.lookup id aspmap
   case mString of
@@ -137,76 +107,3 @@ logc s = do
 runCOP :: COP a -> Cop_Env -> IO a
 runCOP k env =
      runReaderT k env
-
-
-{-
-build_Cop_Env_Client ::
-  SA.Server_Options -> M.Map Plc Address -> Plc ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
-  IO Cop_Env
-build_Cop_Env_Client opts nameMap pl store aspMap sigSock = do
-
-  let b = SA.server_optSim opts
-      d = SA.server_optDebug opts
-      --pl = 0 -- TODO:  hardcoded
-      
-  keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath sigSock pl store aspMap
-  {- TODO: ok to return place 0, since it will be updated? -}
--}
-
-{-
-build_Cop_Env_AM ::
-  Client_Options -> M.Map Plc Address ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String ->
-  IO Cop_Env
-build_Cop_Env_AM opts nameMap store aspMap = do
-
-  let b = optSim opts
-      d = optDebug opts
-      pl = 0 -- TODO:  hardcoded
-      
-  keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath pl store aspMap
-  {- TODO: ok to return place 0, since it will be updated? -}
--}
-
-{-
-buildServerEnv :: Bool -> Bool -> 
-  {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
-  IO Cop_Env
-buildServerEnv b d nameMap myPlace store aspMap sigSock = do
-
-  {-
-  let b = SA.server_optSim opts
-      d = SA.server_optDebug opts
-      pl = myPlace -- TODO:  Do we even need this in Cop_Env??
-      -- TODO:  sanity check that myPlace is in nameMap
-  -}
-
-  --print "HERE"
-  keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
--}
-
-
-{-
-build_Cop_Env :: Bool -> Bool -> 
-  {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
-  M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
-  IO Cop_Env
-build_Cop_Env b d nameMap myPlace store aspMap sigSock = do
-
-  {-
-  let b = SA.server_optSim opts
-      d = SA.server_optDebug opts
-      pl = myPlace -- TODO:  Do we even need this in Cop_Env??
-      -- TODO:  sanity check that myPlace is in nameMap
-  -}
-
-  --print "HERE"
-  keyPath <- lookupSecretKeyPath
-  return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
--}
-

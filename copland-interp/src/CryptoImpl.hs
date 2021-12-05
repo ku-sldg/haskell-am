@@ -50,7 +50,6 @@ lookupSecretKeyBytesIO fp = do
   bs <- B.readFile fp
   return bs
 
-
 get_key_simpl :: IO BS
 get_key_simpl = do
   --kp <- lookupSecretKeyPath

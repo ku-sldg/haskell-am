@@ -3,27 +3,19 @@
 module IO_Stubs where
 
 import Copland
-import BS (BS, empty_bs)
-import Term_Defs(ASP_PARAMS(..), RawEv, Plc, EvC(..), Term, Loc, get_bits, Evidence(..), EvC(..))
+import BS (BS)
+import Term_Defs(ASP_PARAMS(..), RawEv, Plc, Term, Loc, get_bits, EvC(..))
 import CryptoImpl (doHash, doSign)
-import System.IO.Unsafe (unsafePerformIO)
 import StVM (CVM)
 import CommTypes
-import UDcore
 import Comm
 
 
-import qualified Data.ByteString as B (ByteString, readFile, concat)
+import qualified Data.ByteString as B (readFile, concat)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad (liftM)
-import MonadCop(lookupSecretKeyBytes, me, sig_mechanism, nameServer, getTheirSock, getAspSock)
+import MonadCop(me, sig_mechanism, nameServer, getTheirSock, getAspSock)
 import Control.Monad.Reader (asks)
 import Control.Monad.State.Lazy (lift)
-import qualified Network.Socket as NS
-import qualified Data.Map as M(Map)
-import qualified Network.Socket.ByteString as NBS (recv, sendAll)
-import qualified Data.Aeson as DA (encode, ToJSON, FromJSON)
-import qualified Data.ByteString.Lazy as BL (toStrict)
 
 encodeEvRaw :: RawEv -> BS
 encodeEvRaw e = B.concat e
