@@ -19,7 +19,7 @@ import Comm
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 --import Interp (interp)
-import MonadCop (runCOP, build_Cop_Env)
+import MonadCop (runCOP)
 --import MonadVM_Old
 --import ExecCopland (run_vm)
 --import qualified DemoStates as DS (vm_state_init)

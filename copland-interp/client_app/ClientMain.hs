@@ -9,7 +9,7 @@
 module Main where
 
 import Copland
-import MonadCop (build_Cop_Env, runCOP, Cop_Env)
+import MonadCop (runCOP, Cop_Env(..))
 --import MonadAM
 --import ExecCopland
 --import MonadVM_Old
@@ -72,6 +72,8 @@ main = do
 
   let at_term'' = Coq_lseq at_term' at_term
 
+  let my_term = at_term''
+
   nval <- CI.doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
       --sa = DS.sample_client_args
@@ -80,12 +82,13 @@ main = do
       store = undefined
       myAsps = DS.sample_aspmap
       mySigSock = DS.sig_zero_addr
-  env <- build_Cop_Env False True nm mypl store myAsps mySigSock
+      sm = Sign_Server_Addr mySigSock
+  let env = Cop_Env False True nm sm mypl store myAsps
     --build_Cop_Env_AM sa nm mypl store myAsps
-  putStrLn $ "\n" ++ "Term executed: \n" ++ (show at_term'') ++ "\n"
+  putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"
   --putStrLn $ "Starting CVM env: \n" ++ (show env) ++ "\n"
-  res <- run_cvm' at_term'' st env -- TODO: get real Cop_Env
+  res <- run_cvm' my_term st env -- TODO: get real Cop_Env
   putStrLn $ "Result CVM state: \n" ++ (show res) ++ "\n"
 
 

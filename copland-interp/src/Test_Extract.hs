@@ -6,7 +6,7 @@ import Term_Defs_Deriving
 import StVM_Deriving
 import Impl_VM_Extracted (run_cvm)
 import CryptoImpl (doNonce)
-import MonadCop (build_Cop_Env)
+import MonadCop (Cop_Env(..))
 import DemoStates
 
 main :: IO ()
@@ -16,7 +16,7 @@ main = do
   let t = Coq_alseq_par t' tsig
   nval <- doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
-  env <- build_Cop_Env undefined undefined undefined undefined undefined undefined undefined
+  let env = Cop_Env undefined undefined undefined undefined undefined undefined undefined
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show t) ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"
   --putStrLn $ "Starting CVM env: \n" ++ (show env) ++ "\n"

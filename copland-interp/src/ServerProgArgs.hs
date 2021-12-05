@@ -36,7 +36,7 @@ opts = info (popts <**> helper)
   <> header "Copland interpreter server")
        
 popts :: Parser Server_Options
-popts = Server_Options <$> simulation <*> debug <*> sPort <*> sType -- <*> compile
+popts = Server_Options <$> simulation <*> debug <*> sPort <*> sType
 
 simulation :: Parser Bool
 simulation = switch
@@ -44,26 +44,29 @@ simulation = switch
   <> short 's'
   <> help "Set to run in simulation-mode" )
 
-{-
-compile :: Parser Bool
-compile = switch
-   ( long "compile"
-  <> short 'c'
-  <> help "Set to compile Copland terms into VM instructions" )
--}
-
 plc_parser :: Parser Plc
 plc_parser = option auto
   ( long "cvm_plc"
   <> short 'p' )
 
-cvm_sig_port_parse :: Parser String
-cvm_sig_port_parse = strOption
+cvm_sig_port_parse :: Parser Sign_Mechanism
+cvm_sig_port_parse = Sign_Server_Addr <$>
+  strOption
   ( long "cvm_sig_port"
   <> short 'c' )
 
+cvm_sig_path_parse :: Parser Sign_Mechanism
+cvm_sig_path_parse = Sign_Keypath <$>
+  strOption
+  ( long "cvm_sig_path"
+  <> short 'f' )
+
+
+cvm_sig_mech_parse :: Parser Sign_Mechanism
+cvm_sig_mech_parse = cvm_sig_port_parse <|> cvm_sig_path_parse
+
 cvmServParams :: Parser CVM_SERV_Params
-cvmServParams = CVM_SERV_Params <$> plc_parser <*> cvm_sig_port_parse
+cvmServParams = CVM_SERV_Params <$> plc_parser <*> cvm_sig_mech_parse
 
 
 sTypeCvmServ :: Parser ServerType
@@ -81,14 +84,6 @@ aspid_parser = option auto
 
 sTypeAspServ :: Parser ServerType
 sTypeAspServ = ASP_SERV <$> aspid_parser
-
-{-
-sTypeCvmServ :: Parser ServerType
-sTypeCvmServ = CVM_SERV <$> strOption
-  ( long "cvm_server"
-  <> short 'c' )
--}
-
 
 sTypeSign :: Parser ServerType
 sTypeSign = flag' SIGN

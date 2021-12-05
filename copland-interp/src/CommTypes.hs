@@ -148,10 +148,16 @@ data CommAckMessage =
 -}
 
 
+data Sign_Mechanism =
+  Sign_Keypath FilePath
+  | Sign_Server_Addr Address
+  deriving (Show)
+
+
 data CVM_SERV_Params = CVM_SERV_Params
   { cvm_params_plc :: Plc,
     {-cvm_params_port :: String, -}
-    cvm_params_sig_port :: String
+    cvm_params_sig_mech :: Sign_Mechanism
     {-cvm_params_store_port :: String, -}
   }
   deriving (Show)

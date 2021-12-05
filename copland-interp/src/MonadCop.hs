@@ -11,6 +11,7 @@ import Copland
 import qualified ServerProgArgs as SA
 import ClientProgArgs (getClientOptions, Client_Options(..))
 import CryptoImpl (lookupSecretKeyBytesIO, lookupSecretKeyPath)
+import CommTypes(Sign_Mechanism)
 
 import Control.Monad.Reader
 import Control.Monad.Trans(liftIO)
@@ -32,12 +33,15 @@ type COP = ReaderT Cop_Env IO
       myKeyPath-  fully qualified filePath for this place's private key bits
       me- place ID of currently executing entity
 -}
+
+
 data Cop_Env =
   Cop_Env { simulation :: Bool,
             debug :: Bool,
             nameServer :: M.Map Plc Address,
-            myKeyPath :: FilePath,
-            sig_socket :: Address,
+            sig_mechanism :: Sign_Mechanism,
+            {-myKeyPath :: FilePath,
+            sig_socket :: Address, -}
             me :: Plc,
             st_store :: M.Map Natural (TMVar RawEv),
             asp_sockets :: M.Map ASP_ID String
@@ -69,8 +73,16 @@ get_store_at n = do
 
 lookupSecretKeyBytes :: COP B.ByteString
 lookupSecretKeyBytes = do
+  sm <- asks sig_mechanism
+  case sm of
+    Sign_Keypath fp ->
+      liftIO $ lookupSecretKeyBytesIO fp
+    _ -> error "ERROR:  interpreter is not configured with local access to key bytes"
+
+      {-
   fp <- asks myKeyPath
   liftIO $ lookupSecretKeyBytesIO fp
+  -}
   {-
   bs <- liftIO $ B.readFile fp
   return bs -}
@@ -178,6 +190,8 @@ buildServerEnv b d nameMap myPlace store aspMap sigSock = do
   return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
 -}
 
+
+{-
 build_Cop_Env :: Bool -> Bool -> 
   {-SA.Server_Options ->-} M.Map Plc Address -> Plc ->
   M.Map Natural (TMVar RawEv) -> M.Map ASP_ID String -> Address ->
@@ -194,4 +208,5 @@ build_Cop_Env b d nameMap myPlace store aspMap sigSock = do
   --print "HERE"
   keyPath <- lookupSecretKeyPath
   return $ Cop_Env b d nameMap keyPath sigSock myPlace store aspMap
+-}
 

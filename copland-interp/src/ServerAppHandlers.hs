@@ -4,7 +4,7 @@ import Copland
 import BS (empty_bs)
 import StVM
 import StVM_Deriving
-import MonadCop (build_Cop_Env)
+import MonadCop (Cop_Env(..))
 import CommTypes
 import DemoStates (sample_aspmap)
 import Impl_VM_Extracted (run_cvm_rawev)
@@ -29,11 +29,12 @@ handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
   print rreq
   let store = M.empty
       me = cvm_params_plc params
-      ss = cvm_params_sig_port params
+      --ss = cvm_params_sig_port params
+      sm = cvm_params_sig_mech params
       --me = get_my_pl opts
       --ss = get_my_sig_sock opts
   
-  env <- build_Cop_Env b d names me store sample_aspmap ss
+  let env = Cop_Env b d names sm me store sample_aspmap
   let st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0)
 
   print "init state: "

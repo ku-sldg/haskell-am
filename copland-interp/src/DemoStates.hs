@@ -50,14 +50,14 @@ sample_client_name_map = M.fromList [(zero_plc, zero_addr), (one_plc, one_addr),
 sample_server_args :: SA.Server_Options
 sample_server_args =
   let cvm_ps :: CVM_SERV_Params
-      cvm_ps = CVM_SERV_Params one_plc sig_one_addr
+      cvm_ps = CVM_SERV_Params one_plc (Sign_Server_Addr sig_one_addr)
       stype = CVM_SERV cvm_ps in
   SA.Server_Options False True one_addr stype
 
 sample_client_args :: SA.Server_Options
 sample_client_args =
   let cvm_ps :: CVM_SERV_Params
-      cvm_ps = CVM_SERV_Params zero_plc sig_zero_addr
+      cvm_ps = CVM_SERV_Params zero_plc (Sign_Server_Addr sig_zero_addr)
       stype = CVM_SERV cvm_ps in
   SA.Server_Options False True zero_addr stype
 
