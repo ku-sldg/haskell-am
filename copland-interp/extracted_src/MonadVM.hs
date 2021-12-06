@@ -60,8 +60,8 @@ tag_ASP :: Term_Defs.ASP_PARAMS -> Term_Defs.Plc -> Term_Defs.EvC -> StVM.CVM
 tag_ASP params mpl e =
   GenStMonad.bind inc_id (\x ->
     GenStMonad.bind
-      (add_tracem ((:) (Term_Defs.Coq_umeas x mpl params (Term_Defs.get_et e))
-        ([]))) (\_ -> GenStMonad.ret x))
+      (add_tracem ((:) (Term_Defs.Coq_umeas x mpl params
+        (Term_Defs.get_et e)) ([]))) (\_ -> GenStMonad.ret x))
 
 invoke_ASP :: Term_Defs.ASP_PARAMS -> StVM.CVM Term_Defs.EvC
 invoke_ASP params =
@@ -98,8 +98,9 @@ hashEv =
   GenStMonad.bind get_pl (\p ->
     GenStMonad.bind get_ev (\e ->
       GenStMonad.bind (tag_HSH p e) (\_ ->
-        GenStMonad.bind (IO_Stubs.do_hash' (Evidence_Bundlers.encodeEvBits e))
-          (\bs -> GenStMonad.ret (Evidence_Bundlers.cons_hh bs e p)))))
+        GenStMonad.bind
+          (IO_Stubs.do_hash' (Evidence_Bundlers.encodeEvBits e)) (\bs ->
+          GenStMonad.ret (Evidence_Bundlers.cons_hh bs e p)))))
 
 copyEv :: StVM.CVM Term_Defs.EvC
 copyEv =

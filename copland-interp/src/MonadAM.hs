@@ -22,6 +22,8 @@ import qualified Data.ByteString.Lazy as BL (toStrict,fromStrict)
 import qualified Data.Map as M
 import qualified Data.Binary as D (encode,decode)
 
+--import GenOptMonad (AM)
+
 {-  The Attestation Manager Monad  -}
 type AM = ReaderT AM_Env (StateT AM_St IO)
 --type AM = ReaderT AM_Env (StateT AM_St (MaybeT IO))
@@ -33,8 +35,8 @@ type AM = ReaderT AM_Env (StateT AM_St IO)
 data AM_Env =
   AM_Env { sig_map :: M.Map Plc ASP_ID,
            hsh_map :: M.Map Plc ASP_ID,
-           asp_map :: M.Map (Plc,ASP_ID) ASP_ID,
-           nonce_check_asp :: ASP_ID
+           asp_map :: M.Map (Plc,ASP_ID) ASP_ID
+           {-nonce_check_asp :: ASP_ID -}
           } deriving (Show)
 
 type Policy = String
@@ -44,22 +46,22 @@ type Policy = String
  -}
 data AM_St =
   AM_St { am_nonceMap :: M.Map Int BS,
-          am_nonceAppraiseMap :: M.Map Int Bool,
+          {-am_nonceAppraiseMap :: M.Map Int Bool, -}
           am_nonceId  :: Int
          } deriving (Show)
 
 empty_AM_state = AM_St { am_nonceMap =  M.empty,
-                         am_nonceAppraiseMap = M.empty,
+                         {-am_nonceAppraiseMap = M.empty, -}
                          am_nonceId = 0 }
 
 empty_AM_env = AM_Env {  sig_map = M.empty,
                          hsh_map = M.empty,
-                         asp_map = M.empty,
-                         nonce_check_asp = 0 }
+                         asp_map = M.empty
+                         {-nonce_check_asp = 0-} }
 
-initial_AM_env sigMap hshMap aspMap nca =
-  empty_AM_env { sig_map = sigMap, hsh_map = hshMap, asp_map = aspMap,
-                   nonce_check_asp = nca }
+initial_AM_env sigMap hshMap aspMap =
+  empty_AM_env { sig_map = sigMap, hsh_map = hshMap, asp_map = aspMap
+                   {-nonce_check_asp = nca-} }
 
 runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
@@ -91,10 +93,10 @@ am_get_asp_asp p i = do
 
 am_updateNonce :: B.ByteString -> AM Int
 am_updateNonce bs = do
-  (AM_St m x id) <- get
+  (AM_St m id) <- get
   let newMap = M.insert id bs m
       newId = id + 1
-  put (AM_St newMap x newId)
+  put (AM_St newMap newId)
   return id
 
 {-
@@ -108,7 +110,7 @@ am_genNonce e = do
 
 am_getNonce :: Int -> AM BS
 am_getNonce i = do
-  (AM_St m _ _) <- get
+  (AM_St m _) <- get
   let maybeVal = M.lookup i m
   case maybeVal of
    Nothing -> return B.empty {- TODO: better error handling -}
@@ -116,21 +118,26 @@ am_getNonce i = do
 
 am_appraise_nonce :: Int -> BS -> AM ()
 am_appraise_nonce i bs = do
-  (AM_St x amap y) <- get
+  (AM_St x y) <- get
   goldenVal <- am_getNonce i
   let b = (bs == goldenVal)
-      newAmap = M.insert i b amap
-  put (AM_St x newAmap y)
+      --newAmap = M.insert i b amap
+  put (AM_St x y)
 
+{-
 am_get_app_nonces :: AM (M.Map Int Bool)
 am_get_app_nonces = do
   gets am_nonceAppraiseMap
+-}
 
+{-
 am_clear_app_nonces :: AM ()
 am_clear_app_nonces = do
   (AM_St x _ y) <- get
   put (AM_St x (M.empty) y)
+-}
 
+{-
 am_get_app_nonce_bools :: AM [Bool]
 am_get_app_nonce_bools = do
   m <- am_get_app_nonces
@@ -142,6 +149,7 @@ am_get_app_nonce_bool :: AM Bool
 am_get_app_nonce_bool = do
   bs <- am_get_app_nonce_bools
   return (and bs)
+-}
 
 {-
 am_checkNonce :: Ev -> AM Bool

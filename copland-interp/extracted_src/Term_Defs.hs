@@ -47,6 +47,16 @@ data Term =
  | Coq_bseq Split Term Term
  | Coq_bpar Split Term Term
 
+et_size :: Evidence -> Prelude.Int
+et_size e =
+  case e of {
+   Coq_mt -> 0;
+   Coq_uu _ _ e' -> (Prelude.+) (Prelude.succ 0) (et_size e');
+   Coq_gg _ e' -> (Prelude.+) (Prelude.succ 0) (et_size e');
+   Coq_ss e1 e2 -> (Prelude.+) (et_size e1) (et_size e2);
+   Coq_pp e1 e2 -> (Prelude.+) (et_size e1) (et_size e2);
+   _ -> Prelude.succ 0}
+
 type RawEv = ([]) BS.BS
 
 data EvC =

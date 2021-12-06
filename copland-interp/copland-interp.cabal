@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Appraisal_IO_Stubs
       Appraise
       Axioms_Io
       BS
@@ -37,6 +38,7 @@ library
       DemoStates
       DisplayCopland
       GenCopland
+      GenOptMonad
       GenProgArgs
       GenStMonad
       Impl_VM_Extracted
@@ -55,10 +57,14 @@ library
       Term_Defs_Deriving
       Test_Extract
       UDcore
+      Appraisal_Defs
+      Appraisal_Evidence
       ConcreteEvidence
       Datatypes
       Evidence_Bundlers
+      Impl_appraisal_alt
       Impl_VM
+      List
       MonadVM
       StVM
       Term_Defs
