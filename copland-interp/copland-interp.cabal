@@ -40,6 +40,7 @@ library
       GenCopland
       GenOptMonad
       GenProgArgs
+      GenServerOpts
       GenStMonad
       Impl_VM_Extracted
       IO_Stubs

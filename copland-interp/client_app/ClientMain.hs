@@ -29,6 +29,8 @@ import StVM_Deriving
 import StVM (Coq_cvm_st(..))
 --import Term_Defs (AnnoTermPar(..), AnnoTermPar(..),ASP(..),ASP_PARAMS(..),EvC(..), Evidence(..))
 import qualified DemoStates as DS
+import ServerAppUtil(spawn_servers_term)
+import GenServerOpts(get_sample_aspmap, gen_name_map_term)
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -63,27 +65,37 @@ main = do
 -}
   
   
-  let t' = Coq_asp (ASPC (Coq_asp_paramsC 1 [] 1 1))
+  let t' = Coq_asp (ASPC (Coq_asp_paramsC 42 [] 1 1))
   let tsig = Coq_asp SIG 
   let t = Coq_lseq t' tsig
-  let at_term = Coq_att DS.two_plc t
+  let at_term = Coq_att 555 {-DS.two_plc-} t
 
   let at_term' = Coq_att DS.one_plc at_term
 
   let at_term'' = Coq_lseq at_term' at_term
 
   let my_term = at_term''
+      mypl = DS.zero_plc
+
+  print "BEFORE spawn_servers_term in ClientMain"
+
+  spawn_servers_term False True my_term mypl
+
+  liftIO $ CC.threadDelay 10000
+  
 
   nval <- CI.doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
       --sa = DS.sample_client_args
-      nm = DS.sample_client_name_map
-      mypl = DS.zero_plc
-      store = undefined
-      myAsps = DS.sample_aspmap
-      mySigSock = DS.sig_zero_addr
-      sm = Sign_Server_Addr mySigSock
-  let env = Cop_Env False True nm sm mypl store myAsps
+      --nm = DS.sample_client_name_map
+      --nm = gen_name_map_term my_term
+      --mypl = DS.zero_plc
+      --store = undefined
+      --myAsps = get_sample_aspmap my_term mypl --DS.sample_aspmap
+      --mySigSock = DS.sig_zero_addr
+      --sm = Sign_Server_Addr mySigSock
+  let env = DS.sample_cop_env False True my_term mypl
+  --Cop_Env False True nm sm mypl store myAsps
     --build_Cop_Env_AM sa nm mypl store myAsps
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
   putStrLn $ "Starting CVM state: \n" ++ (show st) ++ "\n"

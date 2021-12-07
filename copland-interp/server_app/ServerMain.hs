@@ -10,7 +10,6 @@ module Main where
 
 import ServerProgArgs (getServerOptions)
 import ServerAppUtil(start_server)
-import DemoStates(sample_server_args)
 
 main :: IO ()
 main = do
@@ -19,9 +18,7 @@ main = do
 serverMain' :: IO ()
 serverMain' = do
   opts' <- getServerOptions
-  --let opts = sample_server_args
   start_server opts'
-  return ()
-  --start_standalone_server opts
+  --return ()
 
 

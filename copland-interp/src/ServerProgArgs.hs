@@ -107,4 +107,4 @@ sPort = strOption
   <> short 'r'
   <> metavar "STRING"
   <> value ""
-  <> help "Provide a port string to run a server at.  If this option is omitted or left empty, a random available port will be selected." )
+  <> help "Provide a port string to run a server at.  If this option is omitted or assigned the empty string, a random available port will be selected." )
