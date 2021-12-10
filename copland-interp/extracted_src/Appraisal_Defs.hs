@@ -5,7 +5,7 @@ import qualified BS
 import qualified GenOptMonad
 import qualified Term_Defs
 
-checkHash :: Term_Defs.Evidence -> Term_Defs.Plc -> BS.BS -> GenOptMonad.AM
+checkHash :: Term_Defs.Evidence -> Term_Defs.Plc -> BS.BS -> GenOptMonad.Opt
              BS.BS
 checkHash e p hash =
   case e of {

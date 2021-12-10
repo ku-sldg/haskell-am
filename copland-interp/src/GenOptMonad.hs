@@ -9,6 +9,8 @@ import qualified MonadAM (AM)
 --type AM a = SL.StateT s COP
 type AM = MonadAM.AM
 
+type Opt = MonadAM.AM
+
 ret :: a -> AM a
 ret = SL.return
 

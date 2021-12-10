@@ -22,8 +22,9 @@ import qualified CryptoImpl as CI (doHashFile, lookupSecretKeyBytesIO, lookupSec
 --import qualified DemoStates as DS (am_env_init, vm_state_init)
 import UDcore
 import CommUtil
+import MonadAM
 
-import Impl_VM_Extracted (run_cvm_rawev, run_cvm')
+import Impl_VM_Extracted (run_cvm')
 import Term_Defs_Deriving
 import StVM_Deriving
 import StVM (Coq_cvm_st(..))
@@ -81,9 +82,16 @@ main = do
 
   spawn_servers_term False True my_term mypl
 
-  liftIO $ CC.threadDelay 10000
+  CC.threadDelay 10000
   
 
+  let am_comp = am_run_cvm my_term
+  res <- runAM am_comp empty_AM_env empty_AM_state
+  
+  putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
+  putStrLn $ "Result: \n" ++ (show res) ++ "\n"
+
+{-
   nval <- CI.doNonce
   let st = (Coq_mk_st (Coq_evc [nval] (Coq_nn 1)) [] 0 0)
       --sa = DS.sample_client_args
@@ -102,7 +110,7 @@ main = do
   --putStrLn $ "Starting CVM env: \n" ++ (show env) ++ "\n"
   res <- run_cvm' my_term st env -- TODO: get real Cop_Env
   putStrLn $ "Result CVM state: \n" ++ (show res) ++ "\n"
-
+-}
 
 
 

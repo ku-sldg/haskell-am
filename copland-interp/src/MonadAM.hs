@@ -12,6 +12,9 @@ import BS
 import CryptoImpl as CI (doNonce, lookupSecretKeyPath)
 import MonadCop (Cop_Env(..), runCOP, COP)
 import ClientProgArgs
+import StVM (Coq_cvm_st(..))
+import qualified DemoStates as DS
+import Impl_VM_Extracted (run_cvm')
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -25,7 +28,10 @@ import qualified Data.Binary as D (encode,decode)
 --import GenOptMonad (AM)
 
 {-  The Attestation Manager Monad  -}
-type AM = ReaderT AM_Env (StateT AM_St IO)
+--type AM = ReaderT AM_Env (StateT AM_St IO)
+type AM = StateT AM_St (ReaderT AM_Env IO)
+
+
 --type AM = ReaderT AM_Env (StateT AM_St (MaybeT IO))
 
 {-  Read-only environment used during protocol execution.
@@ -65,7 +71,23 @@ initial_AM_env sigMap hshMap aspMap =
 
 runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
-     runStateT (runReaderT k env) st
+     --runStateT (runReaderT k env) st
+  runReaderT (runStateT k st) env
+
+
+am_genNonce :: AM EvC
+am_genNonce = do
+  bs <- liftIO $ CI.doNonce
+  new_id <- am_updateNonce bs
+  return $ Coq_evc [bs] (Coq_nn new_id)
+
+am_run_cvm :: Term -> AM Coq_cvm_st
+am_run_cvm t = do
+  ne <- am_genNonce
+  let mypl = 0 -- TODO: make not hardcoded?
+      st = (Coq_mk_st ne [] 0 0)
+      env = DS.sample_cop_env False True t mypl
+  liftIO $ run_cvm' t st env
 
 am_get_sig_asp :: Plc -> AM ASP_ID
 am_get_sig_asp p = do

@@ -9,8 +9,8 @@ import qualified GenOptMonad
 import qualified List
 import qualified Term_Defs
 
-build_app_comp_evC :: Term_Defs.Evidence -> Term_Defs.RawEv -> GenOptMonad.AM
-                      ConcreteEvidence.EvidenceC
+build_app_comp_evC :: Term_Defs.Evidence -> Term_Defs.RawEv ->
+                      GenOptMonad.Opt ConcreteEvidence.EvidenceC
 build_app_comp_evC et ls =
   case et of {
    Term_Defs.Coq_mt -> GenOptMonad.ret ConcreteEvidence.Coq_mtc;
