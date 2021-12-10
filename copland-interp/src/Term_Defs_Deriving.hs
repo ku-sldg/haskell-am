@@ -5,6 +5,7 @@
 module Term_Defs_Deriving where
 
 import Term_Defs
+import ConcreteEvidence(EvidenceC(..))
 
 import GHC.Generics (Generic)
 import qualified Data.Binary as BI (Binary)
@@ -21,6 +22,8 @@ deriving instance Show Evidence
 deriving instance Show EvC
 deriving instance Show Ev
 deriving instance Show AnnoTermPar
+
+deriving instance Show EvidenceC
 
 
 

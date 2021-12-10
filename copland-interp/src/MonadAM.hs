@@ -135,7 +135,8 @@ am_getNonce i = do
   (AM_St m _) <- get
   let maybeVal = M.lookup i m
   case maybeVal of
-   Nothing -> return B.empty {- TODO: better error handling -}
+   Nothing ->
+     error $ "Nonce with ID '" ++ (show i) ++ "' not initialized in AM State"
    Just val -> return val
 
 am_appraise_nonce :: Int -> BS -> AM ()

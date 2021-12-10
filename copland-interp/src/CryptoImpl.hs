@@ -5,13 +5,13 @@
 -}
 
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module CryptoImpl where
 
-import BS(BS)
+import BS(BS, bool_to_bs)
 
 
-import Crypto.Sign.Ed25519 (createKeypair, sign, toPublicKey, verify, SecretKey(..))
+import Crypto.Sign.Ed25519 (createKeypair, sign, toPublicKey, verify, SecretKey(..), PublicKey(..), unSignature, dsign, dverify, Signature(..))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as CH (pack)
 import qualified Crypto.Nonce as CN
@@ -31,7 +31,13 @@ doHashFile :: String -> IO (B.ByteString)
 doHashFile s = do
   fileContent <- B.readFile s
   return $ doHash fileContent
-                       
+
+
+doSignD :: B.ByteString -> B.ByteString -> IO (B.ByteString)
+doSignD priKeyBits msg = do
+  return $ (unSignature $ dsign (SecretKey priKeyBits) msg)
+
+    
 doSign :: B.ByteString -> B.ByteString -> IO (B.ByteString)
 doSign priKeyBits msg = do
   --sk <- lookupSecretKey
@@ -50,11 +56,48 @@ lookupSecretKeyBytesIO fp = do
   bs <- B.readFile fp
   return bs
 
-get_key_simpl :: IO BS
-get_key_simpl = do
+get_key_simpl :: FilePath -> IO BS
+get_key_simpl kp = do
   --kp <- lookupSecretKeyPath
-  let kp = "./key0.txt" in
+  --let kp = "../keys/key0.txt" in
+  lookupSecretKeyBytesIO kp
+
+{-
+get_key_simpl_one :: IO BS
+get_key_simpl_one = do
+  --kp <- lookupSecretKeyPath
+  let kp = "../keys/key1.txt" in
     lookupSecretKeyBytesIO kp
+-}
+
+get_pubkey_simpl :: Int -> IO PublicKey
+get_pubkey_simpl p = do
+  let kp =
+        case p of
+          _ -> "../keys/key0.txt"
+          {-
+          0 -> "../keys/key0.txt"
+          1 -> "../keys/key1.txt"
+          -}
+  keybits <- get_key_simpl kp
+  let sk = (SecretKey keybits)
+  return (toPublicKey sk)
+
+verify_simplD :: PublicKey -> BS -> BS -> BS
+verify_simplD pubkey msg sigbits = do
+  let res = dverify pubkey msg (Signature sigbits) in
+    (bool_to_bs res)
+  
+verify_simpl :: PublicKey -> BS -> IO BS
+verify_simpl pubkey msg = do
+  {-
+  keybits <- get_key_simpl
+  let sk = (SecretKey keybits)
+      (pubkey :: PublicKey) = toPublicKey sk
+-}
+  --pubkey <- get_pubkey_simpl
+  let res = (verify pubkey msg)
+  return (bool_to_bs res)
 
 lookupSecretKeyPath :: IO FilePath
 lookupSecretKeyPath = do

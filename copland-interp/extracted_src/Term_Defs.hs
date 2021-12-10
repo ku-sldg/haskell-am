@@ -76,6 +76,39 @@ get_bits e =
   case e of {
    Coq_evc ls _ -> ls}
 
+splitEv_T_l :: Split -> Evidence -> Evidence
+splitEv_T_l sp e =
+  case sp of {
+   (,) s _ -> case s of {
+               ALL -> e;
+               NONE -> Coq_mt}}
+
+splitEv_T_r :: Split -> Evidence -> Evidence
+splitEv_T_r sp e =
+  case sp of {
+   (,) _ s0 -> case s0 of {
+                ALL -> e;
+                NONE -> Coq_mt}}
+
+eval_asp :: ASP -> Plc -> Evidence -> Evidence
+eval_asp t p e =
+  case t of {
+   CPY -> e;
+   ASPC params -> Coq_uu params p e;
+   SIG -> Coq_gg p e;
+   HSH -> Coq_hh p e}
+
+eval :: Term -> Plc -> Evidence -> Evidence
+eval t p e =
+  case t of {
+   Coq_asp a -> eval_asp a p e;
+   Coq_att q t1 -> eval t1 q e;
+   Coq_lseq t1 t2 -> eval t2 p (eval t1 p e);
+   Coq_bseq s t1 t2 -> Coq_ss (eval t1 p (splitEv_T_l s e))
+    (eval t2 p (splitEv_T_r s e));
+   Coq_bpar s t1 t2 -> Coq_pp (eval t1 p (splitEv_T_l s e))
+    (eval t2 p (splitEv_T_r s e))}
+
 type Loc = Prelude.Int
 
 data Ev =

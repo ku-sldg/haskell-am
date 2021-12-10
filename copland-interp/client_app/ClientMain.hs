@@ -23,11 +23,12 @@ import qualified CryptoImpl as CI (doHashFile, lookupSecretKeyBytesIO, lookupSec
 import UDcore
 import CommUtil
 import MonadAM
+import Impl_appraisal_alt(build_app_comp_evC)
 
 import Impl_VM_Extracted (run_cvm')
 import Term_Defs_Deriving
 import StVM_Deriving
-import StVM (Coq_cvm_st(..))
+import StVM (Coq_cvm_st(..), st_ev)
 --import Term_Defs (AnnoTermPar(..), AnnoTermPar(..),ASP(..),ASP_PARAMS(..),EvC(..), Evidence(..))
 import qualified DemoStates as DS
 import ServerAppUtil(spawn_servers_term)
@@ -87,9 +88,27 @@ main = do
 
   let am_comp = am_run_cvm my_term
   res <- runAM am_comp empty_AM_env empty_AM_state
-  
+
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
   putStrLn $ "Result: \n" ++ (show res) ++ "\n"
+
+  
+  let cvmst_res = fst res
+  let rawev_res = get_bits (st_ev cvmst_res)
+  let et_app = eval my_term mypl (Coq_nn 0)
+  let appraise_comp =
+        do
+          --n'' <- am_genNonce
+          v <- build_app_comp_evC et_app rawev_res
+          --n' <- am_genNonce
+          return v
+  let new_app_st = snd res
+  app_res <- runAM appraise_comp empty_AM_env new_app_st
+
+  putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
+  
+  
+
 
 {-
   nval <- CI.doNonce

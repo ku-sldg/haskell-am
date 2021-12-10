@@ -8,7 +8,7 @@ import MonadCop (Cop_Env(..))
 import CommTypes
 --import DemoStates (sample_aspmap)
 import Impl_VM_Extracted (run_cvm_rawev)
-import CryptoImpl(doSign, get_key_simpl)
+import CryptoImpl(doSignD, get_key_simpl)
 import GenServerOpts (get_sample_aspmap)
 
 import qualified Data.Map as M (empty)
@@ -44,6 +44,6 @@ handle_remote params b d rreq@(RequestMessage pTo pFrom names t e) = do
 
 handle_sig :: SigRequestMessage -> IO SigResponseMessage
 handle_sig msg@(SigRequestMessage eBits) = do
-  kb <- get_key_simpl
-  sBits <- doSign kb eBits
+  kb <- get_key_simpl "../keys/key0.txt" -- TODO no hardcode
+  sBits <- doSignD kb eBits
   return (SigResponseMessage sBits)
