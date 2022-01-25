@@ -17,6 +17,7 @@ import CommTypes
 --import CoplandLang
 import Term_Defs
 import BS
+import ConcreteEvidence
 
 import Data.Aeson
 import Control.Exception
@@ -115,7 +116,7 @@ instance FromJSON Evidence where
     {-, allNullaryToStringTag = False -}
     }
 
-{-
+
 instance ToJSON EvidenceC where
   toJSON = genericToJSON defaultOptions {
     sumEncoding =
@@ -135,7 +136,6 @@ instance FromJSON EvidenceC where
          }
     {-, allNullaryToStringTag = False -}
     }
--}
 
 instance ToJSON ASP_PARAMS where
   toJSON = genericToJSON defaultOptions {

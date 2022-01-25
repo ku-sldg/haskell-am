@@ -32,6 +32,7 @@ deriving instance Read ASP
 deriving instance Read SP
 deriving instance Read Term
 deriving instance Read Evidence
+deriving instance Read EvidenceC
 deriving instance Read EvC
 deriving instance Read Ev
 deriving instance Read AnnoTermPar
@@ -39,6 +40,7 @@ deriving instance Read AnnoTermPar
 
 
 deriving instance Generic Evidence
+deriving instance Generic EvidenceC
 deriving instance Generic ASP
 deriving instance Generic ASP_PARAMS
 deriving instance Generic SP

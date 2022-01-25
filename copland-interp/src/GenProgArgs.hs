@@ -32,7 +32,7 @@ numTrue bs = foldl numTrue' 0 bs
 
 genOptsConsistent :: Gen_Options -> IO ()
 genOptsConsistent (Gen_Options n reqB respB termB evB inFile outFile jsonB) = do
-
+  
   let numTrues = numTrue [reqB,respB,termB,evB]
   case numTrues of
    1 -> return ()

@@ -10,6 +10,7 @@ module QcCopland where
 
 import Copland
 import BS
+import ConcreteEvidence
 
 import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, sized, oneof, frequency)
 import Control.Monad(replicateM)
@@ -17,7 +18,7 @@ import qualified Data.ByteString.Lazy as BL (toStrict)
 import qualified Data.Binary as BI (encode)
 import qualified Data.Map as M
 
-{----- Shared qc -----}
+{----- Shared Arbitrary helpers -----}
 maxPl :: Plc
 maxPl = 10
 
@@ -27,20 +28,16 @@ maxArgs = 3
 maxEvLength :: Int
 maxEvLength = 5
 
-{-
 genBS :: Gen BS
 genBS = do
   p <- genPl
   let bits = BI.encode p
   return (BL.toStrict bits)
--}
 
 argString :: Int -> Arg
 argString n =
   let numStr = show n in
   "arg" ++ numStr
-  {-let s = "arg" ++ numStr in
-  BL.toStrict $ BI.encode s -}
 
 argList :: Int -> [Arg]
 argList n =
@@ -76,8 +73,14 @@ genNameMap = do
   l <- replicateM numNames genPlAddr
   return (M.fromList l)
 
-{---------- Messages qc ----------}
+{---------- Messages (Request/Response) Arbitrary instances ----------}
 
+instance Arbitrary RequestMessage where
+  arbitrary = sized $ \n -> genReqMessage (rem n 25)
+
+instance Arbitrary ResponseMessage where
+  arbitrary = sized $ \n -> genRespMessage (rem n 25)
+  
 genReqMessage :: Int -> Gen RequestMessage
 genReqMessage n = do
   p <- genPl
@@ -87,9 +90,6 @@ genReqMessage n = do
   e <- genEv --n
   return $ RequestMessage p q m t e
 
-instance Arbitrary ResponseMessage where
-  arbitrary = sized $ \n -> genRespMessage (rem n 25)
-  
 genRespMessage :: Int -> Gen ResponseMessage
 genRespMessage n = do
   p <- genPl
@@ -97,10 +97,8 @@ genRespMessage n = do
   e <- genEv --n
   return $ ResponseMessage p q e
 
-instance Arbitrary RequestMessage where
-  arbitrary = sized $ \n -> genReqMessage (rem n 25)
-  
-{---------- Term qc ----------}
+
+{---------- Term Arbitrary instance ----------}
 
 instance Arbitrary Term where
   arbitrary = sized $ \n -> genTerm (rem n 25)
@@ -161,54 +159,19 @@ genBRp n = do
   return (Coq_bpar (sp1,sp2) t0 t1)
 
 
-{---------- Evidence qc ----------}
+{---------- Evidence Arbitrary instance ----------}
+
+genEvT :: Gen Evidence
+genEvT = return Coq_mt -- TODO:  make this real
 
 
+{---------- EvidenceC Arbitrary instance ----------}
 
-
-
-genBS :: Gen BS
-genBS = do
-  p <- genPl
-  let bits = BI.encode p
-  return (BL.toStrict bits)
-  
-
-evString :: Int -> BS
-evString n =
-  {-let numStr = show n in
-  "arg" ++ numStr -}
-  {-let s = "arg" ++ numStr in
-  BL.toStrict $ BI.encode s -}
-  BL.toStrict $ BI.encode n
-
-
-evList :: Int -> [BS]
-evList n =
-  let nums = [1..n] in
-  map evString nums
-
-genEv :: Gen [BS]
-genEv = do
-  numArgs <- choose (0,maxEvLength)
-  return (evList numArgs)
-
-{-
-instance Arbitrary RawEv where
-  arbitrary = genEv --sized $ \n -> genEv --sized $ \n -> genEv (rem n 25)
--}
-{-
-genEv :: Gen RawEv
-genEv = return [] -- TODO: make this more sophisicated?
--}
-
-
-{-
 instance Arbitrary EvidenceC where
-  arbitrary = sized $ \n -> genEv (rem n 25)
+  arbitrary = sized $ \n -> genEvidenceC (rem n 25)
   
-genEv :: Int -> Gen EvidenceC
-genEv n =
+genEvidenceC :: Int -> Gen EvidenceC
+genEvidenceC n =
   case n of 0 -> oneof [genMt]
             _ ->
               let r = 1
@@ -220,61 +183,74 @@ genEv n =
                          (r,(genU (n-1))),
                          (p,genH),
                          (p,genMt)]
--}
 
-{-
-genBS :: Gen BS
-genBS = do
-  p <- genPl
-  let bits = BI.encode p
-  return (BL.toStrict bits)
--}
-
-
-{-
 genMt :: Gen EvidenceC
-genMt = return Mt
+genMt = return Coq_mtc
+
+genN n = do
+  --p <- genPl
+  n <- genPl
+  bs <- genBS
+  --ev <- genEv n
+  return $ Coq_nnc n bs --ev
 
 genU n = do
   i <- genPl
-  p <- genPl
+  args <- genArgs
   tpl <- genPl
   tid <- genPl
-  args <- genArgs
+
+  p <- genPl
   bs <- genBS
-  ev <- genEv n
-  return $ U (ASP_PARAMSC i args tpl tid) p bs ev
+  ev <- genEvidenceC n
+  return $ Coq_uuc (Coq_asp_paramsC i args tpl tid) p bs ev
 
 genG n = do
   p <- genPl
   bs <- genBS
-  ev <- genEv n
-  return $ G p bs ev
-
-genEvT :: Gen Evidence
-genEvT = return Mtt -- TODO:  make this real
+  ev <- genEvidenceC n
+  return $ Coq_ggc p bs ev
 
 genH :: Gen EvidenceC
 genH = do
-  bs <- genBS
   p <- genPl
+  bs <- genBS
   et <- genEvT
-  return $ H p bs et
-
-genN n = do
-  p <- genPl
-  n <- genPl
-  bs <- genBS
-  ev <- genEv n
-  return $ N n bs ev
+  return $ Coq_hhc p bs et
 
 genSS n = do
-  ev1 <- genEv n
-  ev2 <- genEv n
-  return $ SS ev1 ev2
+  ev1 <- genEvidenceC n
+  ev2 <- genEvidenceC n
+  return $ Coq_ssc  ev1 ev2
 
 genPP n = do
-  ev1 <- genEv n
-  ev2 <- genEv n
-  return $ PP ev1 ev2
+  ev1 <- genEvidenceC n
+  ev2 <- genEvidenceC n
+  return $ Coq_ppc ev1 ev2
+
+
+{---------- RawEv Arbitrary instance ----------}
+-- Overlapping instance with [BS] prevents Arbitrary instance
+
+{-
+instance Arbitrary RawEv where
+  arbitrary = genEv --sized $ \n -> genEv --sized $ \n -> genEv (rem n 25)
 -}
+{-
+genEv :: Gen RawEv
+genEv = return [] -- TODO: make this more sophisicated?
+-}
+  
+evString :: Int -> BS
+evString n =
+  BL.toStrict $ BI.encode n
+
+evList :: Int -> [BS]
+evList n =
+  let nums = [1..n] in
+  map evString nums
+
+genEv :: Gen [BS]
+genEv = do
+  numArgs <- choose (0,maxEvLength)
+  return (evList numArgs)

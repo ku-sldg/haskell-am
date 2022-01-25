@@ -1,7 +1,7 @@
 #!/bin/bash
 
 COQ_DIR="/Users/adampetz/Documents/Fall_2020/copland-avm/src"
-HS_DIR="copland-interp/extracted_src/"
+HS_DIR="../copland-interp/extracted_src/"
 
 cp ${COQ_DIR}/Datatypes.hs ${HS_DIR}
 cp ${COQ_DIR}/Term_Defs.hs ${HS_DIR}

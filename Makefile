@@ -48,7 +48,8 @@ runserver_help:
 	cd copland-interp ; stack exec -- server-main-exe --help
 
 run:
-	cd copland-interp ; stack exec -- copland-client-exe -w -a
+	cd copland-interp ; stack exec -- client-main-exe
+# cd copland-interp ; stack exec -- copland-client-exe -w -a
 
 run1:
 	cd copland-interp ; stack exec -- copland-client-exe -w -n ../names.txt
@@ -88,27 +89,27 @@ runtestclient:
 
 #Generate one random(-n 1) Copland term(-t) as a datatype(-d)
 gen:
-	cd copland-interp ; stack exec -- copland-gen-exe -n 1 -t -d
+	cd copland-interp ; stack exec -- gen-main-exe -n 1 -t -d
 
 #Generate one random(-n 1) Copland term(-t) as JSON
 genj:
-	cd copland-interp ; stack exec -- copland-gen-exe -n 1 -t
+	cd copland-interp ; stack exec -- gen-main-exe -n 1 -t
 
 #Input Copland terms(-t) as datatypes from stdin, write JSON to stdout
 geni:
-	cd copland-interp ; stack exec -- copland-gen-exe -t
+	cd copland-interp ; stack exec -- gen-main-exe -t
 
 #Input Copland terms(-t) as JSON from stdin, write terms as datatypes(-d) to stdout
 gend:
-	cd copland-interp ; stack exec -- copland-gen-exe -t -d
+	cd copland-interp ; stack exec -- gen-main-exe -t -d
 
 #Input Copland terms(-t) from the file fin.hs(-i ../fin.hs) as datatypes, write JSON to the file fout.txt(-o ../fout.txt)
 genf:
-	cd copland-interp ; stack exec -- copland-gen-exe -t -i ../fin.hs -o ../fout.txt
+	cd copland-interp ; stack exec -- gen-main-exe -t -i ../fin.hs -o ../fout.txt
 
 #Input Copland terms(-t) as JSON from the file fout.txt(-i ../fout.txt), write terms as datatypes (-d) to the file fin.hs(-o fin.hs)
 genff:
-	cd copland-interp ; stack exec -- copland-gen-exe -t -i ../fout.txt -o ../fin.hs -d
+	cd copland-interp ; stack exec -- gen-main-exe -t -i ../fout.txt -o ../fin.hs -d
 
 #Start an Attestation Server at a random available port
 server:
@@ -176,7 +177,7 @@ help:
 	@echo "" ; echo "" ; echo "" ;
 	@cd copland-interp ; stack exec -- copland-client-exe --help ;
 	@echo "" ; echo "" ; echo "" ;
-	@cd copland-interp ; stack exec -- copland-gen-exe --help ;
+	@cd copland-interp ; stack exec -- gen-main-exe --help ;
 
 helpclient:
 	@cd copland-interp ; stack exec -- copland-client-exe --help ;
@@ -185,7 +186,7 @@ helpserver:
 	@cd copland-interp ; stack exec -- copland-server-exe --help ;
 
 helpgen:
-	cd copland-interp ; stack exec -- copland-gen-exe --help
+	cd copland-interp ; stack exec -- gen-main-exe --help
 
 clean:
 	cd ./copland-interp/ ; stack clean --verbosity silent

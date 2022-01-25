@@ -10,6 +10,7 @@ module GenCopland where
 
 import Copland
 import QcCopland
+import ConcreteEvidence
 
 import Test.QuickCheck (Gen, generate, vectorOf, Arbitrary, arbitrary, resize)
 import Data.Aeson (ToJSON, FromJSON, encode, decode)
@@ -108,7 +109,8 @@ termsToFile fp b n = do
 
 evsToFile :: FilePath -> Bool -> Int -> IO ()
 evsToFile fp b n = do
-  (evs :: [RawEv]) <- return [] --(evs::[RawEv]) <- sampleNarb n
+  --(evs :: [RawEv]) <- return [] --(evs::[RawEv]) <- sampleNarb n
+  evs :: [EvidenceC] <- sampleNarb n
   termsToFile' fp b evs
 
 arbsToFile :: forall a . (ToJSON a, FromJSON a,Read a,Show a,Arbitrary a) => FilePath -> Bool -> Int -> IO ()

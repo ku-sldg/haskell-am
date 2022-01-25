@@ -3,13 +3,9 @@
 ## Overview
 ---
 
-The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the execution of attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a prototype implementation of the Copland semantics that includes the following additional capabilities:
+The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the design and prototyping of layered attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a concrete implementation of the Copland semantics and a testing ground for experimental extensions (to both the Copland language proper and its supporting envioronment).
 
-1) generating and managing nonces
-1) sequencing execution of multiple Copland protocol phrases
-1) performing appraisal on the resulting evidence bundles
-
-We have ongoing work to implement similar Attestation Managers in other language environments([Copland Software](https://ku-sldg.github.io/copland/software.html)), and our [JSON message exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) facilitates communication between these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype serves as a first step and testing ground towards that goal.
+We have ongoing work to implement similar Attestation Managers in other language environments(see:  [Copland Software](https://ku-sldg.github.io/copland/software.html)), and our [JSON message exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) is designed to facilitate communication amongst protocols whose executions span these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype serves as a testing ground towards that goal.
 
 <!---
 [Orchestrating Layered Attestations](https://ku-sldg.github.io/copland///resources/copland-post-2019.pdf)  --->
@@ -29,33 +25,20 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 1) In the top-level of that repository:  type `make`
     * NOTE:  this may take a while (~20-30 minutes) the first time due to the Haskell dependencies.
 1) Type `make run`
-1) Successful installation/execution will include output that ends with something like "Evidence Result:" followed by a pretty-printed concrete evidence value (the result of executing a hard-coded protocol).  See the Examples section below for a description of what `make run` does.
+1) Successful installation/execution will include output that ends with something like "Appraise Result:" followed by a pretty-printed evidence value (the result of executing a hard-coded Copland protocol).  See the Examples section below for a description of what `make run` does.
 
-* This will use a default key for signing (located at `keys/key0.txt`) by _**temporarily**_ setting the `COPLAND_BUILD` environment variable.  See the [Advanced Configuration](#advanced-configuration) section for instructions on setting this variable (or the custom `COPLAND_KEY` variable) more permanently for development/deployment purpuses.
+<!-- * This will use a default key for signing (located at `keys/key0.txt`) by _**temporarily**_ setting the `COPLAND_BUILD` environment variable.  See the [Advanced Configuration](#advanced-configuration) section for instructions on setting this variable (or the custom `COPLAND_KEY` variable) more permanently for development/deployment purpuses. -->
 
 ## Haskell AM Executables
 ---
 
 The Haskell AM project is organized as three logically distinct executables:
 
-1)  [Copland Interpreter Server (Attestation Server)](#copland-interpreter-server-attestation-server)
-1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-appraiser-client)
+1)  [Attestation Manager Client (AM Client)](#attestation-manager-client-appraiser-client)
+1)  [Copland Virtual Machine Server (CVM Server)](#copland-interpreter-server-attestation-server)
 1)  [Datatype/JSON Generator and Translator](#datatypejson-generator-and-translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
-
----
-
-### Copland Interpreter Server (Attestation Server)
-
-An Attestation Server handles requests from clients that ask it to interpret a Copland phrase.
-
-*  Note:  The Attestation Server may also act as an Attestation Client.  When it encounters an AT term in a Copland phrase it must itself send a request to the place specified.
-*  `-r ADDRESS` specifies ADDRESS as the port where the server should listen for connections.  If ommited, a random available port is selected.
-*  In the `RequestMessage` a client includes a mapping from Place to Address where Address is currently a port string.  This tells the server the intended Address of each Place it encounters in the Copland phrase.
-*  A full description of the Request/Response Messages handled by the server and their JSON representations is included in this document:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
-*  The main module for the Attestation Server is [ServerMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ServerMain.hs)
-*  Type `make helpserver` for a complete description of Attestation Server command line options.
 
 ---
 
@@ -81,14 +64,38 @@ The Appraiser Client can generate nonces, sequence exection of multiple Copland 
 *  The main module for the Appraisal Client is [ClientMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ClientMain.hs)
 *  Type `make helpclient` for a complete description of Appraiser Client command line options.
 
+AM capabilities:
+1) generating and managing nonces
+1) sequencing execution of multiple Copland protocol phrases
+1) performing appraisal on the resulting evidence bundles
+
 ---
 
+### Copland Virtual Machine Server (CVM Server)
+#### Documentation forthcoming...
+---
+
+<!-- 
+### Copland Interpreter Server (Attestation Server)
+
+An Attestation Server handles requests from clients that ask it to interpret a Copland phrase.
+
+*  Note:  The Attestation Server may also act as an Attestation Client.  When it encounters an AT term in a Copland phrase it must itself send a request to the place specified.
+*  `-r ADDRESS` specifies ADDRESS as the port where the server should listen for connections.  If ommited, a random available port is selected.
+*  In the `RequestMessage` a client includes a mapping from Place to Address where Address is currently a port string.  This tells the server the intended Address of each Place it encounters in the Copland phrase.
+*  A full description of the Request/Response Messages handled by the server and their JSON representations is included in this document:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
+*  The main module for the Attestation Server is [ServerMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ServerMain.hs)
+*  Type `make helpserver` for a complete description of Attestation Server command line options.
+
+--- -->
+
+<!-- 
 ### ConnectionServer
 
 The virtual machine that executes Copland instructions relies on an external connection server to manage communication with other appraisers to perform AT operations.  The VM uses a very simple, Unix Domain Socket to transmit requests to the ConnectionServer that must be running on the local machine.  A single ConnectionServer can serve an arbitrary number of Appraiser clients on the same machine.
         *  to start the ConnectionServer, run the shell script, `startCS.sh`.  It requires no arguments.
 
----
+--- -->
 
 ### Datatype/JSON Generator and Translator
 
@@ -112,26 +119,34 @@ It is meant to be useful for testing against implementations outside of the Hask
 ## Advanced Configuration
 ---
 
-Some advanced configuration will be necessary during development, when working inside the stack project.  To persist environment variables upon exiting a terminal session, consider adding these export commands to ~/.profile (or equivalent for your OS).
+Some advanced configuration will be necessary during development (while working within the stack project).  To persist environment variables upon exiting a terminal session, consider adding the export commands to your shell startup configuration (i.e. .profile for MacOS).
 
 ### Environment Variables
+* `COPLAND_BUILD` :  Point to top level of the haskell-am repository (parent directory of stack project).
+    * `export COPLAND_BUILD=<haskell-am_repo>`
+    *  Used internally for configuration (i.e. to find the default key file if `COPLAND_KEY` is not defined).
 * `COPLAND_KEY`:  specifies a custom key file for signing.
     * `export COPLAND_KEY=<path_to_key>`
     *  This will take priority over the `COPLAND_BUILD` environment variable.
+
+
+<!--
 * `COPLAND_UD_SOCKET`:  specifies a custom file for the Unix Domain socket used to contact ConnectionServer.
     * `export COPLAND_UD_SOCKET=<path_to_key>`
     *  This will take priority over the `COPLAND_BUILD` environment variable.
-* `COPLAND_BUILD` :  Should point to the top level of the haskell-am repository (parent directory of the stack project).
-    * `export COPLAND_BUILD=<haskell-am_repo_toplevel>`
-    *  Used internally for configuration (i.e. to find the default key file if `COPLAND_KEY` is not defined).
-    *  Used internally for configuration (i.e. to find the default Unix Domain socket  if `COPLAND_UD_SOCKET` is not defined).
+
+ *  Used internally for configuration (i.e. to find the default Unix Domain socket  if `COPLAND_UD_SOCKET` is not defined).
+-->
+
 
 ### Command-Line Options
-* See the help text (`make help`) for complete syntax and quick descriptions of options for all three executables.  To see the help text for individual executables: `make helpserver`, `make helpclient`, `make helpgen`.
+* See the help text (`make help`) for complete syntax and quick descriptions of options for all three executables.  To see the help text for individual executables: , `make helpclient`, `make helpserver`, `make helpgen`.
 * See the Makefile(in this directory) for commented working examples of command line option combinations.
+<!--
 * One useful option is -s for "simulation mode".  Simulation mode fakes real measurement and cryptographic operations, and is meant for testing/quick feedback about the protocol control flow (and the structure of resulting evidence).
+-->
 ### Development Flow/Hints
-*  After permantently setting one of the preceding environment variables, the easiest strategy for an interactive development style is via the `make ghci` command.  It invokes the `stack ghci` feature to load a familar ghci environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details.
+*  After permantently setting one of the environment variables, the easiest strategy for an interactive development style is via the `make ghci` command (from the repo toplevel).  It invokes the `stack ghci` feature to load a familar Haskell ghci REPL environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details.
 *  Because `stack ghci` only allows loading one Main module at a time, we need three separate commands that respond to changes in each of the Main module source files: `make ghciserv`(ServerMain.hs), `make ghciapp`(AppMain.hs), `make ghcigen`(GenMain.hs).  `make ghci` is the same as `make ghciserv` and responds to all source changes in the shared libraries(changes to any source file except ClientMain.hs or GenMain.hs).  If you've changed code in multiple Main modules, a safe bet is to simply type `make`(an alias for `stack build`).  However, this will not give you a REPL loop and usually takes quite a bit longer(10-20 seconds) than re-loading a ghci session--so I tend to use it sparingly (i.e. before deploying everything for an end-to-end test run).
 
 ## Source Files
