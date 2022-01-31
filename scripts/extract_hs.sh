@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COQ_DIR="/Users/adampetz/Documents/Fall_2020/copland-avm/src"
+COQ_DIR="/Users/adampetz/Documents/Spring_2022/copland-avm/src"
 HS_DIR="../copland-interp/extracted_src/"
 
 cp ${COQ_DIR}/Datatypes.hs ${HS_DIR}
