@@ -81,12 +81,12 @@ am_genNonce = do
   new_id <- am_updateNonce bs
   return $ Coq_evc [bs] (Coq_nn new_id)
 
-am_run_cvm :: Term -> AM Coq_cvm_st
-am_run_cvm t = do
+am_run_cvm :: Bool -> Bool -> Term -> AM Coq_cvm_st
+am_run_cvm simb debugb t = do
   ne <- am_genNonce
   let mypl = 0 -- TODO: make not hardcoded?
       st = (Coq_mk_st ne [] 0 0)
-      env = DS.sample_cop_env False True t mypl
+      env = DS.sample_cop_env simb debugb t mypl
   liftIO $ run_cvm' t st env
 
 am_get_sig_asp :: Plc -> AM ASP_ID

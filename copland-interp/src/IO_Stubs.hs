@@ -13,7 +13,7 @@ import Comm
 
 import qualified Data.ByteString as B (readFile, concat)
 import Control.Monad.IO.Class (liftIO)
-import MonadCop(me, sig_mechanism, nameServer, getTheirSock, getAspSock)
+import MonadCop(me, sig_mechanism, nameServer, getTheirSock, getAspSock, simulation)
 import Control.Monad.Reader (asks)
 import Control.Monad.State.Lazy (lift)
 
@@ -29,16 +29,20 @@ do_asp' params@(Coq_asp_paramsC id _ _ _) e = do --return empty_bs
 
 do_sig' :: BS -> CVM BS
 do_sig' bs = do
-  sm <- asks sig_mechanism
-  case sm of
-    Sign_Server_Addr addr -> do 
-      let reqm = (SigRequestMessage bs)
-      (rm :: SigResponseMessage) <- liftIO $ gen_run_client addr reqm
-      return (sigBits rm)
-    Sign_Keypath fp ->
-      liftIO $ do
-      key_bits <- B.readFile fp
-      doSign key_bits bs
+  simb <- asks simulation
+  case simb of
+    True -> return bs
+    False -> do
+      sm <- asks sig_mechanism
+      case sm of
+        Sign_Server_Addr addr -> do 
+          let reqm = (SigRequestMessage bs)
+          (rm :: SigResponseMessage) <- liftIO $ gen_run_client addr reqm
+          return (sigBits rm)
+        Sign_Keypath fp ->
+          liftIO $ do
+          key_bits <- B.readFile fp
+          doSign key_bits bs
   
 do_hash' :: BS -> CVM BS
 do_hash' bs = return (doHash bs)

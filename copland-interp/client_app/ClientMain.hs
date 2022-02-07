@@ -47,66 +47,123 @@ import Control.Concurrent.STM
 --import Numeric.Natural
 
 
-{-
-clientMain :: IO ()
-clientMain = do
+main :: IO ()
+main = do
   opts <- liftIO $ getClientOptions
   let provBool = optProv opts
   case provBool of
    True -> provision
-   False -> am_main am_proto_1 DS.am_env_init
--}
+   False -> clientMain opts --am_main am_proto_1 DS.am_env_init
 
-main :: IO ()
-main = do
-  {-
+local_term :: Term
+local_term =
+  let t' = Coq_asp (ASPC (Coq_asp_paramsC 42 [] 1 1))
+      tsig = Coq_asp SIG 
+      t = Coq_lseq t' tsig
+      at_term = Coq_att 555 {-DS.two_plc-} t
+
+      at_term' = Coq_att DS.one_plc at_term
+
+      at_term'' = Coq_lseq at_term' at_term in
+    at_term''
+      {-
   let t'_par = Coq_aasp_par (ASPC (Coq_asp_paramsC 1 [] 1 1)) --(Coq_aasp_par (CPY))
   let tsig_par = (Coq_aasp_par SIG)
   let t_par = Coq_alseq_par t'_par tsig_par
   --let at_par_term = Coq_aatt_par DS.one_plc t
 -}
+
+local_ev :: RawEv
+local_ev = []
+
+do_when :: Bool -> IO () -> IO ()
+do_when b c =
+  if b then c
+    else return ()
+
+clientMain :: Client_Options -> IO ()
+clientMain (Client_Options
+             termFile
+             evFile
+             outFile
+             sim_b
+             prov_b
+             json_b
+             debug_b
+             spawn_b
+             spawnSim_b
+             spawnDebug_b
+             namesFile
+             appraise_b) = do
+      
+      
+
+  (my_term, my_ev) <- get_term_ev termFile evFile
+
+  --let my_term = local_term
+  let  mypl = DS.zero_plc
+
+
+  do_when (spawn_b) $ do
+    print "BEFORE spawn_servers_term in ClientMain"
+    spawn_servers_term spawnSim_b spawnDebug_b my_term mypl
+    CC.threadDelay 10000
   
-  
-  let t' = Coq_asp (ASPC (Coq_asp_paramsC 42 [] 1 1))
-  let tsig = Coq_asp SIG 
-  let t = Coq_lseq t' tsig
-  let at_term = Coq_att 555 {-DS.two_plc-} t
 
-  let at_term' = Coq_att DS.one_plc at_term
-
-  let at_term'' = Coq_lseq at_term' at_term
-
-  let my_term = at_term''
-      mypl = DS.zero_plc
-
-  print "BEFORE spawn_servers_term in ClientMain"
-
-  spawn_servers_term False True my_term mypl
-
-  CC.threadDelay 10000
-  
-
-  let am_comp = am_run_cvm my_term
+  let am_comp = am_run_cvm sim_b debug_b my_term
   res <- runAM am_comp empty_AM_env empty_AM_state
 
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
   putStrLn $ "Result: \n" ++ (show res) ++ "\n"
 
-  
-  let cvmst_res = fst res
-  let rawev_res = get_bits (st_ev cvmst_res)
-  let et_app = eval my_term mypl (Coq_nn 0)
-  let appraise_comp =
-        do
-          --n'' <- am_genNonce
-          v <- build_app_comp_evC et_app rawev_res
-          --n' <- am_genNonce
-          return v
-  let new_app_st = snd res
-  app_res <- runAM appraise_comp empty_AM_env new_app_st
 
-  putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
-  
+  do_when (appraise_b) $ do
+    let cvmst_res = fst res
+        rawev_res = get_bits (st_ev cvmst_res)
+        et_app = eval my_term mypl (Coq_nn 0)
+        appraise_comp =
+          do
+            --n'' <- am_genNonce
+            v <- build_app_comp_evC et_app rawev_res
+            --n' <- am_genNonce
+            return v
+    let new_app_st = snd res
+    app_res <- runAM appraise_comp empty_AM_env new_app_st
+
+    putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
+
+
+-- Attempt to read a value from the FIRST LINE of a file.
+-- Output a type(and filepath)-specific error message upon failure.
+readFileGen :: Read a => FilePath -> String -> IO a
+readFileGen fp typeString = do
+      s <- readFile fp
+      let ss = lines s
+      let maybeT = readMaybe (head ss)
+      case maybeT of
+       Just t -> return t
+       _ -> error $ "Failed to parse value of type '" ++ typeString ++ "' from file: " ++ fp
+       
+getTerm :: FilePath -> IO Term
+getTerm fp = readFileGen fp "Term_Defs.Term"
+
+
+getEv :: FilePath -> IO RawEv
+getEv fp = readFileGen fp "Term_Defs.RawEv"
+
+get_term_ev :: FilePath -> FilePath -> IO (Term, RawEv)
+get_term_ev inp einp = do
+  t <-
+    case inp of
+     "" -> return local_term
+     _ -> getTerm inp
+  ev <-
+    case einp of
+     "" -> return local_ev
+     _ -> getEv einp
+
+  --before_output t ev
+  return (t,ev)
   
 
 
@@ -358,25 +415,6 @@ after_output t ev resEv = do
        putStrLn $ "\n" ++ "Evidence Result: " ++ "\n" ++ (prettyEv resEv) ++ "\n"
        writeFile fp (prettyEv resEv)
 
--}
-
--- Attempt to read a value from the FIRST LINE of a file.
--- Output a type(and filepath)-specific error message upon failure.
-readFileGen :: Read a => FilePath -> String -> IO a
-readFileGen fp typeString = do
-      s <- readFile fp
-      let ss = lines s
-      let maybeT = readMaybe (head ss)
-      case maybeT of
-       Just t -> return t
-       _ -> error $ "Failed to parse " ++ typeString ++ " from file: " ++ fp
-       
-getTerm :: FilePath -> IO Term
-getTerm fp = readFileGen fp "T"
-
-{-
-getEv :: FilePath -> IO EvidenceC 
-getEv fp = readFileGen fp "EvidenceC"
 -}
 
 {- Hard-coded provisioning.

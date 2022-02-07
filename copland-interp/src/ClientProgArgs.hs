@@ -22,10 +22,9 @@ getClientOptions = do
 
 -- Record type -----------------
 data Client_Options = Client_Options
-  { optTermIn :: FilePath,
-    optOut :: FilePath,
-    optEvIn :: FilePath,
-    {-upotIn :: Bool, -}
+  { optTermFileIn :: FilePath,
+    optEvFileIn :: FilePath,
+    optFileOut :: FilePath,
     optSim :: Bool,
     optProv :: Bool,
     optJson :: Bool,
@@ -33,9 +32,8 @@ data Client_Options = Client_Options
     optSpawn :: Bool,
     optSpawnSim :: Bool,
     optSpawnDebug :: Bool,
-    optNames :: FilePath,
-    optApp :: Bool,
-    optCompile :: Bool
+    optNamesFileIn :: FilePath,
+    optAppraise :: Bool
   } deriving (Show)
 
 opts :: ParserInfo Client_Options
@@ -45,7 +43,19 @@ opts = info (popts <**> helper)
   <> header "Copland interpreter client" )
 
 popts :: Parser Client_Options
-popts = Client_Options <$> tinput <*> output <*> einput <*> {-uinput <*> -} simulation <*> provision <*> jsonOutput <*> debug <*> spawn <*> spawnSim <*> spawnDebug <*> names <*> appr <*> compileTerm
+popts = Client_Options <$>
+  tinput <*>
+  einput <*>
+  output <*>
+  simulation <*>
+  provision <*>
+  jsonOutput <*>
+  debug <*>
+  spawn <*>
+  spawnSim <*>
+  spawnDebug <*>
+  names <*>
+  appr
 
 tinput :: Parser FilePath
 tinput = strOption
@@ -55,14 +65,6 @@ tinput = strOption
   <> value ""
   <> help "Read term from Input file FILENAME" )
 
-output :: Parser FilePath
-output = strOption
-  (  long "outfile"
-  <> short 'o'
-  <> metavar "FILENAME"
-  <> value ""
-  <> help "Write to output file FILENAME" )
-
 einput :: Parser FilePath
 einput = strOption
   (  long "evfile"
@@ -70,13 +72,14 @@ einput = strOption
   <> metavar "FILENAME"
   <> value ""
   <> help "Read initial evidence from Input file FILENAME" )
-{-
-uinput :: Parser Bool
-uinput = switch
-   ( long "user"
-  <> short 'u'
-  <> help "Ask user to input a Copland term and initial evidence interactively." )
--}
+
+output :: Parser FilePath
+output = strOption
+  (  long "outfile"
+  <> short 'o'
+  <> metavar "FILENAME"
+  <> value ""
+  <> help "Write to output file FILENAME" )
 
 simulation :: Parser Bool
 simulation = switch
@@ -100,31 +103,25 @@ debug :: Parser Bool
 debug = switch
    ( long "debug"
   <> short 'd'
-  <> help "verbose debugging output" )
+  <> help "verbose debugging output for client thread actions" )
 
 spawn :: Parser Bool
 spawn = switch
    ( long "spawn"
   <> short 'w'
-  <> help "Spawn attestation servers as as separate background threads for all places involved in a protocol term" )
+  <> help "Spawn attestation servers as as separate background threads for all places involved in the input Copland term" )
 
 spawnSim :: Parser Bool
 spawnSim = switch
    ( long "spawnSim"
   <> short 'v'
-  <> help "Specify that spawned servers run in simulation mode" )
+  <> help "Specify that all spawned servers run in simulation mode" )
 
 spawnDebug :: Parser Bool
 spawnDebug = switch
    ( long "spawnDebug"
   <> short 'g'
-  <> help "Specify that spawned servers run in debug mode" )
-
-appr :: Parser Bool
-appr = switch
-   ( long "appraise"
-  <> short 'a'
-  <> help "Perform appraisal on the resulting evidence" )
+  <> help "Specify that all spawned servers use verbose debugging output" )
 
 names :: Parser FilePath
 names = strOption
@@ -134,8 +131,8 @@ names = strOption
   <> value ""
   <> help "Read mapping from places to names from Input file FILENAME" )
 
-compileTerm :: Parser Bool
-compileTerm = switch
-   ( long "compile"
-  <> short 'c'
-  <> help "Compile copland term, and execute the generated sequence of copland instructions" )
+appr :: Parser Bool
+appr = switch
+   ( long "appraise"
+  <> short 'a'
+  <> help "Perform appraisal on the resulting evidence" )

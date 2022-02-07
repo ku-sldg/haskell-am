@@ -5,6 +5,11 @@ MAIN := copland-interp\:exe\:copland-interp-exe
 SERV := copland-interp\:exe\:server-main-exe
 CLIENT := copland-interp\:exe\:client-main-exe
 GEN := copland-interp\:exe\:copland-gen-exe
+SIG := copland-interp\:exe\:sig-server-exe
+STORE := copland-interp\:exe\:store-server-exe
+TESTS := copland-interp\:exe\:test-server-exe
+TESTC := copland-interp\:exe\:test-client-exe
+PAR := copland-interp\:exe\:par-server-exe
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
@@ -12,20 +17,11 @@ all:	./copland-interp/copland-interp.cabal
 build_client :	./copland-interp/copland-interp.cabal
 		cd ./copland-interp/ ; stack build ${CLIENT}
 
-build_server :	./copland-interp/copland-interp.cabal
-		cd ./copland-interp/ ; stack build ${SERV}
+runclient:
+	cd copland-interp ; stack exec -- client-main-exe
 
-run:
-	cd copland-interp ; stack exec -- client-main-exe --spawn --appraise -t "inputs/phrase.hs" -e "inputs/initEv.hs"
-
-ghci:
-	cd copland-interp ; stack ghci --main-is ${MAIN}
-
-ghciserver:
-	cd copland-interp ; stack ghci --main-is ${SERV}
-
-ghciclient:
-	cd copland-interp ; stack ghci --main-is ${CLIENT}
+runserver:
+	cd copland-interp ; stack exec -- server-main-exe
 
 runserver_zero:
 	cd copland-interp ; stack exec -- server-main-exe -r "CVM0" -p 1 -c "SIG0"
@@ -50,6 +46,10 @@ runaspserver_one:
 
 runserver_help:
 	cd copland-interp ; stack exec -- server-main-exe --help
+
+run:
+	cd copland-interp ; stack exec -- client-main-exe
+# cd copland-interp ; stack exec -- copland-client-exe -w -a
 
 run1:
 	cd copland-interp ; stack exec -- copland-client-exe -w -n ../names.txt
@@ -145,7 +145,17 @@ pone:
 ptwo:
 	cd copland-interp ; stack exec -- copland-server-exe -r "3002"
 
+ghci:
+	cd copland-interp ; stack ghci --main-is ${MAIN}
 
+ghciserv:
+	cd copland-interp ; stack ghci --main-is ${SERV}
+
+ghcisig:
+	cd copland-interp ; stack ghci --main-is ${SIG}
+
+ghciclient:
+	cd copland-interp ; stack ghci --main-is ${CLIENT}
 
 ghcistore:
 	cd copland-interp ; stack ghci --main-is ${STORE}

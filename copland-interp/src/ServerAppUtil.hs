@@ -57,13 +57,13 @@ start_server opts = do
       let simB = SA.server_optSim opts
           debugB = SA.server_optDebug opts
       start_server'' addr
-                     (handle_remote params simB debugB)
+                     (handle_remote params opts)
     SIGN ->
       start_server'' addr
-                     (handle_sig)
+                     (handle_sig opts)
     ASP_SERV _ ->
       start_server'' addr
-                     (handle_asp)
+                     (handle_asp opts)
     _ -> return ()
 
 
@@ -100,10 +100,11 @@ plc_opts simB debugB as ps =
 
 gen_term_opts :: Bool -> Bool -> Term -> Plc -> [SA.Server_Options]
 gen_term_opts simB debugB t p =
-  let ps = get_places t
+  let ps' = get_places t
+      ps = p:ps' -- TODO: ok to add appraiser place p here?
       as = get_asps t p in
     --error $ (show ps) ++ (show as)
-    plc_opts simB debugB as ps
+    plc_opts simB debugB as ps  
       
 
 gen_server_opt :: Bool -> Bool -> ServerType -> Plc -> SA.Server_Options

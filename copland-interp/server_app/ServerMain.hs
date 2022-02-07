@@ -17,8 +17,8 @@ main = do
 
 serverMain' :: IO ()
 serverMain' = do
-  opts' <- getServerOptions
-  start_server opts'
+  opts <- getServerOptions
+  start_server opts
   --return ()
 
 
