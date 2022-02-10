@@ -17,3 +17,5 @@ cp ${COQ_DIR}/List.hs ${HS_DIR}
 cp ${COQ_DIR}/Appraisal_Defs.hs ${HS_DIR}
 cp ${COQ_DIR}/Appraisal_Evidence.hs ${HS_DIR}
 
+cp ${COQ_DIR}/Example_Phrases.hs ${HS_DIR}
+

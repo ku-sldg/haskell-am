@@ -33,6 +33,7 @@ import StVM (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
 import ServerAppUtil(spawn_servers_term)
 import GenServerOpts(get_sample_aspmap, gen_name_map_term)
+import qualified Example_Phrases as EP
 
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
@@ -56,7 +57,19 @@ main = do
    False -> clientMain opts --am_main am_proto_1 DS.am_env_init
 
 local_term :: Term
-local_term =
+local_term = EP.layered_bg_strong
+  --EP.layered_bg_weak
+  --EP.par_mut_p1
+  --EP.par_mut_p0
+  --EP.bg_check
+  --EP.cert_cache_p0
+--EP.cert_cache_p1
+--EP.cert_style_simple_sig
+--EP.cert_style
+
+
+  
+  {-
   let t' = Coq_asp (ASPC (Coq_asp_paramsC 42 [] 1 1))
       tsig = Coq_asp SIG 
       t = Coq_lseq t' tsig
@@ -66,6 +79,7 @@ local_term =
 
       at_term'' = Coq_lseq at_term' at_term in
     at_term''
+-}
       {-
   let t'_par = Coq_aasp_par (ASPC (Coq_asp_paramsC 1 [] 1 1)) --(Coq_aasp_par (CPY))
   let tsig_par = (Coq_aasp_par SIG)

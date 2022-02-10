@@ -37,6 +37,7 @@ library
       CryptoImpl
       DemoStates
       DisplayCopland
+      Example_Phrases_Admits
       GenCopland
       GenOptMonad
       GenProgArgs
@@ -63,6 +64,7 @@ library
       ConcreteEvidence
       Datatypes
       Evidence_Bundlers
+      Example_Phrases
       Impl_appraisal_alt
       Impl_VM
       List
