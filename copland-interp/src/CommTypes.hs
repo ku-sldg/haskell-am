@@ -127,12 +127,22 @@ data CommParMessage =
   deriving ({-Show,Read,-}Generic)
 
 --Parallel Request Message
-data RequestMessagePar = RequestMessagePar
-  { toPlacePar :: Plc,
+data StartMessagePar = StartMessagePar
+  { {-toPlacePar :: Plc, -}
+    reqLoc :: Loc,
     --fromPlacePar :: Plc,
     reqNameMapPar :: M.Map Plc Address,
     reqTermPar :: Term,
     reqEvPar :: RawEv } deriving (Show,Read,Generic)
+
+data WaitMessagePar = WaitMessagePar
+  {
+    waitLoc :: Loc
+  } deriving (Show,Read,Generic)
+
+data RequestMessagePar =
+    ParStart StartMessagePar
+  | ParWait WaitMessagePar  deriving (Show,Read,Generic)
 
 --Parallel Response Message
 data ResponseMessagePar = ResponseMessagePar
@@ -171,6 +181,8 @@ data ServerType =
   | STORE
   | ASP_SERV ASP_ID
   | CVM_SERV CVM_SERV_Params
+  | PAR_SERV CVM_SERV_Params
+    {- TODO: see if PAR_SERV needs its own params datatype -}
 
   {-| PAR -}
   deriving (Show)

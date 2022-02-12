@@ -48,6 +48,7 @@ library
       JsonCopland
       MonadAM
       MonadCop
+      MonadParStore
       MonadStore
       MonadTestSTM
       QcCopland

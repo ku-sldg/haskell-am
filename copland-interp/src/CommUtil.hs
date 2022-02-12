@@ -41,8 +41,15 @@ gen_run_client ::  (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
 gen_run_client addr reqm = do
   runUnixDomainClient addr (sendRec' reqm)
 
+gen_server_async_accept ::( {-DA.ToJSON a, -} DA.FromJSON a) =>
+                        (a -> IO ()) -> NS.Socket -> IO ()
+gen_server_async_accept f conn = do
+  msg <- NBS.recv conn 2048
+  msg_decoded <- decodeGen msg
+  f msg_decoded
+  
 
-gen_server_session :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>
+gen_server_session :: ({-DA.ToJSON a,-} DA.FromJSON a, DA.ToJSON b {-, DA.FromJSON b-}) =>
                       (a -> IO b) -> NS.Socket -> IO ()
 gen_server_session f conn = do
   msg <- NBS.recv conn 2048
@@ -51,7 +58,7 @@ gen_server_session f conn = do
   let msg'_encoded =  DA.encode msg'
   NBS.sendAll conn (BL.toStrict msg'_encoded)
 
-sendRec' :: (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
+sendRec' :: (DA.ToJSON a,{-DA.FromJSON a,DA.ToJSON b,-}DA.FromJSON b) =>
             a -> NS.Socket -> IO b
 sendRec' rm conn = do
   --let msg = sendRec' pTo pFrom namesFrom t e

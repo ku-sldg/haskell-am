@@ -12,7 +12,18 @@ import CryptoImpl(doSignD, get_key_simpl)
 import GenServerOpts (get_sample_aspmap)
 import qualified ServerProgArgs as SA
 
-import qualified Data.Map as M (empty)
+import qualified Data.Map as M (empty, Map)
+import Control.Concurrent.STM
+
+
+handle_par_req :: CVM_SERV_Params -> SA.Server_Options -> TMVar (M.Map Loc RawEv) ->
+                  StartMessagePar -> IO ()
+handle_par_req params opts store msg@(StartMessagePar loc nm t e) =
+  return () -- TODO: fill in real impl here
+
+handle_par_wait :: TMVar (M.Map Loc RawEv) -> WaitMessagePar -> IO ResponseMessagePar
+handle_par_wait store msg@(WaitMessagePar loc) =
+  return (ResponseMessagePar []) -- TODO: fill in real impl here 
 
 
 handle_asp :: SA.Server_Options -> AspRequestMessage -> IO AspResponseMessage

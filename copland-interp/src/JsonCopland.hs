@@ -246,6 +246,12 @@ instance ToJSON CommSetList
 instance FromJSON CommSetList
 -}
 
+instance ToJSON StartMessagePar
+instance FromJSON StartMessagePar
+
+instance ToJSON WaitMessagePar
+instance FromJSON WaitMessagePar
+
 instance ToJSON RequestMessagePar
 instance FromJSON RequestMessagePar
 
