@@ -1,77 +1,68 @@
 SHELL := /bin/bash
 export COPLAND_BUILD=${CURDIR}
 
-MAIN := copland-interp\:exe\:copland-interp-exe
-SERV := copland-interp\:exe\:server-main-exe
-CLIENT := copland-interp\:exe\:client-main-exe
-GEN := copland-interp\:exe\:copland-gen-exe
+#MAIN := copland-interp\:exe\:copland-interp-exe
+#SERV := copland-interp\:exe\:server-main-exe
+#CLIENT := copland-interp\:exe\:client-main-exe
+#GEN := copland-interp\:exe\:gen-main-exe
+
+MAIN := copland-interp-exe
+SERV := server-main-exe
+CLIENT := client-main-exe
+GEN := gen-main-exe
+
+EXE_PRE := copland-interp\:exe\:
 
 all:	./copland-interp/copland-interp.cabal
 	cd ./copland-interp/ ; stack build
 
 build_client :	./copland-interp/copland-interp.cabal
-		cd ./copland-interp/ ; stack build ${CLIENT}
+		cd ./copland-interp/ ; stack build ${EXE_PRE}${CLIENT}
 
 build_server :	./copland-interp/copland-interp.cabal
-		cd ./copland-interp/ ; stack build ${SERV}
+		cd ./copland-interp/ ; stack build ${EXE_PRE}${SERV}
 
 run:
-	cd copland-interp ; stack exec -- client-main-exe --spawn --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs"
+	cd copland-interp ; stack exec -- ${CLIENT} --spawn --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs"
 
 ghci:
-	cd copland-interp ; stack ghci --main-is ${MAIN}
+	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${MAIN}
 
 ghciserver:
-	cd copland-interp ; stack ghci --main-is ${SERV}
+	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${SERV}
 
 ghciclient:
-	cd copland-interp ; stack ghci --main-is ${CLIENT}
+	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${CLIENT}
+
+ghcigen:
+	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${GEN}
 
 runserver_zero:
-	cd copland-interp ; stack exec -- server-main-exe -r "CVM0" -p 1 -c "SIG0"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM0" -p 1 -c "SIG0"
 
 runserver_one:
-	cd copland-interp ; stack exec -- server-main-exe -r "CVM1" -p 1 -c "SIG1"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM1" -p 1 -c "SIG1"
 
 runserver_two:
-	cd copland-interp ; stack exec -- server-main-exe -r "CVM2" -p 2 -c "SIG2"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM2" -p 2 -c "SIG2"
 
 runsigserver_zero:
-	cd copland-interp ; stack exec -- server-main-exe -r "SIG0" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG0" --sign_server
 
 runsigserver_one:
-	cd copland-interp ; stack exec -- server-main-exe -r "SIG1" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG1" --sign_server
 
 runsigserver_two:
-	cd copland-interp ; stack exec -- server-main-exe -r "SIG2" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG2" --sign_server
 
 runaspserver_one:
-	cd copland-interp ; stack exec -- server-main-exe -r "ASP1" -a 1
-
-runserver_help:
-	cd copland-interp ; stack exec -- server-main-exe --help
+	cd copland-interp ; stack exec -- ${SERV} -r "ASP1" -a 1
 
 run1:
-	cd copland-interp ; stack exec -- copland-client-exe -w -n ../names.txt
-
-
-startCS:
-	cd copland-interp ; stack exec connection-server-exe
-
-startSIG:
-	cd copland-interp ; stack exec sig-server-exe
+	cd copland-interp ; stack exec -- ${CLIENT} -w -n ../names.txt
 
 runSim:
-	cd copland-interp ; stack exec -- copland-client-exe -s -w -v
-
-term:
-	cd copland-interp ; stack exec -- copland-client-exe -w -t ../t.hs
-
-termCompiled:
-	cd copland-interp ; stack exec -- copland-client-exe -w -compile #-t ../t.hs
-
-termCompiledd:
-	cd copland-interp ; stack exec -- copland-client-exe -compile -t ../t.hs
+	cd copland-interp ; stack exec -- ${CLIENT} -s -w -v
 
 attack:
 	./modTarget.sh
@@ -79,104 +70,55 @@ repair:
 	./repairTarget.sh
 
 provision:
-	cd copland-interp ; stack exec -- copland-client-exe -p
+	cd copland-interp ; stack exec -- ${CLIENT} -p
 
-runtestserver:
-	cd copland-interp ; stack exec -- test-server-exe
-
-runtestclient:
-	cd copland-interp ; stack exec -- test-client-exe
 
 #Generate one random(-n 1) Copland term(-t) as a datatype(-d)
 gen:
-	cd copland-interp ; stack exec -- gen-main-exe -n 1 -t -d
+	cd copland-interp ; stack exec -- ${GEN} -n 1 -t -d
 
 #Generate one random(-n 1) Copland term(-t) as JSON
 genj:
-	cd copland-interp ; stack exec -- gen-main-exe -n 1 -t
+	cd copland-interp ; stack exec -- ${GEN} -n 1 -t
 
 #Input Copland terms(-t) as datatypes from stdin, write JSON to stdout
 geni:
-	cd copland-interp ; stack exec -- gen-main-exe -t
+	cd copland-interp ; stack exec -- ${GEN} -t
 
 #Input Copland terms(-t) as JSON from stdin, write terms as datatypes(-d) to stdout
 gend:
-	cd copland-interp ; stack exec -- gen-main-exe -t -d
+	cd copland-interp ; stack exec -- ${GEN} -t -d
 
 #Input Copland terms(-t) from the file fin.hs(-i ../fin.hs) as datatypes, write JSON to the file fout.txt(-o ../fout.txt)
 genf:
-	cd copland-interp ; stack exec -- gen-main-exe -t -i ../fin.hs -o ../fout.txt
+	cd copland-interp ; stack exec -- ${GEN} -t -i ../fin.hs -o ../fout.txt
 
 #Input Copland terms(-t) as JSON from the file fout.txt(-i ../fout.txt), write terms as datatypes (-d) to the file fin.hs(-o fin.hs)
 genff:
-	cd copland-interp ; stack exec -- gen-main-exe -t -i ../fout.txt -o ../fin.hs -d
+	cd copland-interp ; stack exec -- ${GEN} -t -i ../fout.txt -o ../fin.hs -d
 
 #Start an Attestation Server at a random available port
 server:
-	@cd copland-interp ; stack exec -- copland-server-exe
+	@cd copland-interp ; stack exec -- ${SERV}
 #Same as make server, but server runs in simulation mode
 serversim:
-	@cd copland-interp ; stack exec -- copland-server-exe -s
-
-names:
-	cd copland-interp ; stack exec -- copland-client-exe -n ../names.txt
-
-namesSim:
-	cd copland-interp ; stack exec -- copland-client-exe -n ../names.txt -s
-
-file:
-	cd copland-interp ; stack exec -- copland-client-exe -t ../t.hs -e ../ev.hs
-
-fileSim:
-	cd copland-interp ; stack exec -- copland-client-exe -t ../t.hs -e ../ev.hs -s
-
-fileNames:
-	cd copland-interp ; stack exec -- copland-client-exe -t ../t.hs -e ../ev.hs -n ../names.txt
-
-fileNamesSim:
-	cd copland-interp ; stack exec -- copland-client-exe -t ../t.hs -e ../ev.hs -n ../names.txt -s
-
-pzero:
-	cd copland-interp ; stack exec -- copland-server-exe -r "3000"
-
-pone:
-	cd copland-interp ; stack exec -- copland-server-exe -r "3001"
-
-ptwo:
-	cd copland-interp ; stack exec -- copland-server-exe -r "3002"
-
-
-
-ghcistore:
-	cd copland-interp ; stack ghci --main-is ${STORE}
-
-ghcitestserver:
-	cd copland-interp ; stack ghci --main-is ${TESTS}
-
-ghcitestclient:
-	cd copland-interp ; stack ghci --main-is ${TESTC}
-
-ghcigen:
-	cd copland-interp ; stack ghci --main-is ${GEN}
-
-ghcipar:
-	cd copland-interp ; stack ghci --main-is ${PAR}
+	@cd copland-interp ; stack exec -- ${SERV} -s
 
 help:
-	@cd copland-interp ; stack exec -- copland-server-exe --help ;
+	@cd copland-interp ; stack exec -- ${CLIENT} --help ;
 	@echo "" ; echo "" ; echo "" ;
-	@cd copland-interp ; stack exec -- copland-client-exe --help ;
+	@cd copland-interp ; stack exec -- ${SERV} --help ;
 	@echo "" ; echo "" ; echo "" ;
-	@cd copland-interp ; stack exec -- gen-main-exe --help ;
+	@cd copland-interp ; stack exec -- ${GEN} --help ;
 
 helpclient:
-	@cd copland-interp ; stack exec -- copland-client-exe --help ;
+	@cd copland-interp ; stack exec -- ${CLIENT} --help ;
 
 helpserver:
-	@cd copland-interp ; stack exec -- copland-server-exe --help ;
+	@cd copland-interp ; stack exec -- ${SERV} --help ;
 
 helpgen:
-	cd copland-interp ; stack exec -- gen-main-exe --help
+	cd copland-interp ; stack exec -- ${GEN} --help
 
 clean:
 	cd ./copland-interp/ ; stack clean --verbosity silent

@@ -146,21 +146,26 @@ Some advanced configuration will be necessary during development (while working 
 * One useful option is -s for "simulation mode".  Simulation mode fakes real measurement and cryptographic operations, and is meant for testing/quick feedback about the protocol control flow (and the structure of resulting evidence).
 -->
 ### Development Flow/Hints
-*  After permantently setting one of the environment variables, the easiest strategy for an interactive development style is via the `make ghci` command (from the repo toplevel).  It invokes the `stack ghci` feature to load a familar Haskell ghci REPL environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details.
-*  Because `stack ghci` only allows loading one Main module at a time, we need three separate commands that respond to changes in each of the Main module source files: `make ghciserv`(ServerMain.hs), `make ghciapp`(AppMain.hs), `make ghcigen`(GenMain.hs).  `make ghci` is the same as `make ghciserv` and responds to all source changes in the shared libraries(changes to any source file except ClientMain.hs or GenMain.hs).  If you've changed code in multiple Main modules, a safe bet is to simply type `make`(an alias for `stack build`).  However, this will not give you a REPL loop and usually takes quite a bit longer(10-20 seconds) than re-loading a ghci session--so I tend to use it sparingly (i.e. before deploying everything for an end-to-end test run).
+*  The easiest strategy for an interactive development style is via invoking the `make ghci*` family of commands from the repo toplevel.  These invoke the `stack ghci` feature to load a familar Haskell ghci REPL environment within the stack project (that reacts to source modifications).  See the [Haskell Stack documentation](https://docs.haskellstack.org/en/stable/README/) for more details.
+*  Because `stack ghci` only allows loading one Main module at a time,
+   we need separate commands that respond to changes in the source code
+   of each Main module independently: `make ghciclient`(client_app/ClientMain.hs), `make ghciserver`(server_app/ServerMain.hs), `make ghcigen`(gen_app/GenMain.hs).  
+*  `make ghci` loads code for the main stack project executable (copland-interp), which effectively loads all shared library source files (ignoring the client/server/gen executable sources).  If you've changed code in multiple Main modules, a safe bet is to simply type `make`(an alias for `stack build`).  However, this will not give you a REPL loop and usually takes quite a bit longer(10-20 seconds) than simply re-loading a ghci session (via `:r`)--so it is best used sparingly (i.e. before deploying everything for an end-to-end test run).
+* Useful ghci commands (once in a ghci REPL session):
+    * `:r` -- reload a session (re-runs type checker after source file changes).
+    * `:q` -- quit a ghci session
+    * `:i` `<expression>` -- print out useful info about a Haskell expression (its type, where it is defined, etc.).
+    * `:t` `<expression>` -- check the type of a Haskell expression
 
 ## Source Files
 ---
 
-All Haskell source files are within the stack project directory:  `copland-interp/`.  The Main modules for the executables are in `copland-interp/app/`, the rest of the common library source files are in `copland-interp/src/ `.
+All Haskell source files are within the copland-interp stack project directory:  `copland-interp/`.  Within that directory, the Main modules for executables are in the sub-directories: `client_app`(ClientMain.hs), `server_app`(ServerMain.hs), and `gen_app`(GenMain.hs).  The rest of the common library source files are under the directory `src/ `.
 
-* ServerMain.hs:  Main module for Attestation Server.
-    * Standalone Attestation Server executable.  Handles requests to interpret Copland phrases.
 * ClientMain.hs:  Main module for Appraiser Client.
     * Top-level Attestation Manager/Appraiser protocol evaluation (assumes appraiser is at place 0).
-* ConnectionServerMain:  Main module for the Connection Server.
-    * A single ConnectionServer serves an arbitrary number of Attestion Managers running
-on the same platform.
+* ServerMain.hs:  Main module for Attestation Server.
+    * Standalone Attestation Server executable.  Handles requests to interpret Copland phrases.
 * GenMain.hs:  Main module for Generator/Translator.
     * Generates random well-formed datatypes and JSON objects that are relevant during attestation.  Also acts as an oracle for bi-directional translation between datatypes and their JSON representation.
 * CoplandLang.hs:  Copland language definition-  terms and concrete evidence.
@@ -203,6 +208,11 @@ on the same platform.
     * Also includes a compiler from Copland term to a sequence of Copland instructions.
 * UDcore.hs: Functions to run UnixDomain Socket clients and servers.
 * StringConstants.hs:  Constant strings used in pretty-printing and JSON generation.
+
+<!--
+* ConnectionServerMain:  Main module for the Connection Server.
+    * A single ConnectionServer serves an arbitrary number of Attestion Managers running on the same platform.
+    -->
 
 ## Examples
 ---

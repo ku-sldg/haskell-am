@@ -15,6 +15,8 @@ import ClientProgArgs
 import StVM (Coq_cvm_st(..))
 import qualified DemoStates as DS
 import Impl_VM_Extracted (run_cvm')
+import Comm (genNameServer)
+import Data.List(union)
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -146,6 +148,37 @@ am_appraise_nonce i bs = do
   let b = (bs == goldenVal)
       --newAmap = M.insert i b amap
   put (AM_St x y)
+
+
+nameMap_from_term :: Term -> IO (M.Map Plc Address)
+nameMap_from_term t = do
+  let places = getPlaces t
+  res <- genNameServer places
+  return res
+
+getPlaces :: Term -> [Plc]
+getPlaces t = getPlaces' t []
+
+getPlaces' :: Term -> [Plc] -> [Plc]
+getPlaces' t pls =
+  case t of
+   Coq_att p t' -> union [p] (getPlaces' t' pls)
+   Coq_lseq t1 t2 ->
+     let ls = getPlaces' t1 pls in
+     let rs = getPlaces' t2 pls in
+     union ls rs
+   Coq_bseq _ t1 t2 ->
+     let ls = getPlaces' t1 pls in
+     let rs = getPlaces' t2 pls in
+     union ls rs
+   Coq_bpar _ t1 t2 ->
+     let ls = getPlaces' t1 pls in
+     let rs = getPlaces' t2 pls in
+     union ls rs
+   _ -> pls
+
+
+  
 
 {-
 am_get_app_nonces :: AM (M.Map Int Bool)
