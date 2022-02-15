@@ -15,7 +15,8 @@ import ClientProgArgs
 import StVM (Coq_cvm_st(..))
 import qualified DemoStates as DS
 import Impl_VM_Extracted (run_cvm')
-import Comm (genNameServer)
+--import Comm (genNameServer)
+import CommUtil (genNameServer)
 import Data.List(union)
 
 import Control.Monad.Reader

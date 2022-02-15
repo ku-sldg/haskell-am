@@ -14,7 +14,8 @@
 module ServerAppUtil where
 
 import Copland
-import Comm
+--import Comm
+import CommUtil
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 import MonadCop (runCOP)

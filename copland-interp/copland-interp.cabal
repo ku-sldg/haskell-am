@@ -30,7 +30,6 @@ library
       Axioms_Io
       BS
       ClientProgArgs
-      Comm
       CommTypes
       CommUtil
       Copland

@@ -8,7 +8,8 @@ import Term_Defs(ASP_PARAMS(..), RawEv, Plc, Term, Loc, get_bits, EvC(..))
 import CryptoImpl (doHash, doSign)
 import StVM (CVM)
 import CommTypes
-import Comm
+import CommUtil
+--import Comm
 
 
 import qualified Data.ByteString as B (readFile, concat)

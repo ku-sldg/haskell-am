@@ -10,7 +10,7 @@ module Main where
 
 import Copland
 import MonadCop (runCOP, Cop_Env(..))
-import Comm (genNameServer)
+--import Comm (genNameServer)
 import ClientProgArgs (getClientOptions, Client_Options(..))
 import qualified CryptoImpl as CI (doHashFile, lookupSecretKeyBytesIO, lookupSecretKeyPath, doNonce)
 import UDcore

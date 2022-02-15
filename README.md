@@ -160,45 +160,69 @@ Some advanced configuration will be necessary during development (while working 
 ## Source Files
 ---
 
-All Haskell source files are within the copland-interp stack project directory:  `copland-interp/`.  Within that directory, the Main modules for executables are in the sub-directories: `client_app`(ClientMain.hs), `server_app`(ServerMain.hs), and `gen_app`(GenMain.hs).  The rest of the common library source files are under the directory `src/ `.
+All Haskell source files are within the copland-interp stack project directory (`copland-interp/`).  Within that directory, the Main modules for executables are in the sub-directories: `client_app`(ClientMain.hs), `server_app`(ServerMain.hs), and `gen_app`(GenMain.hs).  The Haskell source files extracted from the formal spec are in the directory:  `extracted_src`.  The rest of the common library source files are under the directory:  `src/ `.
 
-* ClientMain.hs:  Main module for Appraiser Client.
-    * Top-level Attestation Manager/Appraiser protocol evaluation (assumes appraiser is at place 0).
-* ServerMain.hs:  Main module for Attestation Server.
-    * Standalone Attestation Server executable.  Handles requests to interpret Copland phrases.
-* GenMain.hs:  Main module for Generator/Translator.
-    * Generates random well-formed datatypes and JSON objects that are relevant during attestation.  Also acts as an oracle for bi-directional translation between datatypes and their JSON representation.
-* CoplandLang.hs:  Copland language definition-  terms and concrete evidence.
-    * Implements language specification from here: [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
+* client_app/ClientMain.hs:  Main module for Appraiser Client.
+    * Top-level Attestation Manager/Appraiser:  Configures and initiates Copland protocol evaluations and orchestrates appraisal of result evidence.
+    * Command-line args defined in src/ClientProgArgs.hs
+* server_app/ServerMain.hs:  Main module for Attestation Server.
+    * Standalone Attestation Server:  Handles requests to interpret Copland phrases within a Copland Virtual Machine (CVM) execution environment.
+    * Command-line args defined in src/ServerProgArgs.hs
+* gen_app/GenMain.hs:  Main module for Generator/Translator.
+    * Generates random well-formed attestation datatypes (Copland terms and Evidence) and their corresponding JSON objects.  Also can be configured for bi-directional *translation* between the datatypes and their JSON representation.
+    * Command-line args defined in src/GenProgArgs.hs
+* extracted_src/*:  Haskell source files core to execution of attestation and appraisal, extracted directly from a formal specification in Coq.  
+    * To preserve formal properties, this code should not be modified after extraction.  
+    * For high-level descriptions of each of these source files, see the README of the Coq spec here:  https://github.com/ku-sldg/copland-avm.
+* Appraisal_IO_Stubs.hs:  Concrete definitions of primitive appraisal checker functions.  Instantiations of (abstract) stubs of the same name in the Coq specification.
+* Axioms_Io.hs:  Dummy definition of the cvm_events uninterpreted function of the Coq spec.  Weird artifact of code extraction that may be refactored away in the future (since unecessary for concrete execution).
+* BS.hs:  Concrete instantiation of the raw evidence datatype BS (treated abstractly in Coq spec), along with some common BS values and utilities.
+* ClientProgArgs.hs:  Specifies command-line options for the Appraiser Client main module (client_app/ClientMain.hs).
+    * Uses:  http://hackage.haskell.org/package/optparse-applicative
+* CommTypes.hs:  Datatypes relevant to communication (request, response, address representation, server congiguration, etc.).
+* CommUtil.hs:  Utility library for general communication primitives.
+* Copland.hs:  Interface module that (for convenience) packages and exports a collection of modules containing datatypes and typeclass instances relevant to Copland language primitives.
+* CryptoImpl.hs:  primitive crypto operations
+    * Crypto libraries chosen initially for simplicity, not necessarily for security.
+* DemoStates.hs:  A collection of configuration parameters/helper functions used to initialize demonstration attestation scenarios.
+* DisplayCopland.hs:  Pretty-printing for protocol terms and evidence.
+    * Uses:  http://hackage.haskell.org/package/prettyprinter-1.2.1
+* Example_Phrases_Admits.hs:  Instantiating abstract parameters of Copland phrases extracted from Coq (full phrases in file:  extracted_src/Example_Phrases.hs).
+* GenCopland.hs:  Helper functions for generaitng random samples of Copland terms, evidence, and other datatypes;  output to a file or stdout.
+* GenOptMonad.hs:  Instantiations of the AM and Opt monads from the Coq spec.  For compatibility reasons, both become a state monad transformer in Haskell (for now).
+* GenProgArgs.hs:  Specifies command-line options for the Generator/Translator executable.
+    * Uses:  http://hackage.haskell.org/package/optparse-applicative
+* GenServerOpts.hs:  Helper functions for constructing server configuration parameters (optionally derived from Copland phrase parameters).
+* GenStMonad.hs:  Instantiation of the St monad from the Coq spec.  Uses a state monad transformer with an underlying Reader + IO (for static environment/attestation config + comm/crypto).
+* IO_Stubs.hs:  Concrete instantiations of abstract IO primitives whose stubs are defined in the Coq spec (measurements, crypto, communication).
+* Impl_VM_Extracted.hs:  Convenience wrappers around extracted functions in:  extracted_src/Impl_VM.hs.  Necessary (for now) due to how monads are instantiated/executed at the top level.
 * JsonCopland.hs:  _ToJSON_/_FromJSON_ instances for Copland language and other attestation-relevant datatypes.
     * Implements data exchange format from here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
     * Implemented via Haskell's Aeson library for JSON parsing.
-* DisplayCopland.hs:  Pretty-printing for protocol terms and evidence.
-    * Uses:  http://hackage.haskell.org/package/prettyprinter-1.2.1
-* Copland.hs:  Interface module that simply exports CoplandLang, JsonCopland, and DisplayCopland modules.
-* Interp.hs:  main interpreter (interp function) for Copland terms.
-* MonadCop.hs:  Definition of the COP Monad.
-    *  COP Monad is an environment for interpreting Copland phrases.
-    *  Reader Monad Transformer with IO.
 * MonadAM.hs:  Definition of the AM Monad.
     *  AM (Attestation Manager) Monad is a computational context for managing attestation protocols.
     *  Provides primitives for generating nonces, running multiple Copland phrases, collecting results, and performing appraisal.
     *  State Monad Transformer with Reader and IO.
-* CryptoImpl.hs:  primitive crypto operations
-    * Crypto libraries chosen initially for simplicity, not necessarily for security.
-* CommImpl.hs:  communication actions specialized for evaluation of Copland terms.
-    * Synchronous message sends/receives.
-* CommUtil.hs:  Utility library for communication.
-* Comm.hs:  Interface module that simply exports CommImpl and CommUtil modules.
-* GenCopland.hs:  Helper functions for random samples of Copland terms and concrete evidence, output to a file or stdout.
+* MonadCop.hs:  Definition of the COP Monad.
+    *  COP Monad provides a read-only configuration for interpreting Copland phrases during Copland VM (CVM) execution.
+    *  Reader Monad Transformer with IO.
 * QcCopland.hs:  (QuickCheck Copland).  Helper library to GenCopland.
     * Uses Haskell's QuickCheck library to define _Arbitrary_ instances for terms and concrete evidence.
+* ServerAppHandlers.hs:  Handler functions for different kind of servers involved in attestation (ASP server, crypto server, CVM server, etc.).
+* ServerAppUtil.hs:  Utility functions to configure and launch servers relevant to attestation.
 * ServerProgArgs.hs:  Specifies command-line options for the Attestation Server executable.
     * Uses:  http://hackage.haskell.org/package/optparse-applicative
-* ClientProgArgs.hs:  Specifies command-line options for the Appraiser Client executable.
-    * Uses:  http://hackage.haskell.org/package/optparse-applicative
-* GenProgArgs.hs:  Specifies command-line options for the Generator/Translator executable.
-    * Uses:  http://hackage.haskell.org/package/optparse-applicative
+* StVM_Deriving.hs:  Adds "deriving" clauses to CVM datatypes extracted from the Coq spec (i.e. Show to support printing them in Haskell).
+* StringConstants.hs:  Constant strings used in pretty-printing and JSON generation.
+* Term_Defs_Deriving.hs:  Adds "deriving" clauses to Copland language datatypes extracted from the Coq spec (i.e. Show to support printing them in Haskell).
+* UDcore.hs: Functions to run UnixDomain Socket clients and servers.
+
+
+<!-- 
+
+* CoplandLang.hs:  Copland language definition-  terms and concrete evidence.
+    * Implements language specification from here: [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
+* Interp.hs:  main interpreter (interp function) for Copland terms.
 * Appraise.hs:  Utility library for appraisal primitives.
 * CoplandInstr.hs:  Copland Instruction Set definition .
 * MonadVM.hs: Definition of VM monad.
@@ -206,13 +230,9 @@ All Haskell source files are within the copland-interp stack project directory: 
     *  Wraps a State Monad around a COP Monad, that holds a stack necessary for instruction execution.
 * ExecCopland.hs: Machinery to execute Copland instructions.
     * Also includes a compiler from Copland term to a sequence of Copland instructions.
-* UDcore.hs: Functions to run UnixDomain Socket clients and servers.
-* StringConstants.hs:  Constant strings used in pretty-printing and JSON generation.
-
-<!--
 * ConnectionServerMain:  Main module for the Connection Server.
     * A single ConnectionServer serves an arbitrary number of Attestion Managers running on the same platform.
-    -->
+-->
 
 ## Examples
 ---
