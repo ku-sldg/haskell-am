@@ -37,6 +37,8 @@ import qualified Data.Map as M
 import qualified Data.Aeson as DA (decodeStrict, encode, ToJSON, FromJSON)
 import qualified Control.Concurrent as CC (forkIO, threadDelay)
 import Control.Monad (forever, void)
+import Control.Concurrent.STM.TVar
+import qualified Data.Aeson as DA (encode)
 
 import Data.List(union)
 
@@ -55,10 +57,14 @@ start_server opts = do
      
   case (servType) of
     CVM_SERV params -> do
+      {-
       let simB = SA.server_optSim opts
-          debugB = SA.server_optDebug opts
+          debugB = SA.server_optDebug opts -}
       start_server'' addr
                      (handle_remote params opts)
+    PAR_SERV params -> do
+      do_par_server params opts addr
+      
     SIGN ->
       start_server'' addr
                      (handle_sig opts)
@@ -68,11 +74,29 @@ start_server opts = do
     _ -> return ()
 
 
+--   store_var <- newTVarIO M.empty
+
+do_par_server' :: TVar (M.Map Loc RawEv) -> CVM_SERV_Params -> SA.Server_Options -> NS.Socket -> IO ()
+do_par_server' store_var params opts conn = do
+  msg <- NBS.recv conn 2048
+  (msg_decoded :: RequestMessagePar) <- decodeGen msg
+  case msg_decoded of
+    ParStart m -> handle_par_req params opts store_var m
+    ParWait m -> do
+      resp_msg <- handle_par_wait store_var m
+      let msg'_encoded =  DA.encode resp_msg
+      NBS.sendAll conn (BL.toStrict msg'_encoded)
+
+do_par_server :: CVM_SERV_Params -> SA.Server_Options -> Address -> IO ()
+do_par_server params opts addr = do
+  store_var <- newTVarIO M.empty
+  runUnixDomainServer addr (do_par_server' store_var params opts)
+
 start_server'' :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>
                   Address -> (a -> IO b) -> IO ()
 start_server'' addr f = do
   runUnixDomainServer addr (gen_server_session f)
-
+  
 spawn_server_thread :: SA.Server_Options -> IO ()
 spawn_server_thread opts = void $ CC.forkIO $ start_server opts
   
@@ -96,8 +120,10 @@ plc_opts :: Bool -> Bool -> [(Plc,ASP_ID)] -> [Plc] -> [SA.Server_Options]
 plc_opts simB debugB as ps =
   let sig_opts = gen_sig_server_opts simB debugB ps
       cvm_opts = gen_cvm_server_opts simB debugB ps
-      asp_opts = gen_asp_server_opts simB debugB as in
-    sig_opts ++ cvm_opts ++ asp_opts
+      asp_opts = gen_asp_server_opts simB debugB as
+      par_opts = gen_par_server_opts simB debugB ps -- TODO: accurate plc?
+  in
+    sig_opts ++ cvm_opts ++ asp_opts ++ par_opts
 
 gen_term_opts :: Bool -> Bool -> Term -> Plc -> [SA.Server_Options]
 gen_term_opts simB debugB t p =
@@ -105,7 +131,7 @@ gen_term_opts simB debugB t p =
       ps = p:ps' -- TODO: ok to add appraiser place p here?
       as = get_asps t p in
     --error $ (show ps) ++ (show as)
-    plc_opts simB debugB as ps  
+    plc_opts simB debugB as ps
       
 
 gen_server_opt :: Bool -> Bool -> ServerType -> Plc -> SA.Server_Options
@@ -130,11 +156,21 @@ gen_cvm_server_opt :: Bool -> Bool -> Plc -> SA.Server_Options
 gen_cvm_server_opt simB debugB p =
   let sig_server_addr = get_server_addr_gen SIGN p
       st = CVM_SERV (CVM_SERV_Params p (Sign_Server_Addr sig_server_addr)) in
-    gen_server_opt simB debugB st p 
+    gen_server_opt simB debugB st p
 
 gen_cvm_server_opts :: Bool -> Bool -> [Plc] -> [SA.Server_Options]
 gen_cvm_server_opts simB debugB ps =
   map (gen_cvm_server_opt simB debugB) ps
+
+gen_par_server_opt :: Bool -> Bool -> Plc -> SA.Server_Options
+gen_par_server_opt simB debugB p =
+  let sig_server_addr = get_server_addr_gen SIGN p
+      st = PAR_SERV (CVM_SERV_Params p (Sign_Server_Addr sig_server_addr)) in
+    gen_server_opt simB debugB st p
+
+gen_par_server_opts :: Bool -> Bool -> [Plc] -> [SA.Server_Options]
+gen_par_server_opts simB debugB ps =
+  map (gen_par_server_opt simB debugB) ps
 
 {-
 lookupPath :: ServerType -> IO FilePath

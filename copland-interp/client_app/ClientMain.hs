@@ -98,8 +98,11 @@ clientMain (Client_Options
     let cvmst_res = fst res
         rawev_res = get_bits (st_ev cvmst_res)
         et_app = eval my_term mypl (Coq_nn 0)
-        appraise_comp =
+    putStrLn $ show et_app
+    let appraise_comp =
           do
+            liftIO $ putStrLn $ "RAWEV LEN: " ++ (show (length rawev_res))
+            liftIO $ putStrLn $ "et_size: " ++ (show (et_size et_app))
             v <- build_app_comp_evC et_app rawev_res
             return v
     let new_app_st = snd res

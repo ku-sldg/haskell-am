@@ -16,7 +16,7 @@ ret = SL.return
 
 bind m f = m SL.>>= f
 
-failm = Prelude.error "ERROR in AM Monad computation"
+failm = Prelude.error "ERRORRRR in AM Monad computation"
 
 {-
 modify :: (a1 -> a1) -> St a1 ()

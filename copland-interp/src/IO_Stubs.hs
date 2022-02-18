@@ -9,6 +9,8 @@ import CryptoImpl (doHash, doSign)
 import StVM (CVM)
 import CommTypes
 import CommUtil
+import UDcore (runUnixDomainClient)
+import GenServerOpts (par_server_addr)
 --import Comm
 
 
@@ -49,7 +51,13 @@ do_hash' :: BS -> CVM BS
 do_hash' bs = return (doHash bs)
 
 do_start_par_thread :: Loc -> Term -> RawEv -> CVM ()
-do_start_par_thread loc t e = undefined
+do_start_par_thread loc t e = do
+  ns <- asks nameServer
+  p <- asks me 
+  let reqm = ParStart (StartMessagePar loc ns t e)
+  liftIO $ runUnixDomainClient (par_server_addr p) (asyncClientSend reqm)
+  
+  
 
 doRemote_session' :: Term -> Plc -> EvC -> CVM EvC
 doRemote_session' t pTo e = do
@@ -62,7 +70,12 @@ doRemote_session' t pTo e = do
   return res
 
 do_wait_par_thread :: Loc -> CVM EvC
-do_wait_par_thread l = undefined
+do_wait_par_thread loc = do
+  p <- asks me
+  let req_msg = ParWait (WaitMessagePar loc)
+      addr = par_server_addr p
+  (resp_msg :: ResponseMessagePar) <- liftIO $ gen_run_client addr req_msg
+  return (Coq_evc (respEvPar resp_msg) Coq_mt)
 
 
 

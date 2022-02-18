@@ -12,18 +12,55 @@ import CryptoImpl(doSignD, get_key_simpl)
 import GenServerOpts (get_sample_aspmap)
 import qualified ServerProgArgs as SA
 
-import qualified Data.Map as M (empty, Map)
+import qualified Data.Map as M (empty, insert, lookup, Map)
 import Control.Concurrent.STM
 
 
-handle_par_req :: CVM_SERV_Params -> SA.Server_Options -> TMVar (M.Map Loc RawEv) ->
-                  StartMessagePar -> IO ()
-handle_par_req params opts store msg@(StartMessagePar loc nm t e) =
-  return () -- TODO: fill in real impl here
+build_cvm_config :: CVM_SERV_Params -> SA.Server_Options -> Term -> M.Map Plc Address -> RawEv ->
+                    (Cop_Env, Coq_cvm_st)
+build_cvm_config params opts t nm e =
+  let store = M.empty
+      me = cvm_params_plc params
+      sm = cvm_params_sig_mech params
+      aspmap = get_sample_aspmap t me
+      simb = SA.server_optSim opts
+      debugb = SA.server_optDebug opts
 
-handle_par_wait :: TMVar (M.Map Loc RawEv) -> WaitMessagePar -> IO ResponseMessagePar
-handle_par_wait store msg@(WaitMessagePar loc) =
-  return (ResponseMessagePar []) -- TODO: fill in real impl here 
+      env = Cop_Env simb debugb nm sm me store aspmap
+      st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0) in
+            -- TODO: remove verification params from cvm state?
+    (env,st)
+
+  
+mod_rawev_map :: TVar (M.Map Loc RawEv) -> Loc -> RawEv -> STM ()
+mod_rawev_map mv loc e = modifyTVar mv (M.insert loc e)
+  
+handle_par_req :: CVM_SERV_Params -> SA.Server_Options -> TVar (M.Map Loc RawEv) ->
+                  StartMessagePar -> IO ()
+handle_par_req params opts store_var msg@(StartMessagePar loc nm t e) = do
+  
+  let (env,st) = build_cvm_config params opts t nm e
+
+  putStrLn $ "init state PAR with LOC " ++ (show loc) ++ ": " ++ (show st)
+  --print st 
+  res_rawev <- run_cvm_rawev t st env
+
+  atomically $ mod_rawev_map store_var loc res_rawev
+
+
+hpw' :: TVar (M.Map Loc RawEv) -> Loc -> STM RawEv
+hpw' store_var loc = do
+  m <- readTVar store_var
+  let maybe_ev = M.lookup loc m
+  case maybe_ev of
+    Just e -> return e -- TODO: necessary to delete loc entry here?
+    Nothing -> retry
+
+handle_par_wait :: TVar (M.Map Loc RawEv) -> WaitMessagePar -> IO ResponseMessagePar
+handle_par_wait store_var msg@(WaitMessagePar loc) = do
+  putStrLn $ "HANDLING PAR WAIT for Loc: " ++ (show loc)
+  res_ev <- atomically $ hpw' store_var loc
+  return (ResponseMessagePar res_ev)
 
 
 handle_asp :: SA.Server_Options -> AspRequestMessage -> IO AspResponseMessage
@@ -34,21 +71,12 @@ handle_asp opts msg@(AspRequestMessage _ _) = do
 
 handle_remote :: CVM_SERV_Params -> SA.Server_Options -> {-Bool -> Bool -> -}
                  RequestMessage -> IO ResponseMessage
-handle_remote params opts rreq@(RequestMessage pTo pFrom names t e) = do
+handle_remote params opts rreq@(RequestMessage pTo pFrom nm t e) = do
 
   print "received RequestMessage: "
   print rreq
-  
-  let store = M.empty
-      me = cvm_params_plc params
-      sm = cvm_params_sig_mech params
-      aspmap = get_sample_aspmap t me
-      simb = SA.server_optSim opts
-      debugb = SA.server_optDebug opts
-  
-  let env = Cop_Env simb debugb names sm me store aspmap
-  let st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0)
-  -- TODO: remove verification params from cvm state?
+
+  let (env,st) = build_cvm_config params opts t nm e
 
   print "init state: "
   print st 

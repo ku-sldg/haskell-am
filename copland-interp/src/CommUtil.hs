@@ -36,7 +36,7 @@ gen_client_session msg conn = do
   NBS.sendAll conn msg
   NBS.recv conn 2048
 
-gen_run_client ::  (DA.ToJSON a,DA.FromJSON a,DA.ToJSON b,DA.FromJSON b) =>
+gen_run_client ::  (DA.ToJSON a,{-DA.FromJSON a,DA.ToJSON b,-}DA.FromJSON b) =>
                    Address -> a -> IO b
 gen_run_client addr reqm = do
   runUnixDomainClient addr (sendRec' reqm)
@@ -57,6 +57,13 @@ gen_server_session f conn = do
   msg' <- f msg_decoded
   let msg'_encoded =  DA.encode msg'
   NBS.sendAll conn (BL.toStrict msg'_encoded)
+
+asyncClientSend :: (DA.ToJSON a) =>
+                   a -> NS.Socket -> IO ()
+asyncClientSend rm conn = do
+  let messageBits = DA.encode rm
+      msg = BL.toStrict messageBits
+  NBS.sendAll conn msg
 
 sendRec' :: (DA.ToJSON a,{-DA.FromJSON a,DA.ToJSON b,-}DA.FromJSON b) =>
             a -> NS.Socket -> IO b

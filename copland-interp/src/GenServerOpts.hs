@@ -8,6 +8,9 @@ import qualified Data.Map as M
 cvm_server_addr :: Plc -> Address
 cvm_server_addr p = "CVM_" ++ (show p)
 
+par_server_addr :: Plc -> Address
+par_server_addr p = "PAR_" ++ (show p)
+
 sig_server_addr :: Plc -> Address
 sig_server_addr p = "SIG_" ++ (show p)
 
@@ -24,6 +27,7 @@ get_server_addr_gen st p =
     STORE -> store_server_addr p
     ASP_SERV id -> asp_server_addr p id
     CVM_SERV _ -> cvm_server_addr p
+    PAR_SERV _ -> par_server_addr p
 
 
 get_places :: Term -> [Plc]
