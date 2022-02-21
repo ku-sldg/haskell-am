@@ -45,7 +45,8 @@ main = do
    False -> clientMain opts
 
 local_term :: Term
-local_term = EP.cert_style
+local_term = EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong
+  --EP.cert_style
   --EP.layered_bg_strong
   --EP.layered_bg_weak
   --EP.par_mut_p1

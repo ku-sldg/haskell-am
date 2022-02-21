@@ -140,9 +140,21 @@ data WaitMessagePar = WaitMessagePar
     waitLoc :: Loc
   } deriving (Show,Read,Generic)
 
+data InitMessagePar = InitMessagePar
+  {
+    termSize :: Int
+  } deriving (Show,Read,Generic)
+
+data AckInitMessagePar = AckInitMessagePar
+  {
+    initLoc :: Loc
+  } deriving (Show,Read,Generic)
+
 data RequestMessagePar =
     ParStart StartMessagePar
-  | ParWait WaitMessagePar  deriving (Show,Read,Generic)
+  | ParWait WaitMessagePar
+  | ParInit InitMessagePar
+  deriving (Show,Read,Generic)
 
 --Parallel Response Message
 data ResponseMessagePar = ResponseMessagePar

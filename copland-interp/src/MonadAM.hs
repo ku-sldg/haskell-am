@@ -14,7 +14,7 @@ import MonadCop (Cop_Env(..), runCOP, COP)
 import ClientProgArgs
 import StVM (Coq_cvm_st(..))
 import qualified DemoStates as DS
-import Impl_VM_Extracted (run_cvm')
+import Impl_VM_Extracted (run_cvm_loc')
 --import Comm (genNameServer)
 import CommUtil (genNameServer)
 import Data.List(union)
@@ -90,7 +90,7 @@ am_run_cvm simb debugb t = do
   let mypl = 0 -- TODO: make not hardcoded?
       st = (Coq_mk_st ne [] 0 0)
       env = DS.sample_cop_env simb debugb t mypl
-  liftIO $ run_cvm' t st env
+  liftIO $ run_cvm_loc' t st env
 
 am_get_sig_asp :: Plc -> AM ASP_ID
 am_get_sig_asp p = do

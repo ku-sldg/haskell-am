@@ -7,9 +7,9 @@ import StVM_Deriving
 import MonadCop (Cop_Env(..))
 import CommTypes
 --import DemoStates (sample_aspmap)
-import Impl_VM_Extracted (run_cvm_rawev)
+import Impl_VM_Extracted (run_cvm_loc)
 import CryptoImpl(doSignD, get_key_simpl)
-import GenServerOpts (get_sample_aspmap)
+import GenServerOpts (get_sample_aspmap, par_server_addr)
 import qualified ServerProgArgs as SA
 
 import qualified Data.Map as M (empty, insert, lookup, Map)
@@ -25,8 +25,9 @@ build_cvm_config params opts t nm e =
       aspmap = get_sample_aspmap t me
       simb = SA.server_optSim opts
       debugb = SA.server_optDebug opts
+      par_addr = par_server_addr me
 
-      env = Cop_Env simb debugb nm sm me store aspmap
+      env = Cop_Env simb debugb nm sm me store aspmap par_addr
       st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0) in
             -- TODO: remove verification params from cvm state?
     (env,st)
@@ -43,7 +44,7 @@ handle_par_req params opts store_var msg@(StartMessagePar loc nm t e) = do
 
   putStrLn $ "init state PAR with LOC " ++ (show loc) ++ ": " ++ (show st)
   --print st 
-  res_rawev <- run_cvm_rawev t st env
+  res_rawev <- {-run_cvm_rawev-}run_cvm_loc t st env
 
   atomically $ mod_rawev_map store_var loc res_rawev
 
@@ -63,6 +64,22 @@ handle_par_wait store_var msg@(WaitMessagePar loc) = do
   return (ResponseMessagePar res_ev)
 
 
+
+handle_par_init :: TVar Loc -> InitMessagePar -> IO AckInitMessagePar
+handle_par_init loc_var msg@(InitMessagePar tSize) = do
+
+  putStrLn "in handle_par_init"
+  new_v <- atomically $ do
+    v <- readTVar loc_var
+    --let v' = (v + tSize)
+    writeTVar loc_var (v + tSize)
+    return v
+
+  return $ AckInitMessagePar new_v
+  
+
+
+
 handle_asp :: SA.Server_Options -> AspRequestMessage -> IO AspResponseMessage
 handle_asp opts msg@(AspRequestMessage _ _) = do
   let sBits = empty_bs
@@ -80,7 +97,7 @@ handle_remote params opts rreq@(RequestMessage pTo pFrom nm t e) = do
 
   print "init state: "
   print st 
-  res_rawev <- run_cvm_rawev t st env
+  res_rawev <- {-run_cvm_rawev-} run_cvm_loc t st env
 
   let rm = (ResponseMessage pFrom pTo res_rawev)
   return rm

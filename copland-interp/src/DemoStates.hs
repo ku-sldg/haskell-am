@@ -14,7 +14,7 @@ import Copland
 --import MonadAM
 --import MonadVM_Old
 import qualified ServerProgArgs as SA (Server_Options(..))
-import GenServerOpts(cvm_server_addr, sig_server_addr, get_places, gen_name_map_term, get_sample_aspmap)
+import GenServerOpts(cvm_server_addr, sig_server_addr, par_server_addr, get_places, gen_name_map_term, get_sample_aspmap)
 import MonadCop(Cop_Env(..))
 
 import qualified Data.Map as M
@@ -25,8 +25,10 @@ sample_cop_env simB debugB t p =
   let nm = gen_name_map_term t
       store = undefined
       myAsps = get_sample_aspmap t p
-      sm = Sign_Server_Addr (sig_server_addr p) in
-    Cop_Env simB debugB nm sm p store myAsps
+      sm = Sign_Server_Addr (sig_server_addr p)
+      par_addr = par_server_addr p in
+      
+    Cop_Env simB debugB nm sm p store myAsps par_addr
       
 
 

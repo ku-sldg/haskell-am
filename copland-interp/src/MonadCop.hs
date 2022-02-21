@@ -43,7 +43,8 @@ data Cop_Env =
             sig_mechanism :: Sign_Mechanism,
             me :: Plc,
             st_store :: M.Map Natural (TMVar RawEv),
-            asp_sockets :: M.Map ASP_ID Address
+            asp_sockets :: M.Map ASP_ID Address,
+            parServer :: Address
           }
 
 

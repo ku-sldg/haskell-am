@@ -252,6 +252,12 @@ instance FromJSON StartMessagePar
 instance ToJSON WaitMessagePar
 instance FromJSON WaitMessagePar
 
+instance ToJSON InitMessagePar
+instance FromJSON InitMessagePar
+
+instance ToJSON AckInitMessagePar
+instance FromJSON AckInitMessagePar
+
 instance ToJSON RequestMessagePar
 instance FromJSON RequestMessagePar
 

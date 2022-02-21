@@ -57,6 +57,24 @@ et_size e =
    Coq_pp e1 e2 -> (Prelude.+) (et_size e1) (et_size e2);
    _ -> Prelude.succ 0}
 
+thread_count :: Term -> Prelude.Int
+thread_count t =
+  case t of {
+   Coq_lseq t1 t2 -> Prelude.max (thread_count t1) (thread_count t2);
+   Coq_bseq _ t1 t2 -> Prelude.max (thread_count t1) (thread_count t2);
+   Coq_bpar _ t1 t2 ->
+    (Prelude.+) ((Prelude.+) (Prelude.succ 0) (thread_count t1))
+      (thread_count t2);
+   _ -> 0}
+
+top_level_thread_count :: Term -> Prelude.Int
+top_level_thread_count t =
+  case t of {
+   Coq_lseq t1 t2 -> (Prelude.+) (thread_count t1) (thread_count t2);
+   Coq_bseq _ t1 t2 -> (Prelude.+) (thread_count t1) (thread_count t2);
+   Coq_bpar _ t1 _ -> (Prelude.+) (Prelude.succ 0) (thread_count t1);
+   _ -> 0}
+
 type RawEv = ([]) BS.BS
 
 data EvC =

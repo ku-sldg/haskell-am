@@ -124,3 +124,9 @@ layered_bg_strong =
     coq_P2 (Term_Defs.Coq_lseq (appraise coq_P2 Example_Phrases_Admits.it)
     (Term_Defs.Coq_asp Term_Defs.SIG))))
 
+test_par_nested :: Term_Defs.Term
+test_par_nested =
+  Term_Defs.Coq_bpar ((,) Term_Defs.ALL Term_Defs.ALL) (Term_Defs.Coq_asp
+    Term_Defs.SIG) (Term_Defs.Coq_bpar ((,) Term_Defs.ALL Term_Defs.ALL)
+    (Term_Defs.Coq_asp Term_Defs.SIG) (Term_Defs.Coq_asp Term_Defs.SIG))
+
