@@ -3,6 +3,7 @@ module Appraisal_IO_Stubs where
 import Copland
 import BS (BS, empty_bs, zero_bs, one_bs, bool_to_bs)
 import MonadAM --GenOptMonad
+import MonadAM_Types (AM)
 import CryptoImpl (get_pubkey_simpl, verify_simplD)
 import IO_Stubs(encodeEvRaw)
 

@@ -17,8 +17,13 @@ import qualified DemoStates as DS
 import Impl_VM_Extracted (run_cvm_loc')
 --import Comm (genNameServer)
 import CommUtil (genNameServer)
-import Data.List(union)
 
+import MonadAM_Types
+
+
+
+
+import Data.List(union)
 import Control.Monad.Reader
 import Control.Monad.State
 -- import Control.Monad.Error
@@ -29,6 +34,9 @@ import qualified Data.Map as M
 import qualified Data.Binary as D (encode,decode)
 
 --import GenOptMonad (AM)
+
+{-
+
 
 {-  The Attestation Manager Monad  -}
 --type AM = ReaderT AM_Env (StateT AM_St IO)
@@ -59,6 +67,8 @@ data AM_St =
           am_nonceId  :: Int
          } deriving (Show)
 
+
+
 empty_AM_state = AM_St { am_nonceMap =  M.empty,
                          {-am_nonceAppraiseMap = M.empty, -}
                          am_nonceId = 0 }
@@ -76,6 +86,8 @@ runAM :: AM a -> AM_Env -> AM_St -> IO (a, AM_St)
 runAM k env st =
      --runStateT (runReaderT k env) st
   runReaderT (runStateT k st) env
+
+-}
 
 
 am_genNonce :: AM EvC

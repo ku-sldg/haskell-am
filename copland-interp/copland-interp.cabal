@@ -46,6 +46,7 @@ library
       IO_Stubs
       JsonCopland
       MonadAM
+      MonadAM_Types
       MonadCop
       MonadParStore
       MonadStore
@@ -59,6 +60,7 @@ library
       Term_Defs_Deriving
       Test_Extract
       UDcore
+      Anno_Term_Defs
       Appraisal_Defs
       Appraisal_Evidence
       ConcreteEvidence

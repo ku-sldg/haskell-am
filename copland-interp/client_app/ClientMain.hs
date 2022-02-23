@@ -16,6 +16,7 @@ import qualified CryptoImpl as CI (doHashFile, lookupSecretKeyBytesIO, lookupSec
 import UDcore
 import CommUtil
 import MonadAM
+import MonadAM_Types (empty_AM_env, empty_AM_state, runAM)
 import Impl_appraisal_alt(build_app_comp_evC)
 import Impl_VM_Extracted (run_cvm')
 import Term_Defs_Deriving
@@ -45,7 +46,7 @@ main = do
    False -> clientMain opts
 
 local_term :: Term
-local_term = EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong
+local_term = EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
   --EP.cert_style
   --EP.layered_bg_strong
   --EP.layered_bg_weak

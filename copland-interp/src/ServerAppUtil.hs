@@ -76,28 +76,28 @@ start_server opts = do
 
 --   store_var <- newTVarIO M.empty
 
-do_par_server' :: TVar (M.Map Loc RawEv) -> TVar Loc -> CVM_SERV_Params ->
+do_par_server' :: TVar (M.Map Loc RawEv) -> TVar [Loc] -> CVM_SERV_Params ->
                   SA.Server_Options -> NS.Socket -> IO ()
-do_par_server' store_var loc_var params opts conn = do
+do_par_server' store_var locs_var params opts conn = do
   msg <- NBS.recv conn 2048
   (msg_decoded :: RequestMessagePar) <- decodeGen msg
   case msg_decoded of
     ParInit m -> do
       putStrLn $"received InitMessagePar: " ++ (show m)
-      resp_msg <- handle_par_init loc_var m
+      resp_msg <- handle_par_init locs_var m
       let msg'_encoded =  DA.encode resp_msg
       NBS.sendAll conn (BL.toStrict msg'_encoded)
       
     ParStart m -> handle_par_req params opts store_var m
     ParWait m -> do
-      resp_msg <- handle_par_wait store_var m
+      resp_msg <- handle_par_wait store_var locs_var m
       let msg'_encoded =  DA.encode resp_msg
       NBS.sendAll conn (BL.toStrict msg'_encoded)
 
 do_par_server :: CVM_SERV_Params -> SA.Server_Options -> Address -> IO ()
 do_par_server params opts addr = do
   store_var <- newTVarIO M.empty
-  loc_var <- newTVarIO 0
+  loc_var <- newTVarIO [1..100] -- TODO: pick more principled starting list?
   runUnixDomainServer addr (do_par_server' store_var loc_var params opts)
 
 start_server'' :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>

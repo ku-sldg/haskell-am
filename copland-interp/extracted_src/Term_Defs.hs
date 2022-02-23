@@ -2,7 +2,6 @@ module Term_Defs where
 
 import qualified Prelude
 import qualified BS
-import qualified Datatypes
 
 type Plc = Prelude.Int
 
@@ -57,22 +56,15 @@ et_size e =
    Coq_pp e1 e2 -> (Prelude.+) (et_size e1) (et_size e2);
    _ -> Prelude.succ 0}
 
-thread_count :: Term -> Prelude.Int
-thread_count t =
-  case t of {
-   Coq_lseq t1 t2 -> Prelude.max (thread_count t1) (thread_count t2);
-   Coq_bseq _ t1 t2 -> Prelude.max (thread_count t1) (thread_count t2);
-   Coq_bpar _ t1 t2 ->
-    (Prelude.+) ((Prelude.+) (Prelude.succ 0) (thread_count t1))
-      (thread_count t2);
-   _ -> 0}
-
 top_level_thread_count :: Term -> Prelude.Int
 top_level_thread_count t =
   case t of {
-   Coq_lseq t1 t2 -> (Prelude.+) (thread_count t1) (thread_count t2);
-   Coq_bseq _ t1 t2 -> (Prelude.+) (thread_count t1) (thread_count t2);
-   Coq_bpar _ t1 _ -> (Prelude.+) (Prelude.succ 0) (thread_count t1);
+   Coq_lseq t1 t2 ->
+    (Prelude.+) (top_level_thread_count t1) (top_level_thread_count t2);
+   Coq_bseq _ t1 t2 ->
+    (Prelude.+) (top_level_thread_count t1) (top_level_thread_count t2);
+   Coq_bpar _ t1 _ ->
+    (Prelude.+) (Prelude.succ 0) (top_level_thread_count t1);
    _ -> 0}
 
 type RawEv = ([]) BS.BS
@@ -140,34 +132,4 @@ data Ev =
  | Coq_join Prelude.Int Plc
  | Coq_cvm_thread_start Loc Plc Term Evidence
  | Coq_cvm_thread_end Loc
-
-data AnnoTermPar =
-   Coq_aasp_par ASP
- | Coq_aatt_par Plc Term
- | Coq_alseq_par AnnoTermPar AnnoTermPar
- | Coq_abseq_par Split AnnoTermPar AnnoTermPar
- | Coq_abpar_par Loc Split AnnoTermPar Term
-
-anno_par :: Term -> Loc -> (,) Loc AnnoTermPar
-anno_par t loc =
-  case t of {
-   Coq_asp a -> (,) loc (Coq_aasp_par a);
-   Coq_att p t0 -> (,) loc (Coq_aatt_par p t0);
-   Coq_lseq t1 t2 ->
-    case anno_par t1 loc of {
-     (,) loc' t1' ->
-      case anno_par t2 loc' of {
-       (,) loc'' t2' -> (,) loc'' (Coq_alseq_par t1' t2')}};
-   Coq_bseq spl t1 t2 ->
-    case anno_par t1 loc of {
-     (,) loc' t1' ->
-      case anno_par t2 loc' of {
-       (,) loc'' t2' -> (,) loc'' (Coq_abseq_par spl t1' t2')}};
-   Coq_bpar spl t1 t2 ->
-    case anno_par t1 (Prelude.succ loc) of {
-     (,) loc' t1' -> (,) loc' (Coq_abpar_par loc spl t1' t2)}}
-
-annotated_par :: Term -> AnnoTermPar
-annotated_par x =
-  Datatypes.snd (anno_par x 0)
 

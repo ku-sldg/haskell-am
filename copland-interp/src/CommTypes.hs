@@ -147,7 +147,7 @@ data InitMessagePar = InitMessagePar
 
 data AckInitMessagePar = AckInitMessagePar
   {
-    initLoc :: Loc
+    initLoc :: [Loc]
   } deriving (Show,Read,Generic)
 
 data RequestMessagePar =

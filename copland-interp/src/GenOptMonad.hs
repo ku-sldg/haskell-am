@@ -4,12 +4,12 @@ module GenOptMonad where
 import qualified Prelude
 import qualified Control.Monad.State.Lazy as SL
 --import MonadCop (COP)
-import qualified MonadAM (AM)
+import qualified MonadAM_Types (AM)
 
 --type AM a = SL.StateT s COP
-type AM = MonadAM.AM
+type AM = MonadAM_Types.AM
 
-type Opt = MonadAM.AM
+type Opt = MonadAM_Types.AM
 
 ret :: a -> AM a
 ret = SL.return

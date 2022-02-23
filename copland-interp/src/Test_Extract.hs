@@ -1,7 +1,8 @@
 module Test_Extract where
 
 import StVM (Coq_cvm_st(..))
-import Term_Defs (AnnoTermPar(..), AnnoTermPar(..),ASP(..),ASP_PARAMS(..),EvC(..), Evidence(..))
+import Term_Defs (ASP(..),ASP_PARAMS(..),EvC(..), Evidence(..))
+import Anno_Term_Defs (AnnoTermPar(..))
 import Term_Defs_Deriving
 import StVM_Deriving
 import Impl_VM_Extracted (run_cvm)

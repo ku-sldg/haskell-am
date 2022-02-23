@@ -12,7 +12,7 @@ import CryptoImpl(doSignD, get_key_simpl)
 import GenServerOpts (get_sample_aspmap, par_server_addr)
 import qualified ServerProgArgs as SA
 
-import qualified Data.Map as M (empty, insert, lookup, Map)
+import qualified Data.Map as M (empty, insert, lookup, delete, Map)
 import Control.Concurrent.STM
 
 
@@ -35,6 +35,9 @@ build_cvm_config params opts t nm e =
   
 mod_rawev_map :: TVar (M.Map Loc RawEv) -> Loc -> RawEv -> STM ()
 mod_rawev_map mv loc e = modifyTVar mv (M.insert loc e)
+
+clear_rawev_map_at_loc :: TVar (M.Map Loc RawEv) -> Loc -> STM ()
+clear_rawev_map_at_loc mv loc = modifyTVar mv (M.delete loc)
   
 handle_par_req :: CVM_SERV_Params -> SA.Server_Options -> TVar (M.Map Loc RawEv) ->
                   StartMessagePar -> IO ()
@@ -49,33 +52,43 @@ handle_par_req params opts store_var msg@(StartMessagePar loc nm t e) = do
   atomically $ mod_rawev_map store_var loc res_rawev
 
 
-hpw' :: TVar (M.Map Loc RawEv) -> Loc -> STM RawEv
-hpw' store_var loc = do
+hpw' :: TVar (M.Map Loc RawEv) -> TVar [Loc] -> Loc -> STM RawEv
+hpw' store_var locs_var loc = do
   m <- readTVar store_var
   let maybe_ev = M.lookup loc m
   case maybe_ev of
-    Just e -> return e -- TODO: necessary to delete loc entry here?
+    Just e -> do
+      modifyTVar locs_var (enque_loc loc)
+       -- TODO: necessary to clear loc entry from store here?
+      clear_rawev_map_at_loc store_var loc 
+      return e
     Nothing -> retry
 
-handle_par_wait :: TVar (M.Map Loc RawEv) -> WaitMessagePar -> IO ResponseMessagePar
-handle_par_wait store_var msg@(WaitMessagePar loc) = do
+handle_par_wait :: TVar (M.Map Loc RawEv) -> TVar [Loc] -> WaitMessagePar -> IO ResponseMessagePar
+handle_par_wait store_var locs_var msg@(WaitMessagePar loc) = do
   putStrLn $ "HANDLING PAR WAIT for Loc: " ++ (show loc)
-  res_ev <- atomically $ hpw' store_var loc
+  res_ev <- atomically $ hpw' store_var locs_var loc
   return (ResponseMessagePar res_ev)
 
+enque_loc :: Loc -> [Loc] -> [Loc]
+enque_loc loc ls = ls ++ [loc]
 
-
-handle_par_init :: TVar Loc -> InitMessagePar -> IO AckInitMessagePar
-handle_par_init loc_var msg@(InitMessagePar tSize) = do
+handle_par_init :: TVar [Loc] -> InitMessagePar -> IO AckInitMessagePar
+handle_par_init locs_var msg@(InitMessagePar tSize) = do
 
   putStrLn "in handle_par_init"
-  new_v <- atomically $ do
-    v <- readTVar loc_var
+  new_locs <- atomically $ do
+    ls <- readTVar locs_var
     --let v' = (v + tSize)
-    writeTVar loc_var (v + tSize)
-    return v
+    if (length ls < tSize)
+      then retry
+      else do 
+      let res = take tSize ls
+          rem = drop tSize ls
+      writeTVar locs_var rem
+      return res
 
-  return $ AckInitMessagePar new_v
+  return $ AckInitMessagePar new_locs
   
 
 

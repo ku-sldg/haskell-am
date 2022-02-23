@@ -5,6 +5,7 @@
 module Term_Defs_Deriving where
 
 import Term_Defs
+import Anno_Term_Defs
 import ConcreteEvidence(EvidenceC(..))
 
 import GHC.Generics (Generic)
