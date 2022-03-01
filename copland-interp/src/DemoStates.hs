@@ -14,17 +14,52 @@ import Copland
 --import MonadAM
 --import MonadVM_Old
 --import qualified ServerProgArgs as SA (Server_Options(..))
-import GenServerOpts(cvm_server_addr, sig_server_addr, par_server_addr, get_places, gen_name_map_term, get_sample_aspmap)
+import GenServerOpts(cvm_server_addr, sig_server_addr, par_server_addr, get_places, gen_name_map_term, get_sample_aspmap, get_asps)
 import MonadCop(Cop_Env(..))
+import qualified Example_Phrases_Admits as EPA (cache_id, attest_id, appraise_id, cert_id)
 
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 
+default_asp_addr :: Address
+default_asp_addr = "ASP_DEFAULT"
 
-sample_cop_env :: Bool -> Bool -> Term -> Plc -> Cop_Env
-sample_cop_env simB debugB t p =
-  let nm = gen_name_map_term t
+local_namemap :: M.Map Plc Address
+local_namemap = undefined
+
+local_aspmap :: M.Map ASP_ID Address
+local_aspmap = M.fromList [(EPA.cache_id, "CACHE"),
+                           (EPA.attest_id, "ATTEST"),
+                           (EPA.appraise_id, "APPRAISE"),
+                           (EPA.cert_id, "CERT")
+                          ]
+  
+update_one_aspmap :: M.Map ASP_ID Address -> ASP_ID -> M.Map ASP_ID Address
+update_one_aspmap m id =
+  let addr = fromMaybe default_asp_addr (M.lookup id local_aspmap) in
+    M.insert id addr m
+
+build_local_aspmap :: Term -> Plc -> M.Map ASP_ID Address
+build_local_aspmap t p =
+  --let amap = get_sample_aspmap t p
+      --asp_ids = M.keys amap in
+    let asp_ids = map snd (get_asps t p) in
+      foldl update_one_aspmap M.empty asp_ids
+
+sample_cop_env :: Bool -> Bool -> Bool -> Bool -> Term -> Plc -> Cop_Env
+sample_cop_env simB debugB cvmSpawn_b aspSpawn_b t p =
+  let nm =
+        case cvmSpawn_b of
+          True -> gen_name_map_term t
+          False -> local_namemap
+          
       store = undefined
-      myAsps = get_sample_aspmap t p
+      
+      myAsps =
+        case aspSpawn_b of
+          True -> get_sample_aspmap t p
+          False -> build_local_aspmap t p
+          
       sm = Sign_Server_Addr (sig_server_addr p)
       par_addr = par_server_addr p in
       

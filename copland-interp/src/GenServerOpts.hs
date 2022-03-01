@@ -73,6 +73,14 @@ get_asps' t p as =
 get_asps :: Term -> Plc -> [(Plc,ASP_ID)]
 get_asps t p = get_asps' t p []
 
+get_asps_pair :: (Term,Plc) -> [(Plc,ASP_ID)]
+get_asps_pair (t,p) = get_asps t p
+
+get_asps_terms :: [Term] -> [Plc] -> [(Plc,ASP_ID)]
+get_asps_terms ts ps =
+  let prs = zip ts ps in
+    concatMap get_asps_pair prs
+
 update_one_aspmap :: M.Map Plc (M.Map ASP_ID String) -> (Plc, ASP_ID) -> M.Map Plc (M.Map ASP_ID String)
 update_one_aspmap m (p,id) =
   let inner_map = 

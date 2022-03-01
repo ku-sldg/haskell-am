@@ -12,7 +12,7 @@ import BS
 import CryptoImpl as CI (doNonce, lookupSecretKeyPath)
 import MonadCop (Cop_Env(..), runCOP, COP)
 import ClientProgArgs
-import StVM (Coq_cvm_st(..))
+import StVM (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
 import Impl_VM_Extracted (run_cvm_loc')
 --import Comm (genNameServer)
@@ -96,13 +96,13 @@ am_genNonce = do
   new_id <- am_updateNonce bs
   return $ Coq_evc [bs] (Coq_nn new_id)
 
-am_run_cvm :: Bool -> Bool -> Term -> AM Coq_cvm_st
-am_run_cvm simb debugb t = do
-  ne <- am_genNonce
-  let mypl = 0 -- TODO: make not hardcoded?
-      st = (Coq_mk_st ne [] 0 0)
-      env = DS.sample_cop_env simb debugb t mypl
-  liftIO $ run_cvm_loc' t st env
+am_run_cvm_nonce_init :: Bool -> Bool -> Bool -> Bool -> Plc -> Term -> AM (N_ID, RawEv)
+am_run_cvm_nonce_init simb debugb cvmSpawn_b aspSpawn_b mypl t = do
+  ne@(Coq_evc _ (Coq_nn nid)) <- am_genNonce
+  let cvm_st = (Coq_mk_st ne [] 0 0)
+      env = DS.sample_cop_env simb debugb cvmSpawn_b aspSpawn_b t mypl
+  cvmst_res <- liftIO $ run_cvm_loc' t cvm_st env
+  return $ (nid, get_bits (st_ev cvmst_res))
 
 am_get_sig_asp :: Plc -> AM ASP_ID
 am_get_sig_asp p = do

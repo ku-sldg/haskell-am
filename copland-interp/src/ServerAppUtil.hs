@@ -9,7 +9,7 @@
   Date:  4/4/2020
 -}
 
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
 
 module ServerAppUtil where
 
@@ -26,7 +26,8 @@ import StVM_Deriving
 import BS
 import CryptoImpl (doSign)
 import ServerAppHandlers
-import GenServerOpts (get_server_addr_gen, get_places, get_asps)
+import GenServerOpts (get_server_addr_gen, get_places, get_asps_terms)
+import qualified Example_Phrases_Admits as EPA (cache_id, attest_id, appraise_id, cert_id)
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.ByteString.Lazy as BL
@@ -40,7 +41,7 @@ import Control.Monad (forever, void)
 import Control.Concurrent.STM.TVar
 import qualified Data.Aeson as DA (encode)
 
-import Data.List(union)
+import Data.List(nub, concatMap)
 
 
 gen_TCP_port_if_empty :: Address -> IO Address
@@ -68,9 +69,19 @@ start_server opts = do
     SIGN ->
       start_server'' addr
                      (handle_sig opts)
-    ASP_SERV _ ->
-      start_server'' addr
-                     (handle_asp opts)
+    ASP_SERV i -> do
+      putStrLn $ "Starting ASP server with ID: " ++ (show i)
+      if | i == EPA.cache_id -> do
+           cache_var <- newTVarIO Nothing
+           start_server'' addr (handle_asp_cache cache_var)
+         | i == EPA.attest_id -> do
+             start_server'' addr (handle_asp_attest)
+         | i == EPA.appraise_id -> do
+             start_server'' addr (handle_asp_appraise)
+         | i == EPA.cert_id -> do
+             start_server'' addr (handle_asp_certify)
+         | otherwise -> do
+             start_server'' addr (handle_asp_default i)
     _ -> return ()
 
 
@@ -112,34 +123,31 @@ spawn_the_server_threads :: [SA.Server_Options] -> IO ()
 spawn_the_server_threads ls =
   mapM_ spawn_server_thread ls
 
-spawn_servers_term :: Bool -> Bool -> Term -> Plc -> IO ()
-spawn_servers_term simB debugB t p = do
-  let opts = gen_term_opts simB debugB t p
-  print opts
+spawn_servers_terms :: Bool -> Bool -> Bool -> Bool -> [Term] -> [Plc] -> IO ()
+spawn_servers_terms simB debugB cvmSpawnB aspSpawnB ts ps_in = do
+  let ps' = concatMap get_places ts
+      ps = nub (ps_in ++ ps')
+
+      cvm_opts =
+        case (cvmSpawnB) of
+          True -> gen_cvm_server_opts simB debugB aspSpawnB ps
+          False -> []
+
+      asp_opts =
+        case (aspSpawnB) of
+          True -> let as = nub (get_asps_terms ts ps) in
+                    gen_asp_server_opts simB debugB as
+          False -> []
+        
+      sig_opts = gen_sig_server_opts simB debugB ps
+      par_opts = gen_par_server_opts simB debugB aspSpawnB ps
+
+      opts = cvm_opts ++ asp_opts ++ sig_opts ++ par_opts
+      
+  --let opts = gen_term_opts simB debugB t p
+  --print opts
   --error "DONE"
   spawn_the_server_threads opts
-
-
-
-
-
-
-plc_opts :: Bool -> Bool -> [(Plc,ASP_ID)] -> [Plc] -> [SA.Server_Options]
-plc_opts simB debugB as ps =
-  let sig_opts = gen_sig_server_opts simB debugB ps
-      cvm_opts = gen_cvm_server_opts simB debugB ps
-      asp_opts = gen_asp_server_opts simB debugB as
-      par_opts = gen_par_server_opts simB debugB ps -- TODO: accurate plc?
-  in
-    sig_opts ++ cvm_opts ++ asp_opts ++ par_opts
-
-gen_term_opts :: Bool -> Bool -> Term -> Plc -> [SA.Server_Options]
-gen_term_opts simB debugB t p =
-  let ps' = get_places t
-      ps = p:ps' -- TODO: ok to add appraiser place p here?
-      as = get_asps t p in
-    --error $ (show ps) ++ (show as)
-    plc_opts simB debugB as ps
       
 
 gen_server_opt :: Bool -> Bool -> ServerType -> Plc -> SA.Server_Options
@@ -160,25 +168,25 @@ gen_asp_server_opts :: Bool -> Bool -> [(Plc,ASP_ID)] -> [SA.Server_Options]
 gen_asp_server_opts simB debugB ps =
   map (gen_asp_server_opt simB debugB) ps
 
-gen_cvm_server_opt :: Bool -> Bool -> Plc -> SA.Server_Options
-gen_cvm_server_opt simB debugB p =
+gen_cvm_server_opt :: Bool -> Bool -> Bool -> Plc -> SA.Server_Options
+gen_cvm_server_opt simB debugB aspSpawnB p =
   let sig_server_addr = get_server_addr_gen SIGN p
-      st = CVM_SERV (CVM_SERV_Params p (Sign_Server_Addr sig_server_addr)) in
+      st = CVM_SERV (CVM_SERV_Params p aspSpawnB (Sign_Server_Addr sig_server_addr)) in
     gen_server_opt simB debugB st p
 
-gen_cvm_server_opts :: Bool -> Bool -> [Plc] -> [SA.Server_Options]
-gen_cvm_server_opts simB debugB ps =
-  map (gen_cvm_server_opt simB debugB) ps
+gen_cvm_server_opts :: Bool -> Bool -> Bool -> [Plc] -> [SA.Server_Options]
+gen_cvm_server_opts simB debugB aspSpawnB ps =
+  map (gen_cvm_server_opt simB debugB aspSpawnB) ps
 
-gen_par_server_opt :: Bool -> Bool -> Plc -> SA.Server_Options
-gen_par_server_opt simB debugB p =
+gen_par_server_opt :: Bool -> Bool -> Bool -> Plc -> SA.Server_Options
+gen_par_server_opt simB debugB aspSpawnB p =
   let sig_server_addr = get_server_addr_gen SIGN p
-      st = PAR_SERV (CVM_SERV_Params p (Sign_Server_Addr sig_server_addr)) in
+      st = PAR_SERV (CVM_SERV_Params p aspSpawnB (Sign_Server_Addr sig_server_addr)) in
     gen_server_opt simB debugB st p
 
-gen_par_server_opts :: Bool -> Bool -> [Plc] -> [SA.Server_Options]
-gen_par_server_opts simB debugB ps =
-  map (gen_par_server_opt simB debugB) ps
+gen_par_server_opts :: Bool -> Bool -> Bool -> [Plc] -> [SA.Server_Options]
+gen_par_server_opts simB debugB aspSpawnB ps =
+  map (gen_par_server_opt simB debugB aspSpawnB) ps
 
 {-
 lookupPath :: ServerType -> IO FilePath

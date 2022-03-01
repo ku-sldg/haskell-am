@@ -52,5 +52,7 @@ deriving instance Generic Term
 instance BI.Binary SP where
 instance BI.Binary ASP_PARAMS where
 instance BI.Binary ASP where
+instance BI.Binary Term where
 instance BI.Binary Evidence where
+instance BI.Binary EvidenceC where
 

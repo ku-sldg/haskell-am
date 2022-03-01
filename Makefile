@@ -23,7 +23,7 @@ build_server :	./copland-interp/copland-interp.cabal
 		cd ./copland-interp/ ; stack build ${EXE_PRE}${SERV}
 
 run:
-	cd copland-interp ; stack exec -- ${CLIENT} --spawn --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs"
+	cd copland-interp ; stack exec -- ${CLIENT} --spawnCvms --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs" --spawnAsps
 
 ghci:
 	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${MAIN}
@@ -36,6 +36,24 @@ ghciclient:
 
 ghcigen:
 	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${GEN}
+
+runaspserver_default:
+	cd copland-interp ; stack exec -- ${SERV} -r "ASP_DEFAULT" -a 42
+
+runaspserver_cache:
+	cd copland-interp ; stack exec -- ${SERV} -r "CACHE" -a 4
+
+runaspserver_attest:
+	cd copland-interp ; stack exec -- ${SERV} -r "ATTEST" -a 1
+
+runaspserver_appraise:
+	cd copland-interp ; stack exec -- ${SERV} -r "APPRAISE" -a 2
+
+runaspserver_cert:
+	cd copland-interp ; stack exec -- ${SERV} -r "CERT" -a 3
+
+runparserver_one:
+	cd copland-interp ; stack exec -- ${SERV} -r "ASP_DEFAULT" -a 42
 
 runserver_zero:
 	cd copland-interp ; stack exec -- ${SERV} -r "CVM0" -p 1 -c "SIG0"

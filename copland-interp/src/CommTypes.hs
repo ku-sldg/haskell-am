@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE StandaloneDeriving, TypeSynonymInstances, FlexibleInstances #-}
 module CommTypes where
 
 import Term_Defs
@@ -10,6 +11,7 @@ import GHC.Generics (Generic)
 import Control.Concurrent.STM
 import Numeric.Natural
 import qualified Data.Map as M (Map)
+import Data.Binary
 
 
 
@@ -18,6 +20,14 @@ import qualified Data.Map as M (Map)
 type Address = String
 
 type VM_ID = Natural
+
+data AttestResult = AttestResult
+  { term_ran :: Term,
+    ev_res :: RawEv } deriving (Show,Read,Generic)
+
+--deriving instance Binary AttestResult
+
+instance Binary AttestResult where
 
 --Attestation Request Message
 data RequestMessage = RequestMessage
@@ -178,6 +188,7 @@ data Sign_Mechanism =
 
 data CVM_SERV_Params = CVM_SERV_Params
   { cvm_params_plc :: Plc,
+    cvm_asps_simb :: Bool,
     {-cvm_params_port :: String, -}
     cvm_params_sig_mech :: Sign_Mechanism
     {-cvm_params_store_port :: String, -}

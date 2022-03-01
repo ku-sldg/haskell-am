@@ -42,12 +42,14 @@ certificate p targ =
 store :: Term_Defs.Plc -> Term_Defs.TARG_ID -> Term_Defs.Term
 store p targ =
   Term_Defs.Coq_asp (Term_Defs.ASPC (Term_Defs.Coq_asp_paramsC
-    Example_Phrases_Admits.store_id ([]) p targ))
+    Example_Phrases_Admits.cache_id Example_Phrases_Admits.store_args p
+    targ))
 
 retrieve :: Term_Defs.Plc -> Term_Defs.TARG_ID -> Term_Defs.Term
 retrieve p targ =
   Term_Defs.Coq_asp (Term_Defs.ASPC (Term_Defs.Coq_asp_paramsC
-    Example_Phrases_Admits.retrieve_id ([]) p targ))
+    Example_Phrases_Admits.cache_id Example_Phrases_Admits.retrieve_args p
+    targ))
 
 cert_style_simple_sig :: Term_Defs.Term
 cert_style_simple_sig =

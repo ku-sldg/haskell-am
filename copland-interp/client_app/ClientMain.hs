@@ -23,7 +23,7 @@ import Term_Defs_Deriving
 import StVM_Deriving
 import StVM (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
-import ServerAppUtil(spawn_servers_term)
+import ServerAppUtil(spawn_servers_terms)
 import GenServerOpts(get_sample_aspmap, gen_name_map_term)
 import qualified Example_Phrases as EP
 
@@ -32,7 +32,7 @@ import Data.List(union)
 import Text.Read(readMaybe)
 import Crypto.Sign.Ed25519 (SecretKey(..), verify, toPublicKey)
 import qualified Data.Map as M
-import qualified Control.Concurrent as CC (threadDelay)
+import qualified Control.Concurrent as CC (threadDelay, forkIO)
 import qualified Data.ByteString as B (empty, writeFile)
 import Control.Concurrent.STM
 
@@ -46,7 +46,7 @@ main = do
    False -> clientMain opts
 
 local_term :: Term
-local_term = EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
+local_term = EP.cert_style --EP.cert_style_simple_sig --EP.cert_cache_p0 --EP.cert_cache_p0 --EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
   --EP.cert_style
   --EP.layered_bg_strong
   --EP.layered_bg_weak
@@ -75,31 +75,68 @@ clientMain (Client_Options
              prov_b
              json_b
              debug_b
-             spawn_b
-             spawnSim_b
+             spawnCVM_b
+             spawnASP_b
              spawnDebug_b
              namesFile
              appraise_b) = do
       
   (my_term, my_ev) <- get_term_ev termFile evFile
-  let  mypl = DS.zero_plc
+  let  mypl = DS.zero_plc -- TODO: ok to hardcode?
+       multi_termB = False
 
-  do_when (spawn_b) $ do
+       my_terms =
+         case multi_termB of
+           True -> [my_term, EP.cert_cache_p1]
+           False -> [my_term]
+       my_places =
+         case multi_termB of
+           True -> [mypl, DS.one_plc]
+           False -> [mypl]
+
+  do_when (spawnCVM_b || spawnASP_b) $ do
     print "BEFORE spawn_servers_term in ClientMain"
-    spawn_servers_term spawnSim_b spawnDebug_b my_term mypl
+    spawn_servers_terms sim_b debug_b spawnCVM_b spawnASP_b my_terms  my_places
     CC.threadDelay 10000
+
+
   
 
-  let am_comp = am_run_cvm sim_b debug_b my_term
-  res <- runAM am_comp empty_AM_env empty_AM_state
+  let am_comp =
+        am_run_cvm_nonce_init
+          sim_b
+          debug_b
+          spawnCVM_b
+          spawnASP_b
+          mypl
+          my_term
+
+      am_comp_1 =
+        am_run_cvm_nonce_init
+          sim_b
+          debug_b
+          spawnCVM_b
+          spawnASP_b
+          DS.one_plc
+          EP.cert_cache_p1
+
+  do_when (multi_termB) $ do
+    CC.forkIO $ do
+      runAM am_comp_1 empty_AM_env empty_AM_state
+      return ()
+    return ()
+  
+          
+ -- res@(cvmst_res, amst_res) <- runAM am_comp empty_AM_env empty_AM_state
+  res@((nonce_id, rawev_res), amst_res) <- runAM am_comp empty_AM_env empty_AM_state
 
   putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
   putStrLn $ "Result: \n" ++ (show res) ++ "\n"
 
   do_when (appraise_b) $ do
-    let cvmst_res = fst res
-        rawev_res = get_bits (st_ev cvmst_res)
-        et_app = eval my_term mypl (Coq_nn 0)
+    let --cvmst_res = fst res
+        --rawev_res = get_bits (st_ev cvmst_res)
+        et_app = eval my_term mypl (Coq_nn nonce_id)
     putStrLn $ show et_app
     let appraise_comp =
           do
@@ -107,8 +144,8 @@ clientMain (Client_Options
             liftIO $ putStrLn $ "et_size: " ++ (show (et_size et_app))
             v <- build_app_comp_evC et_app rawev_res
             return v
-    let new_app_st = snd res
-    app_res <- runAM appraise_comp empty_AM_env new_app_st
+    --let new_app_st = snd res
+    app_res <- runAM appraise_comp empty_AM_env amst_res
 
     putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
 

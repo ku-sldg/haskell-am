@@ -29,8 +29,8 @@ data Client_Options = Client_Options
     optProv :: Bool,
     optJson :: Bool,
     optDebug :: Bool,
-    optSpawn :: Bool,
-    optSpawnSim :: Bool,
+    optSpawnCVM :: Bool,
+    optSpawnASP :: Bool,
     optSpawnDebug :: Bool,
     optNamesFileIn :: FilePath,
     optAppraise :: Bool
@@ -51,8 +51,8 @@ popts = Client_Options <$>
   provision <*>
   jsonOutput <*>
   debug <*>
-  spawn <*>
-  spawnSim <*>
+  spawnCVMs <*>
+  spawnASPs <*>
   spawnDebug <*>
   names <*>
   appr
@@ -105,17 +105,17 @@ debug = switch
   <> short 'd'
   <> help "verbose debugging output for client thread actions" )
 
-spawn :: Parser Bool
-spawn = switch
-   ( long "spawn"
+spawnCVMs :: Parser Bool
+spawnCVMs = switch
+   ( long "spawnCvms"
   <> short 'w'
-  <> help "Spawn attestation servers as as separate background threads for all places involved in the input Copland term" )
+  <> help "Spawn CVM servers (with auto-generated port string addresses:  CVM_P, where P is its place) as separate background threads for all places involved in the input Copland term" )
 
-spawnSim :: Parser Bool
-spawnSim = switch
-   ( long "spawnSim"
+spawnASPs :: Parser Bool
+spawnASPs = switch
+   ( long "spawnAsps"
   <> short 'v'
-  <> help "Specify that all spawned servers run in simulation mode" )
+  <> help "Spawn ASP servers (with auto-generated port string addresses:  ASP_P_I, where P is its place and I its ASP_ID) as separate background threads for all ASPs at all places involved in the input Copland term" )
 
 spawnDebug :: Parser Bool
 spawnDebug = switch

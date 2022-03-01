@@ -44,6 +44,57 @@ simulation = switch
   <> short 's'
   <> help "Set to run in simulation-mode" )
 
+debug :: Parser Bool
+debug = switch
+   ( long "debug"
+  <> short 'd'
+  <> help "Verbose debugging output" )
+
+sPort :: Parser String
+sPort = strOption
+  (  long "portString"
+  <> short 'r'
+  <> metavar "STRING"
+  <> value ""
+  <> help "Provide a port string to run a server at.  If this option is omitted or assigned the empty string, a random available port will be selected." )
+
+sType :: Parser ServerType
+sType = sTypeSign <|> sTypeStore <|> sTypeAspServ <|> sTypeCvmServ <|> sTypePar
+
+sTypeSign :: Parser ServerType
+sTypeSign = flag' SIGN
+  ( long "sign_server"
+  <> help "Set for a SIGN ServerType" )
+
+sTypeStore :: Parser ServerType
+sTypeStore = flag' STORE
+  ( long "store_server"
+  <> help "Set for a STORE ServerType" )
+
+sTypePar :: Parser ServerType
+sTypePar = flag' STORE
+  ( long "par_server"
+  <> help "Set for a PAR ServerType" )
+
+sTypeAspServ :: Parser ServerType
+sTypeAspServ = ASP_SERV <$> aspid_parser
+
+sTypeCvmServ :: Parser ServerType
+sTypeCvmServ = CVM_SERV <$> cvmServParams
+
+{-
+sTypeParServ :: Parser ServerType
+sTypeParServ = PAR_SERV <$> cvmServParams
+-}
+
+cvmServParams :: Parser CVM_SERV_Params
+cvmServParams = CVM_SERV_Params <$> plc_parser <*> cvm_asp_spawn <*> cvm_sig_mech_parse
+
+aspid_parser :: Parser ASP_ID
+aspid_parser = option auto
+  ( long "asp_server"
+  <> short 'a' )
+
 plc_parser :: Parser Plc
 plc_parser = option auto
   ( long "cvm_plc"
@@ -61,50 +112,25 @@ cvm_sig_path_parse = Sign_Keypath <$>
   ( long "cvm_sig_path"
   <> short 'f' )
 
+cvm_asp_spawn :: Parser Bool
+cvm_asp_spawn = switch
+   ( long "aspspawn"
+  <> short 't'
+  <> help "Set when asps with auto-generated addresses are running in background" )
+
 
 cvm_sig_mech_parse :: Parser Sign_Mechanism
 cvm_sig_mech_parse = cvm_sig_port_parse <|> cvm_sig_path_parse
 
-cvmServParams :: Parser CVM_SERV_Params
-cvmServParams = CVM_SERV_Params <$> plc_parser <*> cvm_sig_mech_parse
 
 
-sTypeCvmServ :: Parser ServerType
-sTypeCvmServ = CVM_SERV <$> cvmServParams
 
 
-sType :: Parser ServerType
-sType = sTypeSign <|> sTypeStore <|> sTypeAspServ <|> sTypeCvmServ
 
 
-aspid_parser :: Parser ASP_ID
-aspid_parser = option auto
-  ( long "asp_server"
-  <> short 'a' )
 
-sTypeAspServ :: Parser ServerType
-sTypeAspServ = ASP_SERV <$> aspid_parser
 
-sTypeSign :: Parser ServerType
-sTypeSign = flag' SIGN
-  ( long "sign_server"
-  <> help "Set for a SIGN ServerType" )
 
-sTypeStore :: Parser ServerType
-sTypeStore = flag' STORE
-  ( long "store_server"
-  <> help "Set for a STORE ServerType" )
 
-debug :: Parser Bool
-debug = switch
-   ( long "debug"
-  <> short 'd'
-  <> help "Verbose debugging output" )
 
-sPort :: Parser String
-sPort = strOption
-  (  long "portString"
-  <> short 'r'
-  <> metavar "STRING"
-  <> value ""
-  <> help "Provide a port string to run a server at.  If this option is omitted or assigned the empty string, a random available port will be selected." )
+
