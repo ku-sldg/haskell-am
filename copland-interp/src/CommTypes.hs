@@ -5,6 +5,7 @@ module CommTypes where
 import Term_Defs
 import Term_Defs_Deriving
 import BS
+import ConcreteEvidence
 
 import System.Environment (lookupEnv)
 import GHC.Generics (Generic)
@@ -12,6 +13,35 @@ import Control.Concurrent.STM
 import Numeric.Natural
 import qualified Data.Map as M (Map)
 import Data.Binary
+
+
+
+check_for_one_bit :: BS.BS -> Bool -> Bool
+check_for_one_bit bs b =
+  case (bs == BS.one_bs) of
+        True -> b
+        False -> False
+  
+
+certWalk_EvidenceC' :: ConcreteEvidence.EvidenceC -> Bool -> Bool
+certWalk_EvidenceC' e b =
+  case e of
+    Coq_mtc -> b
+    Coq_nnc _ bs ->
+      check_for_one_bit bs b
+    Coq_uuc _ _ bs e' ->
+      (check_for_one_bit bs b) && (certWalk_EvidenceC' e' True)
+    Coq_ggc _ bs e' ->
+      (check_for_one_bit bs b) && (certWalk_EvidenceC' e' True)
+    Coq_hhc _ bs _ ->
+      (check_for_one_bit bs b)
+    Coq_ssc e1 e2 ->
+      (certWalk_EvidenceC' e1 b) && (certWalk_EvidenceC' e2 True)
+    Coq_ppc e1 e2 ->
+      (certWalk_EvidenceC' e1 b) && (certWalk_EvidenceC' e2 True)
+
+certWalk_EvidenceC :: ConcreteEvidence.EvidenceC -> Bool
+certWalk_EvidenceC e = certWalk_EvidenceC' e True
 
 
 

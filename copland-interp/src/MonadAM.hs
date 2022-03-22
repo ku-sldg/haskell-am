@@ -99,6 +99,7 @@ am_genNonce = do
 am_run_cvm_nonce_init :: Bool -> Bool -> Bool -> Bool -> Plc -> Term -> AM (N_ID, RawEv)
 am_run_cvm_nonce_init simb debugb cvmSpawn_b aspSpawn_b mypl t = do
   ne@(Coq_evc _ (Coq_nn nid)) <- am_genNonce
+  liftIO $ putStrLn $ "Nonce generated: " ++ (show ne)
   let cvm_st = (Coq_mk_st ne [] 0 0)
       env = DS.sample_cop_env simb debugb cvmSpawn_b aspSpawn_b t mypl
   cvmst_res <- liftIO $ run_cvm_loc' t cvm_st env

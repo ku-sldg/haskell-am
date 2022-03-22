@@ -3,8 +3,8 @@
 module ServerAppHandlers where
 
 import Copland
-import BS (BS, empty_bs, zero_bs, one_bs)
-import ConcreteEvidence (EvidenceC)
+import BS (BS, empty_bs, zero_bs, one_bs, bool_to_bs)
+import ConcreteEvidence --(EvidenceC)
 import StVM
 import StVM_Deriving
 import MonadCop (Cop_Env(..))
@@ -119,7 +119,7 @@ handle_asp_attest msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = d
       sport = "" -- TODO: is this ever used?
       sType = CVM_SERV params
       opts = SA.Server_Options optSim optDebug sport sType
-      t = Coq_asp (ASPC (Coq_asp_paramsC 42 [] me 42)) -- TODO: is this dummy term ok?
+      t = Coq_asp SIG --Coq_asp (ASPC (Coq_asp_paramsC 42 [] me 42)) -- TODO: is this dummy term ok?
       (env,st) = build_cvm_config params opts t {-nm-} rawEv
 
   res_rawev <- {-run_cvm_rawev-} run_cvm_loc t st env
@@ -142,11 +142,13 @@ handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
   let (bs::BS.BS)= head rawEv
       lazy_bs = BL.fromStrict bs
       (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
-      them = 0 -- TODO: no hardcode?
+      nval = last rawEv
+  putStrLn $ "Nonce GRABBED: " ++ (show nval)
+  let them = 0 -- TODO: no hardcode?
       init_ev_type = (Coq_nn 0) -- TODO: ok?
       (et_app::Evidence) = eval t them init_ev_type
       appraise_comp = build_app_comp_evC et_app res_rawev
-      amst = AM_St (M.fromList [(0,BS.empty_bs)]) 1 -- TODO: need actual nonce value from attester/relying?
+      amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
 
   ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst
 
@@ -162,11 +164,13 @@ handle_asp_certify msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = 
       lazy_bs = BL.fromStrict bs
       (r::EvidenceC) = BIN.decode lazy_bs
 
-  putStrLn $ "Appraisal EvidenceC structure received: " ++ (show r)
+  putStrLn $ "Appraisal EvidenceC structure received by Cert ASP: " ++ (show r)
       -- TODO: walk EvidenceC structure for legit certify?
-  let cert_res = BS.one_bs  --TODO:  hard-coded true("good") value
+  let b = certWalk_EvidenceC r
+  liftIO $ putStrLn $ "Performing Cert ASP, bool result: " ++ show (b)
+  let cert_res = BS.bool_to_bs b --r --BS.one_bs  --TODO:  hard-coded true("good") value
       -- TODO: sign cert structure?
-      resp_bs = BL.toStrict $ BIN.encode cert_res
+      resp_bs = cert_res --BL.toStrict $ cert_res --BIN.encode cert_res
       
   return $ AspResponseMessage resp_bs
 

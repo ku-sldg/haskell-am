@@ -149,6 +149,9 @@ clientMain (Client_Options
 
     putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
 
+    let app_res_bool = certWalk_EvidenceC (fst app_res)
+    putStrLn $ "Walked EvidenceC Appraise Bool Result: \n" ++ (show app_res_bool)
+
 
 get_term_ev :: FilePath -> FilePath -> IO (Term, RawEv)
 get_term_ev inp einp = do

@@ -15,3 +15,12 @@ bool_to_bs b =
   case b of
     True -> one_bs
     False -> zero_bs
+
+bs_to_bool :: BS -> Bool
+bs_to_bool bs =
+  case (bs == one_bs) of
+    True -> True
+    False ->
+      case (bs == zero_bs) of
+        True -> False
+        False -> error "input BS to bs_to_bool not a zero or one bit"
