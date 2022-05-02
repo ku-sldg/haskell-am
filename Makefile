@@ -23,7 +23,7 @@ build_server :	./copland-interp/copland-interp.cabal
 		cd ./copland-interp/ ; stack build ${EXE_PRE}${SERV}
 
 run:
-	cd copland-interp ; stack exec -- ${CLIENT} --spawnCvms --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs" --spawnAsps
+	cd copland-interp ; stack exec -- ${CLIENT} --spawnCvms --spawnAsps --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs" --spawnAsps
 
 ghci:
 	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${MAIN}
