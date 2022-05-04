@@ -26,6 +26,10 @@ deriving instance Show AnnoTermPar
 
 deriving instance Show EvidenceC
 
+deriving instance Eq SP
+deriving instance Eq ASP_PARAMS
+deriving instance Eq ASP
+deriving instance Eq Term
 
 
 deriving instance Read ASP_PARAMS

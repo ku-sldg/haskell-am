@@ -85,6 +85,7 @@ handle_par_wait :: TVar (M.Map Loc RawEv) -> TVar [Loc] -> WaitMessagePar -> IO 
 handle_par_wait store_var locs_var msg@(WaitMessagePar loc) = do
   putStrLn $ "HANDLING PAR WAIT for Loc: " ++ (show loc)
   res_ev <- atomically $ hpw' store_var locs_var loc
+  putStrLn $ "RECEIVED PAR WAIT for Loc: " ++ (show loc)
   return (ResponseMessagePar res_ev)
 
 enque_loc :: Loc -> [Loc] -> [Loc]
@@ -105,6 +106,7 @@ handle_par_init locs_var msg@(InitMessagePar tSize) = do
       writeTVar locs_var rem
       return res
 
+  putStrLn "leaving handle_par_init"
   return $ AckInitMessagePar new_locs
 
 
@@ -143,11 +145,14 @@ handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
       lazy_bs = BL.fromStrict bs
       (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
       nval = last rawEv
-  putStrLn $ "Nonce GRABBED: " ++ (show nval)
+  putStrLn $ "Nonce GRABBEDD: " ++ (show nval)
+  --putStrLn $ "AttestResult grabbed: " ++ (show r)
   let them = 0 -- TODO: no hardcode?
       init_ev_type = (Coq_nn 0) -- TODO: ok?
       (et_app::Evidence) = eval t them init_ev_type
-      appraise_comp = build_app_comp_evC et_app res_rawev
+  --putStrLn $ "HERE" ++ (show et_app)
+  putStrLn $ "Evidence Type computed for appraise ASP: " ++ (show et_app)
+  let appraise_comp = build_app_comp_evC et_app res_rawev
       amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
 
   ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst

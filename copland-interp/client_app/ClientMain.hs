@@ -27,6 +27,9 @@ import ServerAppUtil(spawn_servers_terms)
 import GenServerOpts(get_sample_aspmap, gen_name_map_term)
 import qualified Example_Phrases as EP
 
+import qualified Copland_Terms as CT
+import qualified Example_Phrases_Concrete as EPC
+
 import Control.Monad.Trans(liftIO)
 import Data.List(union)
 import Text.Read(readMaybe)
@@ -44,9 +47,24 @@ main = do
   case provBool of
    True -> provision
    False -> clientMain opts
+     {-
+     putStrLn $ show $ (CT.toExtractedTerm EPC.layered_bg_weak) ==
+                        EP.layered_bg_weak
+-}
 
 local_term :: Term
-local_term = EP.cert_style --EP.cert_style_simple_sig --EP.cert_cache_p0 --EP.cert_cache_p0 --EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
+local_term = EP.cert_style
+  --CT.toExtractedTerm EPC.layered_bg_weak --EP.layered_bg_weak
+  
+--EPC.par_mut_p1
+--EPC.par_mut_p0
+--EPC.bg_check
+--EPC.cert_cache_p1
+--EPC.cert_cache_p0
+--EPC.cert_style_simple_sig
+--EPC.cert_style
+
+  --EP.cert_style --EP.cert_style_simple_sig --EP.cert_cache_p0 --EP.cert_cache_p0 --EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
   --EP.cert_style
   --EP.layered_bg_strong
   --EP.layered_bg_weak
