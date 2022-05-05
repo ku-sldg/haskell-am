@@ -25,7 +25,12 @@ default_asp_addr :: Address
 default_asp_addr = "ASP_DEFAULT"
 
 local_namemap :: M.Map Plc Address
-local_namemap = undefined
+local_namemap =  M.fromList [(zero_plc, zero_addr),
+                           (one_plc, one_addr),
+                           (two_plc, two_addr),
+                           (three_plc, three_addr),
+                           (four_plc, four_addr)
+                          ]
 
 local_aspmap :: M.Map ASP_ID Address
 local_aspmap = M.fromList [(EPA.cache_id, "CACHE"),
@@ -82,6 +87,21 @@ one_addr = "CVM_1"
 
 two_plc :: Plc
 two_plc = 2
+
+two_addr :: Address
+two_addr = "CVM_2"
+
+three_plc :: Plc
+three_plc = 3
+
+three_addr :: Address
+three_addr = "CVM_3"
+
+four_plc :: Plc
+four_plc = 4
+
+four_addr :: Address
+four_addr = "CVM_4"
 
 {-
 

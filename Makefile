@@ -23,7 +23,8 @@ build_server :	./copland-interp/copland-interp.cabal
 		cd ./copland-interp/ ; stack build ${EXE_PRE}${SERV}
 
 run:
-	cd copland-interp ; stack exec -- ${CLIENT} --spawnCvms --spawnAsps --appraise #-t "inputs/phrase.hs" -e "inputs/initEv.hs" --spawnAsps
+	cd copland-interp ; stack exec -- ${CLIENT} --appraise --spawnCvms --spawnAsps
+#--spawnAsps #--spawnCvms   -t "inputs/phrase.hs" -e "inputs/initEv.hs" --spawnAsps --appraise
 
 ghci:
 	cd copland-interp ; stack ghci --main-is ${EXE_PRE}${MAIN}
@@ -56,22 +57,28 @@ runparserver_one:
 	cd copland-interp ; stack exec -- ${SERV} -r "ASP_DEFAULT" -a 42
 
 runserver_zero:
-	cd copland-interp ; stack exec -- ${SERV} -r "CVM0" -p 1 -c "SIG0"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_0" -p 1 -c "SIG_0"
 
 runserver_one:
-	cd copland-interp ; stack exec -- ${SERV} -r "CVM1" -p 1 -c "SIG1"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_1" -p 1 -c "SIG_1"
 
 runserver_two:
-	cd copland-interp ; stack exec -- ${SERV} -r "CVM2" -p 2 -c "SIG2"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_2" -p 2 -c "SIG_2"
+
+runserver_three:
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_3" -p 2 -c "SIG_3"
+
+runserver_four:
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_4" -p 2 -c "SIG_4"
 
 runsigserver_zero:
-	cd copland-interp ; stack exec -- ${SERV} -r "SIG0" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG_0" --sign_server
 
 runsigserver_one:
-	cd copland-interp ; stack exec -- ${SERV} -r "SIG1" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG_1" --sign_server
 
 runsigserver_two:
-	cd copland-interp ; stack exec -- ${SERV} -r "SIG2" --sign_server
+	cd copland-interp ; stack exec -- ${SERV} -r "SIG_2" --sign_server
 
 runaspserver_one:
 	cd copland-interp ; stack exec -- ${SERV} -r "ASP1" -a 1

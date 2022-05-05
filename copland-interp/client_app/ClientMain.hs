@@ -46,14 +46,24 @@ main = do
   let provBool = optProv opts
   case provBool of
    True -> provision
-   False -> clientMain opts
+   False -> do
+     {-
+     let t = CT.toExtractedTerm EPC.layered_bg_weak_prefix
+         et = eval t 0 (Coq_nn 0)
+     putStrLn $ "ET: " ++ (show et)
+     putStrLn $ "ET SIZE: " ++ (show (et_size et))
+-}
+     let multiTermB = False
+     clientMain opts multiTermB
      {-
      putStrLn $ show $ (CT.toExtractedTerm EPC.layered_bg_weak) ==
                         EP.layered_bg_weak
 -}
 
 local_term :: Term
-local_term = EP.cert_style
+local_term = CT.toExtractedTerm EPC.cert_style --EPC.par_mut_p0 --EPC.cert_cache_p0
+
+--EPC.bg_check --EPC.cert_style --EPC.layered_bg_strong --EPC.cert_style --EPC.layered_bg_weak --EP.cert_style
   --CT.toExtractedTerm EPC.layered_bg_weak --EP.layered_bg_weak
   
 --EPC.par_mut_p1
@@ -84,7 +94,7 @@ do_when b c =
   if b then c
     else return ()
 
-clientMain :: Client_Options -> IO ()
+clientMain :: Client_Options -> Bool -> IO ()
 clientMain (Client_Options
              termFile
              evFile
@@ -97,25 +107,25 @@ clientMain (Client_Options
              spawnASP_b
              spawnDebug_b
              namesFile
-             appraise_b) = do
+             appraise_b) multi_termB = do
       
   (my_term, my_ev) <- get_term_ev termFile evFile
   let  mypl = DS.zero_plc -- TODO: ok to hardcode?
-       multi_termB = False
+       --multi_termB = True
 
        my_terms =
          case multi_termB of
-           True -> [my_term, EP.cert_cache_p1]
+           True -> [my_term, (CT.toExtractedTerm EPC.par_mut_p1{-EPC.cert_cache_p1-})]
            False -> [my_term]
        my_places =
          case multi_termB of
            True -> [mypl, DS.one_plc]
            False -> [mypl]
 
-  do_when (spawnCVM_b || spawnASP_b) $ do
-    print "BEFORE spawn_servers_term in ClientMain"
-    spawn_servers_terms sim_b debug_b spawnCVM_b spawnASP_b my_terms  my_places
-    CC.threadDelay 10000
+  --do_when (spawnCVM_b || spawnASP_b) $ do
+  print "BEFORE spawn_servers_term in ClientMain"
+  spawn_servers_terms sim_b debug_b spawnCVM_b spawnASP_b my_terms my_places
+  CC.threadDelay 10000
 
 
   
@@ -143,12 +153,14 @@ clientMain (Client_Options
       runAM am_comp_1 empty_AM_env empty_AM_state
       return ()
     return ()
-  
+
+
+  putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
           
  -- res@(cvmst_res, amst_res) <- runAM am_comp empty_AM_env empty_AM_state
   res@((nonce_id, rawev_res), amst_res) <- runAM am_comp empty_AM_env empty_AM_state
 
-  putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
+
   putStrLn $ "Result: \n" ++ (show res) ++ "\n"
 
   do_when (appraise_b) $ do

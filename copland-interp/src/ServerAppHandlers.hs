@@ -14,10 +14,13 @@ import Impl_VM_Extracted (run_cvm_loc)
 import CryptoImpl(doSignD, get_key_simpl)
 import GenServerOpts (get_sample_aspmap, par_server_addr, sig_server_addr)
 import qualified ServerProgArgs as SA
-import qualified Example_Phrases_Admits as EPA (store_args, retrieve_args)
+import qualified Example_Phrases_Admits as EPA (store_args, retrieve_args, app_bg_weak_args, app_bg_strong_args)
 import qualified DemoStates as DS
 import Impl_appraisal_alt(build_app_comp_evC)
 import MonadAM_Types (AM_St(..), empty_AM_env, runAM)
+
+import qualified Copland_Terms as CT
+import qualified Example_Phrases_Concrete as EPC
 
 import qualified Data.Map as M (empty, insert, lookup, delete, Map, fromList)
 import Control.Concurrent.STM
@@ -122,7 +125,8 @@ handle_asp_attest msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = d
       sType = CVM_SERV params
       opts = SA.Server_Options optSim optDebug sport sType
       t = Coq_asp SIG --Coq_asp (ASPC (Coq_asp_paramsC 42 [] me 42)) -- TODO: is this dummy term ok?
-      (env,st) = build_cvm_config params opts t {-nm-} rawEv
+      initEv = last rawEv
+      (env,st) = build_cvm_config params opts t {-nm-} [initEv]
 
   res_rawev <- {-run_cvm_rawev-} run_cvm_loc t st env
 
@@ -139,8 +143,8 @@ handle_asp_attest msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = d
 -}
   return $ AspResponseMessage resp_bs --BS.empty_bs
 
-handle_asp_appraise :: AspRequestMessage -> IO AspResponseMessage
-handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = do
+appraise_attest_result :: [BS] -> IO BS
+appraise_attest_result rawEv = do
   let (bs::BS.BS)= head rawEv
       lazy_bs = BL.fromStrict bs
       (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
@@ -160,8 +164,60 @@ handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
   putStrLn $ "Appraisal EvidenceC structure computed: " ++ (show app_res)
 
   let resp_bs = BL.toStrict $ BIN.encode app_res
+  return resp_bs
+
+handle_asp_appraise :: AspRequestMessage -> IO AspResponseMessage
+handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
+
+    if | ((args == EPA.app_bg_weak_args) || (args == EPA.app_bg_strong_args)) -> do
+           let nval = last rawEv
+               them = 0
+               init_ev_type = (Coq_nn 0)
+               t =
+                 case (args == EPA.app_bg_weak_args) of
+                   True -> CT.toExtractedTerm EPC.layered_bg_weak_prefix
+                   False -> CT.toExtractedTerm EPC.layered_bg_strong_prefix
+               (et_app :: Evidence) = eval t them init_ev_type
+               appraise_comp = build_app_comp_evC et_app rawEv
+               amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
+
+           ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst
+
+           putStrLn $ "Appraisal EvidenceC structure computed for app_bg_weak: " ++ (show app_res)
+
+           let resp_bs = BL.toStrict $ BIN.encode app_res
       
-  return $ AspResponseMessage resp_bs
+           return $ AspResponseMessage resp_bs
+   
+       | otherwise -> do
+           putStrLn $ "starting OTHER appraisal (not app_bg_weak)"
+           resp_bs <- appraise_attest_result rawEv
+           putStrLn $ "returning from OTHER appraisal (not app_bg_weak)"
+           return $ AspResponseMessage resp_bs
+
+           {-
+  
+         let (bs::BS.BS)= head rawEv
+             lazy_bs = BL.fromStrict bs
+             (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
+             nval = last rawEv
+         putStrLn $ "Nonce GRABBEDD: " ++ (show nval)
+         --putStrLn $ "AttestResult grabbed: " ++ (show r)
+         let them = 0 -- TODO: no hardcode?
+             init_ev_type = (Coq_nn 0) -- TODO: ok?
+             (et_app::Evidence) = eval t them init_ev_type
+         --putStrLn $ "HERE" ++ (show et_app)
+         putStrLn $ "Evidence Type computed for appraise ASP: " ++ (show et_app)
+         let appraise_comp = build_app_comp_evC et_app res_rawev
+             amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
+
+         ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst
+
+         putStrLn $ "Appraisal EvidenceC structure computed: " ++ (show app_res)
+
+         let resp_bs = BL.toStrict $ BIN.encode app_res 
+      
+         return $ AspResponseMessage resp_bs -}
 
 handle_asp_certify :: AspRequestMessage -> IO AspResponseMessage
 handle_asp_certify msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = do

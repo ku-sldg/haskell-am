@@ -109,6 +109,16 @@ layered_bg'' =
   (AT p3 (attest p3 sys)) :+~+: (AT p4 (attest p4 sys))  -- :+<+: :+~+:
 
 
+layered_bg_weak_prefix :: CoplandTerm
+layered_bg_weak_prefix = 
+  AT p1 (
+     (layered_bg' :+~+: layered_bg''))
+
+layered_bg_strong_prefix :: CoplandTerm
+layered_bg_strong_prefix = 
+  AT p1 (
+     (layered_bg' :+<+: layered_bg''))
+
 {-
 pg. 29:19, Layered Background Check section
 -}

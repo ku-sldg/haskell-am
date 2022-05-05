@@ -1,6 +1,7 @@
 module GenServerOpts where
 
 import Copland
+import Example_Phrases_Admits (appraise_id)
 
 import Data.List(union)
 import qualified Data.Map as M
@@ -18,7 +19,11 @@ store_server_addr :: Plc -> Address
 store_server_addr p = "STORE_" ++ (show p)
 
 asp_server_addr :: Plc -> ASP_ID -> Address
-asp_server_addr p id = "ASP_" ++ (show p) ++ "_" ++ (show id)
+asp_server_addr p id =
+  case (id == appraise_id) of
+    True -> "APPRAISE"
+    False -> 
+      "ASP_" ++ (show p) ++ "_" ++ (show id)
 
 get_server_addr_gen :: ServerType -> Plc -> Address
 get_server_addr_gen st p =
