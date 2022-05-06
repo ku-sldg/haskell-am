@@ -37,23 +37,23 @@ gen_client_session msg conn = do
   NBS.recv conn 2048
 
 gen_run_client ::  (DA.ToJSON a,{-DA.FromJSON a,DA.ToJSON b,-}DA.FromJSON b) =>
-                   Address -> a -> IO b
-gen_run_client addr reqm = do
-  runUnixDomainClient addr (sendRec' reqm)
+                   String -> Address -> a -> IO b
+gen_run_client s addr reqm = do
+  runUnixDomainClient addr (sendRec' s reqm)
 
 gen_server_async_accept ::( {-DA.ToJSON a, -} DA.FromJSON a) =>
-                        (a -> IO ()) -> NS.Socket -> IO ()
-gen_server_async_accept f conn = do
+                        String -> (a -> IO ()) -> NS.Socket -> IO ()
+gen_server_async_accept s f conn = do
   msg <- NBS.recv conn 2048
-  msg_decoded <- decodeGen msg
+  msg_decoded <- decodeGen s msg
   f msg_decoded
   
 
-gen_server_session :: ({-DA.ToJSON a,-} DA.FromJSON a, DA.ToJSON b {-, DA.FromJSON b-}) =>
+gen_server_session :: ({-DA.ToJSON a,-} DA.FromJSON a, DA.ToJSON b {-, DA.FromJSON b-}) => String -> 
                       (a -> IO b) -> NS.Socket -> IO ()
-gen_server_session f conn = do
+gen_server_session s f conn = do
   msg <- NBS.recv conn 2048
-  msg_decoded <- decodeGen msg
+  msg_decoded <- decodeGen s msg
   msg' <- f msg_decoded
   let msg'_encoded =  DA.encode msg'
   NBS.sendAll conn (BL.toStrict msg'_encoded)
@@ -66,13 +66,13 @@ asyncClientSend rm conn = do
   NBS.sendAll conn msg
 
 sendRec' :: (DA.ToJSON a,{-DA.FromJSON a,DA.ToJSON b,-}DA.FromJSON b) =>
-            a -> NS.Socket -> IO b
-sendRec' rm conn = do
+            String -> a -> NS.Socket -> IO b
+sendRec' s rm conn = do
   --let msg = sendRec' pTo pFrom namesFrom t e
   let messageBits = DA.encode rm
       msg = BL.toStrict messageBits
   msg' <- gen_client_session msg conn
-  decodeGen msg'
+  decodeGen s msg'
   --res <- decodeGen msg' --(res :: ResponseMessage) <- decodeGen msg'
   --return res
 
@@ -333,8 +333,8 @@ setupComm ls = mapM_ setupReqOne ls
 
 {-  Receive an attestation response
     Returns:  evidence from response message  -}
-getResponse :: DA.FromJSON a => Socket -> IO a
-getResponse s = do
-  msg <- NBS.recv s 2048
+getResponse :: DA.FromJSON a => String -> Socket -> IO a
+getResponse s sock = do
+  msg <- NBS.recv sock 2048
   putStrLn $ "Raw received in getResponse: " ++ (show msg)
-  decodeGen msg
+  decodeGen s msg

@@ -1,10 +1,11 @@
+
 {-  Executable that acts as the top-level client, performing the first request(s) of an attestation protocol execution.  Sequences execution of Copland phrases, collects results, and optionally performs appraisal.
 
   Author: Adam Petz
   Date:  06/14/2019
 -}
 
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}
 
 module Main where
 
@@ -26,6 +27,7 @@ import qualified DemoStates as DS
 import ServerAppUtil(spawn_servers_terms)
 import GenServerOpts(get_sample_aspmap, gen_name_map_term)
 import qualified Example_Phrases as EP
+import ConcreteEvidence
 
 import qualified Copland_Terms as CT
 import qualified Example_Phrases_Concrete as EPC
@@ -37,7 +39,10 @@ import Crypto.Sign.Ed25519 (SecretKey(..), verify, toPublicKey)
 import qualified Data.Map as M
 import qualified Control.Concurrent as CC (threadDelay, forkIO)
 import qualified Data.ByteString as B (empty, writeFile)
+import qualified Data.ByteString.Lazy as BL
 import Control.Concurrent.STM
+import qualified Data.Binary as BIN
+import qualified Data.Binary.Get as DBG
 
 
 main :: IO ()
@@ -47,18 +52,31 @@ main = do
   case provBool of
    True -> provision
    False -> do
+     let multiTermB = False
+     clientMain opts multiTermB
      {-
      let t = CT.toExtractedTerm EPC.layered_bg_weak_prefix
          et = eval t 0 (Coq_nn 0)
      putStrLn $ "ET: " ++ (show et)
      putStrLn $ "ET SIZE: " ++ (show (et_size et))
 -}
-     let multiTermB = False
-     clientMain opts multiTermB
-     {-
+ 
+{-
      putStrLn $ show $ (CT.toExtractedTerm EPC.layered_bg_weak) ==
                         EP.layered_bg_weak
 -}
+
+{-
+     let e = "abcd" --Coq_ss Coq_mt Coq_mt --"abcd" --([3,4,5] :: [Plc])
+         bs = BIN.encode e
+         err_str = typed_error_str "EvidenceC"
+         (v::EvidenceC) = decodeBin err_str bs
+     putStrLn $ show v
+-}
+     
+         --lazy_bs = BL.fromStrict bs
+         --(v::(Either (BL.ByteString, DBG.ByteOffset, String) (BL.ByteString, DBG.ByteOffset, EvidenceC))) = BIN.decodeOrFail bs
+     --putStrLn $ show v
 
 local_term :: Term
 local_term = CT.toExtractedTerm EPC.cert_style --EPC.par_mut_p0 --EPC.cert_cache_p0

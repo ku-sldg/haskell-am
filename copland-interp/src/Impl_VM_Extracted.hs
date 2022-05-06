@@ -26,7 +26,8 @@ get_term_locs_init t env = do
       par_addr = parServer env
       req_msg = ParInit $ InitMessagePar tsize
   putStrLn $ "sending InitMessagePar to: " ++ (show par_addr)
-  resp@(AckInitMessagePar new_locs) <- gen_run_client par_addr req_msg
+  let err_str = typed_error_str "AckInitMessagePar"
+  resp@(AckInitMessagePar new_locs) <- gen_run_client err_str par_addr req_msg
   putStrLn $ "received AckMessagePar: " ++ (show resp)
   return new_locs
   

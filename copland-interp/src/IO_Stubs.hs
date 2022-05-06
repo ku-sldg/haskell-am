@@ -27,7 +27,8 @@ do_asp' :: ASP_PARAMS -> RawEv -> CVM BS
 do_asp' params@(Coq_asp_paramsC id _ _ _) e = do --return empty_bs
   let reqm = (AspRequestMessage params e)
   addr <- lift $ getAspSock id
-  (rm :: AspResponseMessage) <- liftIO $ gen_run_client addr reqm
+  let err_str = typed_error_str "AspResponseMessage"
+  (rm :: AspResponseMessage) <- liftIO $ gen_run_client err_str addr reqm
   return (aspBits rm)
 
 do_sig' :: BS -> CVM BS
@@ -40,7 +41,8 @@ do_sig' bs = do
       case sm of
         Sign_Server_Addr addr -> do 
           let reqm = (SigRequestMessage bs)
-          (rm :: SigResponseMessage) <- liftIO $ gen_run_client addr reqm
+              err_str = typed_error_str "SigResponseMessage"
+          (rm :: SigResponseMessage) <- liftIO $ gen_run_client err_str addr reqm
           return (sigBits rm)
         Sign_Keypath fp ->
           liftIO $ do
@@ -65,7 +67,8 @@ doRemote_session' t pTo e = do
   myPl <- asks me
   ns <- asks nameServer
   let reqm = (RequestMessage pTo myPl ns t (get_bits e))
-  (rm :: ResponseMessage) <- liftIO $ gen_run_client addr reqm 
+      err_str = typed_error_str "ResponseMessage"
+  (rm :: ResponseMessage) <- liftIO $ gen_run_client err_str addr reqm 
   let res = (Coq_evc (respEv rm) Coq_mt)
   return res
 
@@ -74,7 +77,8 @@ do_wait_par_thread loc = do
   p <- asks me
   let req_msg = ParWait (WaitMessagePar loc)
       addr = par_server_addr p
-  (resp_msg :: ResponseMessagePar) <- liftIO $ gen_run_client addr req_msg
+      err_str = typed_error_str "ResponseMessagePar"
+  (resp_msg :: ResponseMessagePar) <- liftIO $ gen_run_client err_str addr req_msg
   return (Coq_evc (respEvPar resp_msg) Coq_mt)
 
 

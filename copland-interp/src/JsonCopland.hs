@@ -23,18 +23,31 @@ import Data.Aeson
 import Control.Exception
 import System.IO.Error hiding (catch)
 import qualified Data.ByteString as B (ByteString)
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Base16 as B16 (encode,decode)
 import qualified Data.Text.Encoding as DTE (decodeUtf8, encodeUtf8)
 import qualified Data.Text.Lazy.IO as TIO (putStrLn,appendFile)
 import qualified Data.Text.Lazy.Encoding as T
 import qualified System.Directory as SD (removeFile)
 
+import qualified Data.Binary as BIN
+
+decodeBin :: BIN.Binary a => String -> BL.ByteString -> a
+decodeBin s bs =
+  case (BIN.decodeOrFail bs) of
+    Left _ {-(_,_,err)-} -> error $ "ERROR Decoding binary value--" ++ s
+    Right (rest,_,v) ->
+      case ((BL.length rest) > 0) of
+        True -> error $ "ERROR Decoding binary value--" ++ s
+        False -> v
+
 {- Confirm the input is in valid form, and return the value -}
-decodeGen :: FromJSON a => BS -> IO a
-decodeGen msg = do
+decodeGen :: FromJSON a => String -> BS -> IO a
+decodeGen s msg = do
           let val = decodeStrict msg
           case val of
-            Nothing -> error $ "weird message received: " ++ (show msg)
+            Nothing -> error $ "ERROR Decoding JSON value--" ++ s ++ ".\n"
+                       ++  "    Got msg:  " ++ (show msg)
             Just res -> return res
             
 jsonToFile :: ToJSON a => a -> FilePath -> IO ()

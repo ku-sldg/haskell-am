@@ -38,7 +38,8 @@ checkASP params bs =
 
          | (i == EPA.attest_id) -> do
              let lazy_bs = BL.fromStrict bs
-                 (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
+                 err_str = typed_error_str "AttestResult"
+                 (r@(AttestResult t res_rawev)::AttestResult) = decodeBin err_str lazy_bs
                  nval = last res_rawev
              liftIO $ putStrLn $ "Nonce GRABBEDD: " ++ (show nval)
              --putStrLn $ "AttestResult grabbed: " ++ (show r)
@@ -49,10 +50,12 @@ checkASP params bs =
                  e = [bs] ++ [nval]
                  reqm = (AspRequestMessage reqParams e)
                  addr = "APPRAISE" -- TODO: fix hardcode?
-             (rm :: AspResponseMessage) <- liftIO $ gen_run_client addr reqm
+                 err_str = typed_error_str "AspResponseMessage"
+             (rm :: AspResponseMessage) <- liftIO $ gen_run_client err_str addr reqm
 
              let lazy_bs = BL.fromStrict (aspBits rm)
-                 (ec::EvidenceC) = BIN.decode lazy_bs
+                 err_str = typed_error_str "EvidenceC"
+                 (ec::EvidenceC) = decodeBin err_str lazy_bs
                  app_res_bool = certWalk_EvidenceC ec
 
 

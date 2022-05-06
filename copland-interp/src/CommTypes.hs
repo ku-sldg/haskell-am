@@ -14,7 +14,8 @@ import Numeric.Natural
 import qualified Data.Map as M (Map)
 import Data.Binary
 
-
+typed_error_str :: String -> String
+typed_error_str s = "Expected a value of type: " ++ s
 
 check_for_one_bit :: BS.BS -> Bool -> Bool
 check_for_one_bit bs b =

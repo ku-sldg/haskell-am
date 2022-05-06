@@ -61,37 +61,41 @@ start_server opts = do
       {-
       let simB = SA.server_optSim opts
           debugB = SA.server_optDebug opts -}
-      start_server'' addr
+      let err_str = typed_error_str "RequestMessage"
+      start_server'' err_str addr
                      (handle_remote params opts)
     PAR_SERV params -> do
-      do_par_server params opts addr
+      let err_str = typed_error_str "RequestMessagePar"
+      do_par_server params opts err_str addr
       
-    SIGN ->
-      start_server'' addr
+    SIGN -> do
+      let err_str = typed_error_str "SigRequestMessage"
+      start_server'' err_str addr
                      (handle_sig opts)
     ASP_SERV i -> do
       putStrLn $ "Starting ASP server with ID: " ++ (show i)
+      let err_str = typed_error_str "AspRequestMessage"
       if | i == EPA.cache_id -> do
            cache_var <- newTVarIO Nothing
-           start_server'' addr (handle_asp_cache cache_var)
+           start_server'' err_str addr (handle_asp_cache cache_var)
          | i == EPA.attest_id -> do
-             start_server'' addr (handle_asp_attest)
+             start_server'' err_str addr (handle_asp_attest)
          | i == EPA.appraise_id -> do
-             start_server'' addr (handle_asp_appraise)
+             start_server'' err_str addr (handle_asp_appraise)
          | i == EPA.cert_id -> do
-             start_server'' addr (handle_asp_certify)
+             start_server'' err_str addr (handle_asp_certify)
          | otherwise -> do
-             start_server'' addr (handle_asp_default i)
+             start_server'' err_str addr (handle_asp_default i)
     _ -> return ()
 
 
 --   store_var <- newTVarIO M.empty
 
 do_par_server' :: TVar (M.Map Loc RawEv) -> TVar [Loc] -> CVM_SERV_Params ->
-                  SA.Server_Options -> NS.Socket -> IO ()
-do_par_server' store_var locs_var params opts conn = do
+                  SA.Server_Options -> String -> NS.Socket -> IO ()
+do_par_server' store_var locs_var params opts s conn = do
   msg <- NBS.recv conn 2048
-  (msg_decoded :: RequestMessagePar) <- decodeGen msg
+  (msg_decoded :: RequestMessagePar) <- decodeGen s msg
   case msg_decoded of
     ParInit m -> do
       putStrLn $"received InitMessagePar: " ++ (show m)
@@ -105,16 +109,16 @@ do_par_server' store_var locs_var params opts conn = do
       let msg'_encoded =  DA.encode resp_msg
       NBS.sendAll conn (BL.toStrict msg'_encoded)
 
-do_par_server :: CVM_SERV_Params -> SA.Server_Options -> Address -> IO ()
-do_par_server params opts addr = do
+do_par_server :: CVM_SERV_Params -> SA.Server_Options -> String -> Address -> IO ()
+do_par_server params opts s addr = do
   store_var <- newTVarIO M.empty
   loc_var <- newTVarIO [1..100] -- TODO: pick more principled starting list?
-  runUnixDomainServer addr (do_par_server' store_var loc_var params opts)
+  runUnixDomainServer addr (do_par_server' store_var loc_var params opts s)
 
 start_server'' :: (DA.ToJSON a, DA.FromJSON a, DA.ToJSON b, DA.FromJSON b) =>
-                  Address -> (a -> IO b) -> IO ()
-start_server'' addr f = do
-  runUnixDomainServer addr (gen_server_session f)
+                  String -> Address -> (a -> IO b) -> IO ()
+start_server'' s addr f = do
+  runUnixDomainServer addr (gen_server_session s f)
   
 spawn_server_thread :: SA.Server_Options -> IO ()
 spawn_server_thread opts = void $ CC.forkIO $ start_server opts

@@ -147,7 +147,8 @@ appraise_attest_result :: [BS] -> IO BS
 appraise_attest_result rawEv = do
   let (bs::BS.BS)= head rawEv
       lazy_bs = BL.fromStrict bs
-      (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
+      err_str = typed_error_str "AttestResult"
+      (r@(AttestResult t res_rawev)::AttestResult) = decodeBin err_str lazy_bs
       nval = last rawEv
   putStrLn $ "Nonce GRABBEDD: " ++ (show nval)
   --putStrLn $ "AttestResult grabbed: " ++ (show r)
@@ -223,7 +224,8 @@ handle_asp_certify :: AspRequestMessage -> IO AspResponseMessage
 handle_asp_certify msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = do
   let (bs::BS.BS)= head rawEv
       lazy_bs = BL.fromStrict bs
-      (r::EvidenceC) = BIN.decode lazy_bs
+      err_str = typed_error_str "EvidenceC"
+      (r::EvidenceC) = decodeBin err_str lazy_bs
 
   putStrLn $ "Appraisal EvidenceC structure received by Cert ASP: " ++ (show r)
       -- TODO: walk EvidenceC structure for legit certify?
