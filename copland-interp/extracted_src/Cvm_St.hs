@@ -1,7 +1,7 @@
-module StVM where
+module Cvm_St where
 
 import qualified Prelude
-import qualified GenStMonad
+import qualified StMonad_Coq
 import qualified Term_Defs
 
 data Coq_cvm_st =
@@ -27,5 +27,5 @@ st_evid c =
   case c of {
    Coq_mk_st _ _ _ st_evid0 -> st_evid0}
 
-type CVM a = GenStMonad.St Coq_cvm_st a
+type CVM a = StMonad_Coq.St Coq_cvm_st a
 

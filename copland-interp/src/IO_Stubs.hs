@@ -6,11 +6,11 @@ import Copland
 import BS (BS)
 import Term_Defs(ASP_PARAMS(..), RawEv, Plc, Term, Loc, get_bits, EvC(..))
 import CryptoImpl (doHash, doSign)
-import StVM (CVM)
+import Cvm_St (CVM)
 import CommTypes
 import CommUtil
 import UDcore (runUnixDomainClient)
-import GenServerOpts (par_server_addr)
+import ServerOpts (par_server_addr)
 --import Comm
 
 

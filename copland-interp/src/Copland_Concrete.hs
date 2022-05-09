@@ -1,5 +1,5 @@
 -- {-# LANGUAGE StandaloneDeriving  #-}
-module Copland_Terms where
+module Copland_Concrete where
 
 import Term_Defs
 
@@ -24,10 +24,10 @@ data CoplandTerm =
 toExtractedTerm :: CoplandTerm -> Term
 toExtractedTerm ct =
   case ct of
-    Copland_Terms.CPY -> Coq_asp Term_Defs.CPY
-    Copland_Terms.ASP i args tpl tid -> Coq_asp (ASPC (Coq_asp_paramsC i args tpl tid))
-    Copland_Terms.SIG -> Coq_asp Term_Defs.SIG
-    Copland_Terms.HSH -> Coq_asp Term_Defs.HSH
+    Copland_Concrete.CPY -> Coq_asp Term_Defs.CPY
+    Copland_Concrete.ASP i args tpl tid -> Coq_asp (ASPC (Coq_asp_paramsC i args tpl tid))
+    Copland_Concrete.SIG -> Coq_asp Term_Defs.SIG
+    Copland_Concrete.HSH -> Coq_asp Term_Defs.HSH
     AT q t' -> Coq_att q (toExtractedTerm t')
     t1 :->: t2 -> Coq_lseq (toExtractedTerm t1) (toExtractedTerm t2)
     t1 :-<-: t2 -> Coq_bseq (NONE,NONE) (toExtractedTerm t1) (toExtractedTerm t2)

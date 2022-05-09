@@ -18,18 +18,18 @@ import UDcore
 import CommUtil
 import MonadAM
 import MonadAM_Types (empty_AM_env, empty_AM_state, runAM)
-import Impl_appraisal_alt(build_app_comp_evC)
-import Impl_VM_Extracted (run_cvm')
+import Impl_appraisal(build_app_comp_evC)
+import Impl_CVM_Wrapper (run_cvm')
 import Term_Defs_Deriving
 import StVM_Deriving
-import StVM (Coq_cvm_st(..), st_ev)
+import Cvm_St (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
-import ServerAppUtil(spawn_servers_terms)
-import GenServerOpts(get_sample_aspmap, gen_name_map_term)
+import ServerUtil(spawn_servers_terms)
+import ServerOpts(get_sample_aspmap, gen_name_map_term)
 import qualified Example_Phrases as EP
 import ConcreteEvidence
 
-import qualified Copland_Terms as CT
+import qualified Copland_Concrete as CT
 import qualified Example_Phrases_Concrete as EPC
 
 import Control.Monad.Trans(liftIO)

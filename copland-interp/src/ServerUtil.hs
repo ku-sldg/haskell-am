@@ -1,17 +1,6 @@
-{-  Executable that activates the ConnectionServer.
-    Any attestation process requires that a (single) ConnectionServer
-    already be active on the machine.
-
-  Author: Ed Komp
-  Date:  12/4/2019
-
-  Adapted by: Adam Petz
-  Date:  4/4/2020
--}
-
 {-# LANGUAGE ScopedTypeVariables, MultiWayIf #-}
 
-module ServerAppUtil where
+module ServerUtil where
 
 import Copland
 --import Comm
@@ -19,14 +8,14 @@ import CommUtil
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 import MonadCop (runCOP)
-import Impl_VM_Extracted (run_cvm_rawev)
-import StVM (Coq_cvm_st(..))
+import Impl_CVM_Wrapper (run_cvm_rawev)
+import Cvm_St (Coq_cvm_st(..))
 --import DemoStates
 import StVM_Deriving
 import BS
 import CryptoImpl (doSign)
-import ServerAppHandlers
-import GenServerOpts (get_server_addr_gen, get_places, get_asps_terms)
+import ServerHandlers
+import ServerOpts (get_server_addr_gen, get_places, get_asps_terms)
 import qualified Example_Phrases_Admits as EPA (cache_id, attest_id, appraise_id, cert_id)
 
 import qualified Data.ByteString.Char8 as C

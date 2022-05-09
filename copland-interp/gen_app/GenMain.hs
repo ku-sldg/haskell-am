@@ -6,9 +6,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import GenProgArgs
+import ProgArgsUtil
 import Copland
-import GenCopland
+import Copland_Gen
 import ConcreteEvidence
 
 import Data.List(elemIndex)

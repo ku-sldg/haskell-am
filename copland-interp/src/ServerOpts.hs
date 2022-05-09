@@ -1,4 +1,4 @@
-module GenServerOpts where
+module ServerOpts where
 
 import Copland
 import Example_Phrases_Admits (appraise_id)

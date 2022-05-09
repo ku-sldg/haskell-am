@@ -14,7 +14,7 @@ import Copland
 --import MonadAM
 --import MonadVM_Old
 --import qualified ServerProgArgs as SA (Server_Options(..))
-import GenServerOpts(cvm_server_addr, sig_server_addr, par_server_addr, get_places, gen_name_map_term, get_sample_aspmap, get_asps)
+import ServerOpts(cvm_server_addr, sig_server_addr, par_server_addr, get_places, gen_name_map_term, get_sample_aspmap, get_asps)
 import MonadCop(Cop_Env(..))
 import qualified Example_Phrases_Admits as EPA (cache_id, attest_id, appraise_id, cert_id)
 

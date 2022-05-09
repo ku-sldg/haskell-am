@@ -12,9 +12,9 @@ import BS
 import CryptoImpl as CI (doNonce, lookupSecretKeyPath)
 import MonadCop (Cop_Env(..), runCOP, COP)
 import ClientProgArgs
-import StVM (Coq_cvm_st(..), st_ev)
+import Cvm_St (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
-import Impl_VM_Extracted (run_cvm_loc')
+import Impl_CVM_Wrapper (run_cvm_loc')
 --import Comm (genNameServer)
 import CommUtil (genNameServer)
 

@@ -6,7 +6,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module DisplayCopland where
+module Copland_Display where
 
 import Term_Defs
 import Term_Defs_Deriving

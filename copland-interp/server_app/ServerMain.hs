@@ -9,7 +9,7 @@ module Main where
 --import ServerAppUtil (start_standalone_server)
 
 import ServerProgArgs (getServerOptions)
-import ServerAppUtil(start_server)
+import ServerUtil(start_server)
 
 main :: IO ()
 main = do

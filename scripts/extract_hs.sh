@@ -9,11 +9,11 @@ cp ${COQ_DIR}/Anno_Term_Defs.hs ${HS_DIR}
 cp ${COQ_DIR}/ConcreteEvidence.hs ${HS_DIR}
 #cp ${COQ_DIR}/Axioms_Io.hs copland-interp/src/
 cp ${COQ_DIR}/Evidence_Bundlers.hs ${HS_DIR}
-cp ${COQ_DIR}/StVM.hs ${HS_DIR}
-cp ${COQ_DIR}/MonadVM.hs ${HS_DIR}
-cp ${COQ_DIR}/Impl_VM.hs ${HS_DIR}
+cp ${COQ_DIR}/Cvm_St.hs ${HS_DIR}
+cp ${COQ_DIR}/Cvm_Monad.hs ${HS_DIR}
+cp ${COQ_DIR}/Cvm_Impl.hs ${HS_DIR}
 #
-cp ${COQ_DIR}/Impl_appraisal_alt.hs ${HS_DIR}
+cp ${COQ_DIR}/Impl_appraisal.hs ${HS_DIR}
 cp ${COQ_DIR}/List.hs ${HS_DIR}
 cp ${COQ_DIR}/Appraisal_Defs.hs ${HS_DIR}
 cp ${COQ_DIR}/Appraisal_Evidence.hs ${HS_DIR}

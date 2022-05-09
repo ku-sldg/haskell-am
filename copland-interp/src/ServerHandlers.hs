@@ -1,25 +1,25 @@
 {-# LANGUAGE MultiWayIf, ScopedTypeVariables #-}
 
-module ServerAppHandlers where
+module ServerHandlers where
 
 import Copland
 import BS (BS, empty_bs, zero_bs, one_bs, bool_to_bs)
 import ConcreteEvidence --(EvidenceC)
-import StVM
+import Cvm_St
 import StVM_Deriving
 import MonadCop (Cop_Env(..))
 import CommTypes
 --import DemoStates (sample_aspmap)
-import Impl_VM_Extracted (run_cvm_loc)
+import Impl_CVM_Wrapper (run_cvm_loc)
 import CryptoImpl(doSignD, get_key_simpl)
-import GenServerOpts (get_sample_aspmap, par_server_addr, sig_server_addr)
+import ServerOpts (get_sample_aspmap, par_server_addr, sig_server_addr)
 import qualified ServerProgArgs as SA
 import qualified Example_Phrases_Admits as EPA (store_args, retrieve_args, app_bg_weak_args, app_bg_strong_args)
 import qualified DemoStates as DS
-import Impl_appraisal_alt(build_app_comp_evC)
+import Impl_appraisal(build_app_comp_evC)
 import MonadAM_Types (AM_St(..), empty_AM_env, runAM)
 
-import qualified Copland_Terms as CT
+import qualified Copland_Concrete as CT
 import qualified Example_Phrases_Concrete as EPC
 
 import qualified Data.Map as M (empty, insert, lookup, delete, Map, fromList)

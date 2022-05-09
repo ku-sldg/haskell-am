@@ -5,7 +5,7 @@
 -}
 
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances #-}
-module QcCopland where
+module Copland_Qc where
 
 
 import Copland

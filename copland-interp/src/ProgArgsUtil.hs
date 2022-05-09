@@ -9,7 +9,7 @@
   Date:  06/14/2019
 -}
 
-module GenProgArgs where
+module ProgArgsUtil where
 
 import Copland
 

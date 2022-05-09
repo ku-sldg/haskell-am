@@ -26,54 +26,49 @@ source-repository head
 library
   exposed-modules:
       Appraisal_IO_Stubs
-      Appraise
       Axioms_Io
       BS
       ClientProgArgs
       CommTypes
       CommUtil
       Copland
-      Copland_Terms
+      Copland_Concrete
+      Copland_Display
+      Copland_Gen
+      Copland_Json
+      Copland_Qc
       CryptoImpl
       DemoStates
-      DisplayCopland
       Example_Phrases_Admits
       Example_Phrases_Concrete
-      GenCopland
-      GenOptMonad
-      GenProgArgs
-      GenServerOpts
-      GenStMonad
-      Impl_VM_Extracted
+      Impl_CVM_Wrapper
       IO_Stubs
-      JsonCopland
       MonadAM
       MonadAM_Types
       MonadCop
-      MonadParStore
-      MonadStore
-      MonadTestSTM
-      QcCopland
-      ServerAppHandlers
-      ServerAppUtil
+      OptMonad_Coq
+      ProgArgsUtil
+      ServerHandlers
+      ServerOpts
       ServerProgArgs
+      ServerUtil
+      StMonad_Coq
       StringConstants
       StVM_Deriving
       Term_Defs_Deriving
-      Test_Extract
       UDcore
       Anno_Term_Defs
       Appraisal_Defs
       Appraisal_Evidence
       ConcreteEvidence
+      Cvm_Impl
+      Cvm_Monad
+      Cvm_St
       Datatypes
       Evidence_Bundlers
       Example_Phrases
-      Impl_appraisal_alt
-      Impl_VM
+      Impl_appraisal
       List
-      MonadVM
-      StVM
       Term_Defs
   other-modules:
       Paths_copland_interp

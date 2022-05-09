@@ -6,10 +6,10 @@
 
 {-# LANGUAGE OverloadedStrings, AllowAmbiguousTypes, ScopedTypeVariables #-}
 
-module GenCopland where
+module Copland_Gen where
 
 import Copland
-import QcCopland
+import Copland_Qc
 import ConcreteEvidence
 
 import Test.QuickCheck (Gen, generate, vectorOf, Arbitrary, arbitrary, resize)

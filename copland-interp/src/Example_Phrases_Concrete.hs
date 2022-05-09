@@ -1,7 +1,7 @@
 -- {-# LANGUAGE StandaloneDeriving  #-}
 module Example_Phrases_Concrete where
 
-import Copland_Terms
+import Copland_Concrete
 import Term_Defs hiding (ASP(..), Term(..))
 import Example_Phrases_Admits
 

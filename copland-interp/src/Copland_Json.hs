@@ -10,7 +10,7 @@
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
-module JsonCopland where
+module Copland_Json where
 
 --import Term_Defs
 import CommTypes

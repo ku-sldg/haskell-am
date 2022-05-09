@@ -3,7 +3,7 @@
 
 module StVM_Deriving where
 
-import StVM(Coq_cvm_st(..))
+import Cvm_St(Coq_cvm_st(..))
 import MonadCop(Cop_Env(..))
 
 

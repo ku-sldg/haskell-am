@@ -2,12 +2,12 @@ module Appraisal_Evidence where
 
 import qualified Prelude
 import qualified BS
-import qualified GenOptMonad
+import qualified OptMonad_Coq
 import qualified Term_Defs
 
-peel_bs :: Term_Defs.RawEv -> GenOptMonad.Opt ((,) BS.BS Term_Defs.RawEv)
+peel_bs :: Term_Defs.RawEv -> OptMonad_Coq.Opt ((,) BS.BS Term_Defs.RawEv)
 peel_bs ls =
   case ls of {
-   ([]) -> GenOptMonad.failm;
-   (:) bs ls' -> GenOptMonad.ret ((,) bs ls')}
+   ([]) -> OptMonad_Coq.failm;
+   (:) bs ls' -> OptMonad_Coq.ret ((,) bs ls')}
 
