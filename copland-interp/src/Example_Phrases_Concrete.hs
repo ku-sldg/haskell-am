@@ -20,6 +20,32 @@ p3 = 3
 p4 :: Plc
 p4 = 4
 
+
+simple_asp_phrase :: CoplandTerm
+simple_asp_phrase = ASP 1 ["arg1", "arg2"] p2 3
+
+simple_at_phrase :: CoplandTerm
+simple_at_phrase = AT 1 simple_asp_phrase
+
+simple_ln_phrase :: CoplandTerm
+simple_ln_phrase = SIG :->: SIG
+
+simple_bseq_phrase :: CoplandTerm
+simple_bseq_phrase = SIG :+<-: SIG
+
+simple_bpar_phrase :: CoplandTerm
+simple_bpar_phrase = SIG :+~-: SIG
+
+
+cpy_phrase :: CoplandTerm
+cpy_phrase = CPY
+
+sig_phrase :: CoplandTerm
+sig_phrase = SIG
+
+hsh_phrase :: CoplandTerm
+hsh_phrase = HSH
+
 attest :: Plc -> TARG_ID -> CoplandTerm
 attest p tid = ASP attest_id [] p tid
 

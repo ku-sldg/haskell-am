@@ -6,10 +6,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import ProgArgsUtil
+import GenProgArgs
 import Copland
 import Copland_Gen
 import ConcreteEvidence
+
+import qualified Copland_Concrete as CT
+import qualified Example_Phrases_Concrete as EPC
 
 import Data.List(elemIndex)
 
@@ -26,9 +29,21 @@ firstTrue bs =
    Nothing -> error "should have caught this in command line consistency check"
    Just res -> res
 
+local_vals_term :: [Term]
+local_vals_term = [CT.toExtractedTerm EPC.simple_bpar_phrase] --EPC.simple_asp_phrase]
+  --[CT.toExtractedTerm EPC.cert_style]
+
+local_vals_req :: [RequestMessage]
+local_vals_req = undefined
+
+local_vals_resp :: [ResponseMessage]
+local_vals_resp = undefined
+
+local_vals_evc :: [EvidenceC]
+local_vals_evc = undefined
 
 main'' :: Gen_Options -> IO ()
-main'' opts@(Gen_Options numTerms reqB respB termB evB inFile outFile dataB) = do
+main'' opts@(Gen_Options numTerms reqB respB termB evB inFile outFile dataB localB) = do
 
   genOptsConsistent opts
 
@@ -38,24 +53,32 @@ main'' opts@(Gen_Options numTerms reqB respB termB evB inFile outFile dataB) = d
    0 -> do
      case ft of
       0 -> do
-        (terms::[RequestMessage]) <- case dataB of
-                  True -> jsonFromFileToVals inFile
-                  False -> fromFileToVals inFile
+        (terms::[RequestMessage]) <- case localB of
+          True -> return local_vals_req
+          False -> case dataB of
+                     True -> jsonFromFileToVals inFile
+                     False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
       1 -> do
-        (terms::[ResponseMessage]) <- case dataB of
-                  True -> jsonFromFileToVals inFile
-                  False -> fromFileToVals inFile
+        (terms::[ResponseMessage]) <- case localB of
+          True -> return local_vals_resp
+          False -> case dataB of
+                     True -> jsonFromFileToVals inFile
+                     False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
       2 -> do
-        (terms::[Term]) <- case dataB of
-                  True -> jsonFromFileToVals inFile
-                  False -> fromFileToVals inFile
+        (terms::[Term]) <- case localB of
+          True -> return local_vals_term
+          False -> case dataB of
+                     True -> jsonFromFileToVals inFile
+                     False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
       3 -> do
-        (terms::[EvidenceC]) <- case dataB of
-                  True -> jsonFromFileToVals inFile
-                  False -> fromFileToVals inFile
+        (terms::[EvidenceC]) <- case localB of
+          True -> return local_vals_evc
+          False -> case dataB of
+                     True -> jsonFromFileToVals inFile
+                     False -> fromFileToVals inFile
         termsToFile' outFile dataB terms
            
    n -> case ft of

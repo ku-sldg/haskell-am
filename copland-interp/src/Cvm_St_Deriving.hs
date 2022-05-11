@@ -1,7 +1,7 @@
 {-# LANGUAGE StandaloneDeriving, TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module StVM_Deriving where
+module Cvm_St_Deriving where
 
 import Cvm_St(Coq_cvm_st(..))
 import MonadCop(Cop_Env(..))

@@ -1,4 +1,4 @@
-module Impl_CVM_Wrapper where
+module Cvm_Impl_Wrapper where
 
 import qualified Term_Defs (Term, RawEv, get_bits, top_level_thread_count, Loc)
 import qualified Anno_Term_Defs (AnnoTermPar, annotated_par, anno_par, anno_par_list')

@@ -114,6 +114,10 @@ geni:
 gend:
 	cd copland-interp ; stack exec -- ${GEN} -t -d
 
+#Input Copland terms(-t) as datatypes from local Haskell main Gen module, write JSON to stdout
+genl:
+	cd copland-interp ; stack exec -- ${GEN} -t -l
+
 #Input Copland terms(-t) from the file fin.hs(-i ../fin.hs) as datatypes, write JSON to the file fout.txt(-o ../fout.txt)
 genf:
 	cd copland-interp ; stack exec -- ${GEN} -t -i ../fin.hs -o ../fout.txt

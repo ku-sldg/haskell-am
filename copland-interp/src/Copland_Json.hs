@@ -24,7 +24,8 @@ import Control.Exception
 import System.IO.Error hiding (catch)
 import qualified Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Base16 as B16 (encode,decode)
+--import qualified Data.ByteString.Base16 as B16 (encode,decode)
+import qualified Data.ByteString.Base64 as B64
 import qualified Data.Text.Encoding as DTE (decodeUtf8, encodeUtf8)
 import qualified Data.Text.Lazy.IO as TIO (putStrLn,appendFile)
 import qualified Data.Text.Lazy.Encoding as T
@@ -79,13 +80,14 @@ decodeSP l r = ((intToSp l),(intToSp r))
 
 {- Adapted from example here:  https://stackoverflow.com/questions/37054889/sending-receiving-binary-data-in-aeson -}
 instance ToJSON B.ByteString where
-  toJSON = String . DTE.decodeUtf8 . B16.encode
+  toJSON = String . DTE.decodeUtf8 . B64.encode
 
 instance FromJSON B.ByteString where
   parseJSON (String t) = do
-    let (val, extra) = B16.decode (DTE.encodeUtf8 t)
-    case extra of
-     "" -> return val
+    --let (val, extra) = B64.decode (DTE.encodeUtf8 t)
+    let eitherval =  B64.decode (DTE.encodeUtf8 t)
+    case eitherval of
+     Right val -> return val
      _  -> error $ "error in FromJSON ByteString."
   parseJSON _ = error "error in FromJSON ByteString"
 

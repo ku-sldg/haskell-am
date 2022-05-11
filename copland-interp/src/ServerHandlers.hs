@@ -6,11 +6,11 @@ import Copland
 import BS (BS, empty_bs, zero_bs, one_bs, bool_to_bs)
 import ConcreteEvidence --(EvidenceC)
 import Cvm_St
-import StVM_Deriving
+import Cvm_St_Deriving
 import MonadCop (Cop_Env(..))
 import CommTypes
 --import DemoStates (sample_aspmap)
-import Impl_CVM_Wrapper (run_cvm_loc)
+import Cvm_Impl_Wrapper (run_cvm_loc)
 import CryptoImpl(doSignD, get_key_simpl)
 import ServerOpts (get_sample_aspmap, par_server_addr, sig_server_addr)
 import qualified ServerProgArgs as SA

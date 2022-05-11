@@ -38,23 +38,23 @@ library
       Copland_Json
       Copland_Qc
       CryptoImpl
+      Cvm_Impl_Wrapper
+      Cvm_St_Deriving
       DemoStates
       Example_Phrases_Admits
       Example_Phrases_Concrete
-      Impl_CVM_Wrapper
+      GenProgArgs
       IO_Stubs
       MonadAM
       MonadAM_Types
       MonadCop
       OptMonad_Coq
-      ProgArgsUtil
       ServerHandlers
       ServerOpts
       ServerProgArgs
       ServerUtil
       StMonad_Coq
       StringConstants
-      StVM_Deriving
       Term_Defs_Deriving
       UDcore
       Anno_Term_Defs
@@ -79,7 +79,7 @@ library
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers
@@ -106,7 +106,7 @@ executable client-main-exe
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers
@@ -134,7 +134,7 @@ executable copland-interp-exe
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers
@@ -162,7 +162,7 @@ executable gen-main-exe
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers
@@ -190,7 +190,7 @@ executable server-main-exe
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers
@@ -219,7 +219,7 @@ test-suite copland-interp-test
       QuickCheck
     , aeson
     , base >=4.7 && <5
-    , base16-bytestring
+    , base64-bytestring
     , binary
     , bytestring
     , containers

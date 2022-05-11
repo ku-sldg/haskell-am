@@ -9,7 +9,7 @@
   Date:  06/14/2019
 -}
 
-module ProgArgsUtil where
+module GenProgArgs where
 
 import Copland
 
@@ -31,7 +31,7 @@ numTrue bs = foldl numTrue' 0 bs
         numTrue' i b = if b then i + 1 else i
 
 genOptsConsistent :: Gen_Options -> IO ()
-genOptsConsistent (Gen_Options n reqB respB termB evB inFile outFile jsonB) = do
+genOptsConsistent (Gen_Options n reqB respB termB evB inFile outFile jsonB localB) = do
   
   let numTrues = numTrue [reqB,respB,termB,evB]
   case numTrues of
@@ -39,6 +39,8 @@ genOptsConsistent (Gen_Options n reqB respB termB evB inFile outFile jsonB) = do
    _ -> error $ "Command Line Error: please provide EXACTLY ONE of the following options:  " ++ reqStr ++ ", " ++ respStr ++ ", " ++ tStr ++ ", " ++ evStr
 
   if ((n /= 0) && (inFile /= "")) then error "Command Line Error: cannot both generate inputs(-n) AND provide an input file(-i)" else return ()
+
+  if ((localB == True) && (inFile /= "")) then error "Command Line Error: cannot use both local terms(-l) AND provide an input file(-i)" else return ()
   return ()                 
 
 -- Record type -----------------
@@ -50,7 +52,8 @@ data Gen_Options = Gen_Options
     optEv :: Bool,   
     optInFile :: FilePath,
     optOutFile :: FilePath, 
-    optJson :: Bool   
+    optJson :: Bool,
+    optLocal :: Bool
   } deriving (Show)
 
 opts :: ParserInfo Gen_Options
@@ -60,7 +63,7 @@ opts = info (popts <**> helper)
   <> header "Generating Copland test data" )
        
 popts :: Parser Gen_Options
-popts = Gen_Options <$> numRand <*> reqBool <*> respBool <*> termBool <*> evBool <*> inFile <*> outFile <*> json
+popts = Gen_Options <$> numRand <*> reqBool <*> respBool <*> termBool <*> evBool <*> inFile <*> outFile <*> json <*> local
 
 numRand :: Parser Int
 numRand = option auto
@@ -117,3 +120,10 @@ json = switch
   <> short 'd'
   {-<> showDefault-}
   <> help "if set: output datatypes(input JSON), if unset: output JSON(input datatypes)." )
+
+local :: Parser Bool
+local = switch
+   ( long "local"
+  <> short 'l'
+  {-<> showDefault-}
+  <> help "if set: use local list of Haskell-defined datatypes, defined in Main module of generator:  GenMain.hs" )

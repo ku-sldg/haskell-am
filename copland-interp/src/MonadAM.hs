@@ -14,7 +14,7 @@ import MonadCop (Cop_Env(..), runCOP, COP)
 import ClientProgArgs
 import Cvm_St (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
-import Impl_CVM_Wrapper (run_cvm_loc')
+import Cvm_Impl_Wrapper (run_cvm_loc')
 --import Comm (genNameServer)
 import CommUtil (genNameServer)
 

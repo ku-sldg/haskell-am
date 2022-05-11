@@ -8,10 +8,10 @@ import CommUtil
 import UDcore
 import qualified ServerProgArgs as SA (Server_Options(..))
 import MonadCop (runCOP)
-import Impl_CVM_Wrapper (run_cvm_rawev)
+import Cvm_Impl_Wrapper (run_cvm_rawev)
 import Cvm_St (Coq_cvm_st(..))
 --import DemoStates
-import StVM_Deriving
+import Cvm_St_Deriving
 import BS
 import CryptoImpl (doSign)
 import ServerHandlers

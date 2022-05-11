@@ -19,9 +19,9 @@ import CommUtil
 import MonadAM
 import MonadAM_Types (empty_AM_env, empty_AM_state, runAM)
 import Impl_appraisal(build_app_comp_evC)
-import Impl_CVM_Wrapper (run_cvm')
+import Cvm_Impl_Wrapper (run_cvm')
 import Term_Defs_Deriving
-import StVM_Deriving
+import Cvm_St_Deriving
 import Cvm_St (Coq_cvm_st(..), st_ev)
 import qualified DemoStates as DS
 import ServerUtil(spawn_servers_terms)
