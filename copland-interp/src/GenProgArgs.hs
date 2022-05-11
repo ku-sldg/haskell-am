@@ -22,7 +22,8 @@ getGenOptions = do
 reqStr = "-q (RequestMessages)"
 respStr = "-p (ResponseMessages)"
 tStr = "-t (Copland terms)"
-evStr = "-e (Evidence terms)"
+evStr = "-e (Concrete Evidence terms)"
+evtStr = "-e (Evidence Type terms)"
 
 numTrue :: [Bool] -> Int
 numTrue bs = foldl numTrue' 0 bs
@@ -31,12 +32,12 @@ numTrue bs = foldl numTrue' 0 bs
         numTrue' i b = if b then i + 1 else i
 
 genOptsConsistent :: Gen_Options -> IO ()
-genOptsConsistent (Gen_Options n reqB respB termB evB inFile outFile jsonB localB) = do
+genOptsConsistent (Gen_Options n reqB respB termB evB evtB sigReqB sigRespB aspReqB aspRespB inFile outFile jsonB localB) = do
   
-  let numTrues = numTrue [reqB,respB,termB,evB]
+  let numTrues = numTrue [reqB,respB,termB,evB,evtB,sigReqB,sigRespB,aspReqB,aspRespB]
   case numTrues of
    1 -> return ()
-   _ -> error $ "Command Line Error: please provide EXACTLY ONE of the following options:  " ++ reqStr ++ ", " ++ respStr ++ ", " ++ tStr ++ ", " ++ evStr
+   _ -> error $ "Command Line Error: please provide EXACTLY ONE of the following options:  " ++ reqStr ++ ", " ++ respStr ++ ", " ++ tStr ++ ", " ++ evStr ++ evtStr
 
   if ((n /= 0) && (inFile /= "")) then error "Command Line Error: cannot both generate inputs(-n) AND provide an input file(-i)" else return ()
 
@@ -49,7 +50,12 @@ data Gen_Options = Gen_Options
     optReq :: Bool,
     optResp :: Bool,
     optTerm :: Bool,
-    optEv :: Bool,   
+    optEv :: Bool,
+    optEvt :: Bool,
+    optSigReq :: Bool,
+    optSigResp :: Bool,
+    optAspReq :: Bool,
+    optAspResp :: Bool,
     optInFile :: FilePath,
     optOutFile :: FilePath, 
     optJson :: Bool,
@@ -63,7 +69,7 @@ opts = info (popts <**> helper)
   <> header "Generating Copland test data" )
        
 popts :: Parser Gen_Options
-popts = Gen_Options <$> numRand <*> reqBool <*> respBool <*> termBool <*> evBool <*> inFile <*> outFile <*> json <*> local
+popts = Gen_Options <$> numRand <*> reqBool <*> respBool <*> termBool <*> evBool <*> evtBool <*> sigreqBool <*> sigrespBool <*> aspreqBool <*> asprespBool <*> inFile <*> outFile <*> json <*> local
 
 numRand :: Parser Int
 numRand = option auto
@@ -86,6 +92,30 @@ respBool = switch
   <> short 'p'
   <> help "Generate ResponseMessages" )
 
+sigreqBool :: Parser Bool
+sigreqBool = switch
+   ( long "sigreq"
+  <> short 's'
+  <> help "Generate SigRequestMessages" )
+
+sigrespBool :: Parser Bool
+sigrespBool = switch
+   ( long "sigresp"
+  <> short 'u'
+  <> help "Generate SigResponseMessages" )
+
+aspreqBool :: Parser Bool
+aspreqBool = switch
+   ( long "aspreq"
+  <> short 'k'
+  <> help "Generate AspRequestMessages" )
+
+asprespBool :: Parser Bool
+asprespBool = switch
+   ( long "aspresp"
+  <> short 'm'
+  <> help "Generate AspResponseMessages" )
+
 termBool :: Parser Bool
 termBool = switch
    ( long "term"
@@ -97,6 +127,12 @@ evBool = switch
    ( long "ev"
   <> short 'e'
   <> help "Generate Copland Evidence" )
+
+evtBool :: Parser Bool
+evtBool = switch
+   ( long "evt"
+  <> short 'y'
+  <> help "Generate Copland Evidence Type" )
    
 inFile :: Parser FilePath
 inFile = strOption

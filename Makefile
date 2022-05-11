@@ -118,6 +118,38 @@ gend:
 genl:
 	cd copland-interp ; stack exec -- ${GEN} -t -l
 
+#Input Copland evidence types(-y) as datatypes from local Haskell main Gen module, write JSON to stdout
+genly:
+	cd copland-interp ; stack exec -- ${GEN} -y -l
+
+#Input Copland concrete evidence (-e) as datatypes from local Haskell main Gen module, write JSON to stdout
+genle:
+	cd copland-interp ; stack exec -- ${GEN} -e -l
+
+#Input RequestMessage (-q) as datatypes from local Haskell main Gen module, write JSON to stdout
+genlq:
+	cd copland-interp ; stack exec -- ${GEN} -q -l
+
+#Input ResponseMessage (-p) as datatypes from local Haskell main Gen module, write JSON to stdout
+genlp:
+	cd copland-interp ; stack exec -- ${GEN} -p -l
+
+#Input SigRequestMessage (-s) as datatypes from local Haskell main Gen module, write JSON to stdout
+genls:
+	cd copland-interp ; stack exec -- ${GEN} -s -l
+
+#Input SigResponseMessage (-u) as datatypes from local Haskell main Gen module, write JSON to stdout
+genlu:
+	cd copland-interp ; stack exec -- ${GEN} -u -l
+
+#Input AspRequestMessage (-k) as datatypes from local Haskell main Gen module, write JSON to stdout
+genlk:
+	cd copland-interp ; stack exec -- ${GEN} -k -l
+
+#Input AspResponseMessage (-m) as datatypes from local Haskell main Gen module, write JSON to stdout
+genlm:
+	cd copland-interp ; stack exec -- ${GEN} -m -l
+
 #Input Copland terms(-t) from the file fin.hs(-i ../fin.hs) as datatypes, write JSON to the file fout.txt(-o ../fout.txt)
 genf:
 	cd copland-interp ; stack exec -- ${GEN} -t -i ../fin.hs -o ../fout.txt
