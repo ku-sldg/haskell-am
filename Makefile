@@ -57,7 +57,7 @@ runparserver_one:
 	cd copland-interp ; stack exec -- ${SERV} -r "ASP_DEFAULT" -a 42
 
 runserver_zero:
-	cd copland-interp ; stack exec -- ${SERV} -r "CVM_0" -p 1 -c "SIG_0"
+	cd copland-interp ; stack exec -- ${SERV} -r "CVM_0" -p 0 -c "SIG_0"
 
 runserver_one:
 	cd copland-interp ; stack exec -- ${SERV} -r "CVM_1" -p 1 -c "SIG_1"
@@ -114,39 +114,43 @@ geni:
 gend:
 	cd copland-interp ; stack exec -- ${GEN} -t -d
 
-#Input Copland terms(-t) as datatypes from local Haskell main Gen module, write JSON to stdout
-genl:
+#Input Copland terms(-t) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
+genlt:
 	cd copland-interp ; stack exec -- ${GEN} -t -l
 
-#Input Copland evidence types(-y) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input Copland evidence types(-y) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genly:
 	cd copland-interp ; stack exec -- ${GEN} -y -l
 
-#Input Copland concrete evidence (-e) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input Copland concrete evidence (-e) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genle:
 	cd copland-interp ; stack exec -- ${GEN} -e -l
 
-#Input RequestMessage (-q) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input RequestMessage (-q) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genlq:
 	cd copland-interp ; stack exec -- ${GEN} -q -l
 
-#Input ResponseMessage (-p) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input RequestMessage (-q) as datatypes from local Haskell main Gen module(-l), write JSON to file
+genlqf:
+	cd copland-interp ; stack exec -- ${GEN} -q -l -o ../fout.txt
+
+#Input ResponseMessage (-p) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genlp:
 	cd copland-interp ; stack exec -- ${GEN} -p -l
 
-#Input SigRequestMessage (-s) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input SigRequestMessage (-s) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genls:
 	cd copland-interp ; stack exec -- ${GEN} -s -l
 
-#Input SigResponseMessage (-u) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input SigResponseMessage (-u) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genlu:
 	cd copland-interp ; stack exec -- ${GEN} -u -l
 
-#Input AspRequestMessage (-k) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input AspRequestMessage (-k) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genlk:
 	cd copland-interp ; stack exec -- ${GEN} -k -l
 
-#Input AspResponseMessage (-m) as datatypes from local Haskell main Gen module, write JSON to stdout
+#Input AspResponseMessage (-m) as datatypes from local Haskell main Gen module(-l), write JSON to stdout
 genlm:
 	cd copland-interp ; stack exec -- ${GEN} -m -l
 

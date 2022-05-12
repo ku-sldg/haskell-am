@@ -52,57 +52,22 @@ main = do
   case provBool of
    True -> provision
    False -> do
-     let multiTermB = False
-     clientMain opts multiTermB
-     {-
-     let t = CT.toExtractedTerm EPC.layered_bg_weak_prefix
-         et = eval t 0 (Coq_nn 0)
-     putStrLn $ "ET: " ++ (show et)
-     putStrLn $ "ET SIZE: " ++ (show (et_size et))
--}
- 
-{-
-     putStrLn $ show $ (CT.toExtractedTerm EPC.layered_bg_weak) ==
-                        EP.layered_bg_weak
--}
-
-{-
-     let e = "abcd" --Coq_ss Coq_mt Coq_mt --"abcd" --([3,4,5] :: [Plc])
-         bs = BIN.encode e
-         err_str = typed_error_str "EvidenceC"
-         (v::EvidenceC) = decodeBin err_str bs
-     putStrLn $ show v
--}
-     
-         --lazy_bs = BL.fromStrict bs
-         --(v::(Either (BL.ByteString, DBG.ByteOffset, String) (BL.ByteString, DBG.ByteOffset, EvidenceC))) = BIN.decodeOrFail bs
-     --putStrLn $ show v
-
-local_term :: Term
-local_term = CT.toExtractedTerm EPC.cert_style --EPC.par_mut_p0 --EPC.cert_cache_p0
-
---EPC.bg_check --EPC.cert_style --EPC.layered_bg_strong --EPC.cert_style --EPC.layered_bg_weak --EP.cert_style
-  --CT.toExtractedTerm EPC.layered_bg_weak --EP.layered_bg_weak
-  
---EPC.par_mut_p1
---EPC.par_mut_p0
---EPC.bg_check
---EPC.cert_cache_p1
---EPC.cert_cache_p0
---EPC.cert_style_simple_sig
---EPC.cert_style
-
-  --EP.cert_style --EP.cert_style_simple_sig --EP.cert_cache_p0 --EP.cert_cache_p0 --EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested --EP.layered_bg_strong
-  --EP.cert_style
-  --EP.layered_bg_strong
-  --EP.layered_bg_weak
-  --EP.par_mut_p1
-  --EP.par_mut_p0
-  --EP.bg_check
-  --EP.cert_cache_p0
---EP.cert_cache_p1
---EP.cert_style_simple_sig
---EP.cert_style
+     clientMain opts local_term multiTermB
+    where
+      multiTermB = False
+      
+      local_term :: Term
+      local_term = CT.toExtractedTerm (EPC.fileHash_asp_request "target.txt")
+      --EPC.cert_style
+      --EPC.layered_bg_strong
+      --EPC.layered_bg_weak
+      --EPC.par_mut_p1
+      --EPC.par_mut_p0
+      --EPC.bg_check
+      --EPC.cert_cache_p1
+      --EPC.cert_cache_p0
+      --EPC.cert_style_simple_sig
+      --EPC.cert_style
 
 local_ev :: RawEv
 local_ev = []
@@ -112,7 +77,7 @@ do_when b c =
   if b then c
     else return ()
 
-clientMain :: Client_Options -> Bool -> IO ()
+clientMain :: Client_Options -> Term -> Bool -> IO ()
 clientMain (Client_Options
              termFile
              evFile
@@ -125,9 +90,9 @@ clientMain (Client_Options
              spawnASP_b
              spawnDebug_b
              namesFile
-             appraise_b) multi_termB = do
+             appraise_b) local_term multi_termB = do
       
-  (my_term, my_ev) <- get_term_ev termFile evFile
+  (my_term, my_ev) <- get_term_ev termFile evFile local_term
   let  mypl = DS.zero_plc -- TODO: ok to hardcode?
        --multi_termB = True
 
@@ -171,38 +136,43 @@ clientMain (Client_Options
       runAM am_comp_1 empty_AM_env empty_AM_state
       return ()
     return ()
-
-
-  putStrLn $ "\n" ++ "Term executed: \n" ++ (show my_term) ++ "\n"
           
  -- res@(cvmst_res, amst_res) <- runAM am_comp empty_AM_env empty_AM_state
   res@((nonce_id, rawev_res), amst_res) <- runAM am_comp empty_AM_env empty_AM_state
 
 
-  putStrLn $ "Result: \n" ++ (show res) ++ "\n"
+  putStrLn $ "\n" ++ "Raw Evidence Result: \n" ++ (show rawev_res) ++ "\n"
+
+  putStrLn $ "Term executed: \n" ++ (show my_term) ++ "\n"
+
+  let et_app = eval my_term mypl (Coq_nn nonce_id)
+  putStrLn $ "Evidence Type of result: " ++ "\n" ++ (show et_app) ++ "\n"
 
   do_when (appraise_b) $ do
+    {-
     let --cvmst_res = fst res
         --rawev_res = get_bits (st_ev cvmst_res)
         et_app = eval my_term mypl (Coq_nn nonce_id)
     putStrLn $ show et_app
+-}
+    
     let appraise_comp =
           do
-            liftIO $ putStrLn $ "RAWEV LEN: " ++ (show (length rawev_res))
-            liftIO $ putStrLn $ "et_size: " ++ (show (et_size et_app))
+            --liftIO $ putStrLn $ "RAWEV LEN: " ++ (show (length rawev_res))
+            --liftIO $ putStrLn $ "et_size: " ++ (show (et_size et_app))
             v <- build_app_comp_evC et_app rawev_res
             return v
     --let new_app_st = snd res
-    app_res <- runAM appraise_comp empty_AM_env amst_res
+    (app_res, amst') <- runAM appraise_comp empty_AM_env amst_res
 
-    putStrLn $ "Appraise Result: \n" ++ (show app_res) ++ "\n"
+    putStrLn $ "Appraisal Result (EvidenceC): \n" ++ (show app_res) ++ "\n"
 
-    let app_res_bool = certWalk_EvidenceC (fst app_res)
-    putStrLn $ "Walked EvidenceC Appraise Bool Result: \n" ++ (show app_res_bool)
+    let app_res_bool = certWalk_EvidenceC (app_res)
+    putStrLn $ "Walked Appraisal Boolean Result (EvidenceC): \n" ++ (show app_res_bool)
 
 
-get_term_ev :: FilePath -> FilePath -> IO (Term, RawEv)
-get_term_ev inp einp = do
+get_term_ev :: FilePath -> FilePath -> Term -> IO (Term, RawEv)
+get_term_ev inp einp local_term = do
   t <-
     case inp of
      "" -> return local_term
@@ -263,3 +233,51 @@ provision = do
   let t_par = Coq_alseq_par t'_par tsig_par
   --let at_par_term = Coq_aatt_par DS.one_plc t
 -}
+
+
+
+
+
+
+
+
+     {-
+     let t = CT.toExtractedTerm EPC.layered_bg_weak_prefix
+         et = eval t 0 (Coq_nn 0)
+     putStrLn $ "ET: " ++ (show et)
+     putStrLn $ "ET SIZE: " ++ (show (et_size et))
+-}
+ 
+{-
+     putStrLn $ show $ (CT.toExtractedTerm EPC.layered_bg_weak) ==
+                        EP.layered_bg_weak
+-}
+
+{-
+     let e = "abcd" --Coq_ss Coq_mt Coq_mt --"abcd" --([3,4,5] :: [Plc])
+         bs = BIN.encode e
+         err_str = typed_error_str "EvidenceC"
+         (v::EvidenceC) = decodeBin err_str bs
+     putStrLn $ show v
+-}
+     
+         --lazy_bs = BL.fromStrict bs
+         --(v::(Either (BL.ByteString, DBG.ByteOffset, String) (BL.ByteString, DBG.ByteOffset, EvidenceC))) = BIN.decodeOrFail bs
+     --putStrLn $ show v
+
+
+
+
+    --EP.cert_style --EP.cert_style_simple_sig --EP.cert_cache_p0 --EP.cert_cache_p0
+    --EP.layered_bg_weak --EP.test_par_nested --EP.layered_bg_strong --EP.test_par_nested
+    --EP.layered_bg_strong
+    --EP.cert_style
+    --EP.layered_bg_strong
+    --EP.layered_bg_weak
+    --EP.par_mut_p1
+    --EP.par_mut_p0
+    --EP.bg_check
+    --EP.cert_cache_p0
+    --EP.cert_cache_p1
+    --EP.cert_style_simple_sig
+    --EP.cert_style

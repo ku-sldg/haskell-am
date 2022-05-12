@@ -5,7 +5,7 @@
 
 The Haskell Attestation Manager is a collection of Haskell libraries and executables that support the design and prototyping of layered attestation protocols.  It builds off of the [Copland effort](https://ku-sldg.github.io/copland/) to provide a concrete implementation of the Copland semantics and a testing ground for experimental extensions (to both the Copland language proper and its supporting envioronment).
 
-We have ongoing work to implement similar Attestation Managers in other language environments(see:  [Copland Software](https://ku-sldg.github.io/copland/software.html)), and our [JSON message exchange format](https://ku-sldg.github.io/copland///resources/copland_core.pdf) is designed to facilitate communication amongst protocols whose executions span these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype serves as a testing ground towards that goal.
+We have ongoing work to implement similar Attestation Managers in other language environments(see:  [Copland Software](https://ku-sldg.github.io/copland/software.html)), and our [JSON message exchange format](https://github.com/ku-sldg/json-am/blob/master/copland_json.pdf) is designed to facilitate communication amongst protocols whose executions span these diverse environments.  The ultimate goal of the Copland effort is to build formally verified attestation protocols and infrastructure.  This prototype serves as a testing ground towards that goal.
 
 <!---
 [Orchestrating Layered Attestations](https://ku-sldg.github.io/copland///resources/copland-post-2019.pdf)  --->
@@ -104,12 +104,13 @@ There are two primary functions of the Generator/Translator:
 1)  Generate random well-formed Haskell ADTs(Abstract Data Types) and JSON objects relevant to our Attestation Manager
 2)  Translate to/from ADTs and their JSON representation
 
-It is meant to be useful for testing against implementations outside of the Haskell ecosystem.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.  The Haskell ADT definitions are here:  [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).  A formal description of the ADTs and their JSON representations is here:  [Copland terms and JSON](https://ku-sldg.github.io/copland///resources/copland_core.pdf).
+It is meant to be useful for testing against implementations outside of the Haskell ecosystem.  It can provide well-formed test inputs, and it can also act as an oracle for JSON parsing.  The Haskell ADT definitions are here:  [CoplandLang.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/src/CoplandLang.hs).  A formal description of the ADT grammars and their JSON representations are here:  [Copland terms and JSON](https://github.com/ku-sldg/json-am/blob/master/copland_json.pdf).
 
-* You must provide EXACTLY ONE of the following options:  `-q`, `-p`, `-t`, `-e` that specify which of the following type of thing you'd like to generate/translate:  RequestMessage, ResponseMessage, Copland Term, or Copland Evidence.
+* You must provide EXACTLY ONE of the following options:  `-t`(Copland Phrase), `-e`(Concrete Evidence), `-y`(Evidence Type), `-q`(RequestMessage), `-p`(ResponseMessage), `-s`(SigRequestMessage), `-u`(SigResponseMessage), `-k`(AspRequestMessage), `-m`(AspResponseMessage), to specify the type of thing you'd like to generate/translate.
 *  If `-d` is set, the OUTPUT will be the Haskell ADT representation.  Otherwise the OUTPUT will be the JSON representation.
 *  Generator Mode:  `-n N` will generate N random things of the type you specify and output them newline-separated.
 *  Translator Mode:  If `-n N` is NOT set (or if N==0), the executable becomes a translator to/from JSON and the ADT representations.  The input representation is always opposite of the output representation(determined by `-d`).  For example: if `-d` is set the input will be JSON and the output will be the ADT (and vice-versa if `-d` is NOT set).
+* If `-l` is set: use local datatypes specified in Haskell concrete syntax, defined in Main module of generator executable:  `gen_app/GenMain.hs`, functions with names that start with "local_vals_".
 * `-i FILENAME` optional input file (stdIn if omitted)
 * `-o FILENAME` optional output file (stdOut if omitted)
 *  **NOTE**:  input and output terms/JSON are always newline-separated.

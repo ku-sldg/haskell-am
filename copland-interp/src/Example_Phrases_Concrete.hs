@@ -20,6 +20,26 @@ p3 = 3
 p4 :: Plc
 p4 = 4
 
+fileHash_asp :: FilePath -> CoplandTerm
+fileHash_asp fp =
+  (ASP fh_id [fp] p targ_id) :->: SIG
+  
+  where fh_id :: ASP_ID
+        fh_id = 5
+
+        p :: Plc
+        p = p1
+
+        targ_id :: TARG_ID
+        targ_id = 0  -- targ_id is arbitrary for now.
+          -- Could identify a particular file system at Place p1.
+
+fileHash_asp_request :: FilePath -> CoplandTerm
+fileHash_asp_request fp =
+  AT p (fileHash_asp fp)
+  
+  where p :: Plc
+        p = p1
 
 simple_asp_phrase :: CoplandTerm
 simple_asp_phrase = ASP 1 ["arg1", "arg2"] p2 3
