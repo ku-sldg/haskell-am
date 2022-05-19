@@ -25,17 +25,33 @@ Please send questions/comments to Adam Petz(ampetz@ku.edu) or submit a [GitHub i
 1) In the top-level of that repository:  type `make`
     * NOTE:  this may take a while (~20-30 minutes) the first time due to the Haskell dependencies.
 1) Type `make run`
-1) Successful installation/execution will include output that ends with something like "Appraise Result:" followed by a pretty-printed evidence value (the result of executing a hard-coded Copland protocol).  See the Examples section below for a description of what `make run` does.
+1) Successful installation/execution will include output that ends with something like "Appraise Result:" followed by a pretty-printed evidence value (the result of executing a hard-coded Copland protocol). 
+
+<!-- See the Examples section below for a description of what `make run` does. -->
 
 <!-- * This will use a default key for signing (located at `keys/key0.txt`) by _**temporarily**_ setting the `COPLAND_BUILD` environment variable.  See the [Advanced Configuration](#advanced-configuration) section for instructions on setting this variable (or the custom `COPLAND_KEY` variable) more permanently for development/deployment purpuses. -->
+
+## Examples
+---
+
+### `make run`
+
+`make run` executes the following command: 
+
+`cd copland-interp ; stack exec -- ${CLIENT} -a -w -v`.  
+
+This runs the Appraiser Client with options to spawn all necessary child nodes (CVM and ASP servers) and perform appraisal of the resulting evidence.  The Copland term executed by default is the hard-coded value `local_term` in the `main` function of the Appraiser Client executable source file (`copland-interp/client_app/ClientMain.hs`).  Alternative example Copland phrases to run (commented out below `local_term`) are in the source file:  `copland-interp/src/Example_Phrases_Concrete.hs`.
+
+`stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `${CLIENT}` is the variable for the Appraiser Client executable in the Makefile, whose name is originally defined in the stack project cabal file(`copland-interp/copland-interp.cabal`).  `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.
 
 ## Haskell AM Executables
 ---
 
-The Haskell AM project is organized as three logically distinct executables:
+The Haskell AM project is organized as logically distinct executables:
 
-1)  [Attestation Manager Client (AM Client)](#attestation-manager-client-appraiser-client)
-1)  [Copland Virtual Machine Server (CVM Server)](#copland-interpreter-server-attestation-server)
+1)  [Attestation Manager Client (Appraiser Client)](#attestation-manager-client-appraiser-client)
+1)  [Copland Virtual Machine Server (CVM Server)](#copland-virtual-machine-server-cvm-server)
+1)  [Attestation Service Provider Server (ASP Server)](#attestation-service-provider-server-asp-server)
 1)  [Datatype/JSON Generator and Translator](#datatypejson-generator-and-translator)
 
 These executables share common libraries(see [Source Files](#Source-Files) section below).  Their purpose and usage are described individually in the following sections.
@@ -46,7 +62,11 @@ These executables share common libraries(see [Source Files](#Source-Files) secti
 
 The Appraiser Client can generate nonces, sequence exection of multiple Copland phrases, gather evidence results, provide evidence results as initial evidence to other Copland phrase executions, and perform appraisal over evidence.  It is responsible for sending the first request during an attestation protocol run, and also performs the final appraisal.
 
-*  `-w` spawns attestation servers as separate background threads before performing the client actions.  This option is useful for testing purposes-  it alleviates the hassle of configuring and starting each Attestation Server as its own executable.  The appropriate number of servers (and at appropriate addresses) are spawned based on the protocol terms involved (and the custom name mapping if provided via the  `-n` option).
+*  `-w (--spawnCvms)` spawns CVM servers as separate background threads before performing the client actions.  This option is useful for testing purposes-  it alleviates the hassle of configuring and starting each server as its own executable.  Uses with auto-generated port string addresses: CVM_P (where P is its place ID) for all places involved in the Copland term executed.
+*  `-v (--spawnAsps)`  Spawn ASP servers (with auto-generated port string addresses:  ASP_P_I, where P is its place and I its ASP_ID) as separate background threads for all ASPs at all places involved in the Copland term executed.
+*  `-a (--appraise)` Perform appraisal on the resulting evidence.
+<!-- 
+(and at appropriate addresses) are spawned based on the protocol terms involved (and the custom name mapping if provided via the  `-n` option).
 *  `-n FILENAME` allows specifying a mapping from Place to Address in the file FILENAME.  The format of the file must be newline-separated strings of the form:  \<Place\>:\<Address\>, where \<Place\> is a place identifier(a number) and \<Address\> is an address string (now just a port number, but may become more sophisticated).  An example mapping in a file looks like:
     ```
     0:3000
@@ -58,16 +78,21 @@ The Appraiser Client can generate nonces, sequence exection of multiple Copland 
 
     NOTE:  You may only omit `-n` when `-w` is set.  This is because it only makes sense to randomly generate server ports when the appraiser client is also responsible for spawning the server threads.  When `-w` is NOT set the user is responsible for manually configuring and starting attestation servers at appropriate Addresses according to the name mapping provided via `-n`.
 
+
 *  `-v` option specifies that spawned servers should run in simulation mode.  This option only has effect if `-w` is also set.
 *  `-t FILENAME1` and `-e FILENAME2` are a convenient way to specify execution of a *single* Copland phrase and initial evidence.
 *  If the `-t` option is empty or omitted, a hard-coded protocol written as a computation in the AM monad will run instead.
-*  The main module for the Appraisal Client is [ClientMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/app/ClientMain.hs)
-*  Type `make helpclient` for a complete description of Appraiser Client command line options.
+-->
+*  The main module for the Appraisal Client is [ClientMain.hs](https://github.com/ku-sldg/haskell-am/blob/master/copland-interp/client_app/ClientMain.hs)
+*  Type `make helpclient` for a complete description of Appraiser Client command line options (Only options documented here are currently supported).
 
+<!-- 
 AM capabilities:
 1) generating and managing nonces
 1) sequencing execution of multiple Copland protocol phrases
 1) performing appraisal on the resulting evidence bundles
+-->
+
 
 ---
 
@@ -96,6 +121,10 @@ The virtual machine that executes Copland instructions relies on an external con
         *  to start the ConnectionServer, run the shell script, `startCS.sh`.  It requires no arguments.
 
 --- -->
+
+### Attestation Service Provider Server (ASP Server)
+#### Documentation forthcoming...
+---
 
 ### Datatype/JSON Generator and Translator
 
@@ -249,14 +278,12 @@ All Haskell source files are within the stack project directory (`copland-interp
     * A single ConnectionServer serves an arbitrary number of Attestion Managers running on the same platform.
 -->
 
-## Examples
----
 
-### `make run`
----
 
-`make run` executes the following command:  `cd copland-interp ; stack exec -- copland-app-exe -w -a`.  This runs the Appraiser Client with the `-w` and `-a` options.  `stack exec` is the Haskell Stack command for running executables managed by one of its projects.  `copland-app-exe` is the name we associated with the the Appraiser Client executable in the stack project cabal file(`copland-interp/copland-interp.cabal`).  `cd copland-interp` is necessary because we must be within the stack project directory(`copland-interp/`) to run `stack exec`.  See the Haskell Stack documentation for more details on `stack exec`.
 
+
+
+<!--
 Note that since we do *not* provide a custom Copland phrase to execute with the `-t FILENAME` option, it instead executes the following hard-coded computation in the AM(Attestation Manager) monad:
 
 ```haskell
@@ -278,6 +305,7 @@ This describes a typical attestation protocol that first generates a nonce(am_ge
 
 The `-a` option tells the client to perform appraisal on the resulting evidence.  Currently appraisal is written as an ad-hoc function in Haskell so that it can only appraise evidence produced by the `proto1` protocol above.  The `-w` option is crucial here because it configures and spawns an attestation server thread for Place 1 before sending the initial request.  If we omit the `-w` option we would have to 1) use the `-n FILENAME` option to specify a Place -> Address mapping that includes an entry for Place 1, and 2) start a server at that same Address manually before sending the request.
 
+
 ### `make term`
 ---
 
@@ -293,3 +321,5 @@ The `-a` option tells the client to perform appraisal on the resulting evidence.
 `make termCompiled` acts exactly `make term` described above, but with the addition of the `compile` option.  This option tells the appraiser client to compile the copland phrase provided, and then to execute the sequence of instructions generated.  Should generate the same result as `make term`.  **NOTE**:  a ConnectionServer must be running on your machine before this action is started.
 
 ---
+
+-->
