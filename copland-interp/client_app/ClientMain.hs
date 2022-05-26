@@ -58,6 +58,7 @@ main = do
       
       local_term :: Term
       local_term = CT.toExtractedTerm (EPC.fileHash_asp_request "target.txt")
+      --(EPC.fileHash_asp_request "target.txt")
       --EPC.cert_style
       --EPC.layered_bg_strong
       --EPC.layered_bg_weak

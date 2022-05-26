@@ -29,11 +29,13 @@ store_args = ["store"]
 retrieve_args :: [Arg]
 retrieve_args = ["retrieve"]
 
+{-
 app_bg_weak_args :: [Arg]
 app_bg_weak_args = ["bgweak"]
 
 app_bg_strong_args :: [Arg]
 app_bg_strong_args = ["bgstrong"]
+-}
 
 
 sys :: TARG_ID

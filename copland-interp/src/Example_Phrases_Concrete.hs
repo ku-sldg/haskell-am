@@ -73,10 +73,20 @@ appraise :: Plc -> TARG_ID -> CoplandTerm
 appraise p tid = ASP appraise_id [] p tid
 
 appraise_bgweak :: Plc -> TARG_ID -> CoplandTerm
-appraise_bgweak p tid = ASP appraise_id app_bg_weak_args p tid
+appraise_bgweak p tid = ASP appraise_id args p tid
+  where
+    t :: CoplandTerm
+    t = layered_bg_weak_prefix --toExtractedTerm layered_bg_weak_prefix_
+    args :: [Arg]
+    args = [(show t)]
 
 appraise_bgstrong :: Plc -> TARG_ID -> CoplandTerm
-appraise_bgstrong p tid = ASP appraise_id app_bg_strong_args p tid
+appraise_bgstrong p tid = ASP appraise_id args p tid
+  where
+    t :: CoplandTerm
+    t = layered_bg_strong_prefix --toExtractedTerm layered_bg_weak_prefix_
+    args :: [Arg]
+    args = [(show t)]
 
 certificate :: Plc -> TARG_ID -> CoplandTerm
 certificate p tid = ASP cert_id [] p tid

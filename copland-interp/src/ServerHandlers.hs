@@ -14,7 +14,7 @@ import Cvm_Impl_Wrapper (run_cvm_loc)
 import CryptoImpl(doSignD, get_key_simpl)
 import ServerOpts (get_sample_aspmap, par_server_addr, sig_server_addr)
 import qualified ServerProgArgs as SA
-import qualified Example_Phrases_Admits as EPA (store_args, retrieve_args, app_bg_weak_args, app_bg_strong_args)
+import qualified Example_Phrases_Admits as EPA (store_args, retrieve_args)
 import qualified DemoStates as DS
 import Impl_appraisal(build_app_comp_evC)
 import MonadAM_Types (AM_St(..), empty_AM_env, runAM)
@@ -30,23 +30,13 @@ import qualified Data.Binary as BIN
 import Control.Monad.IO.Class (liftIO)
 
 
-build_cvm_config :: CVM_SERV_Params -> SA.Server_Options -> Term -> {-M.Map Plc Address -> -} RawEv ->
+build_cvm_config :: CVM_SERV_Params -> SA.Server_Options -> Term -> RawEv ->
                     (Cop_Env, Coq_cvm_st)
-build_cvm_config params@(CVM_SERV_Params me aspSpawn_b _) opts t {-nm-} e =
-  let --store = M.empty
-      --me = cvm_params_plc params
-      {-
-      sm = cvm_params_sig_mech params
-      aspmap = get_sample_aspmap t me
--}
-      --cvmSpawn_b = cvm_asps_simb
-      simb = SA.server_optSim opts
+build_cvm_config params@(CVM_SERV_Params me aspSpawn_b _) opts t e =
+  let simb = SA.server_optSim opts
       debugb = SA.server_optDebug opts
       --par_addr = par_server_addr me
-
-      cvmSpawn_b = True -- TODO: make this part of CVM_SERV_Params
-
-      --env = Cop_Env simb debugb nm sm me store aspmap par_addr
+      cvmSpawn_b = True -- TODO: make this part of CVM_SERV_Params?
       env = DS.sample_cop_env simb debugb cvmSpawn_b aspSpawn_b t me
       st = (Coq_mk_st (Coq_evc e (Coq_mt)) [] me 0) in
             -- TODO: remove verification params from cvm state?
@@ -61,13 +51,12 @@ clear_rawev_map_at_loc mv loc = modifyTVar mv (M.delete loc)
   
 handle_par_req :: CVM_SERV_Params -> SA.Server_Options -> TVar (M.Map Loc RawEv) ->
                   StartMessagePar -> IO ()
-handle_par_req params opts store_var msg@(StartMessagePar loc _ {-nm-} t e) = do
+handle_par_req params opts store_var msg@(StartMessagePar loc _ t e) = do
   
-  let (env,st) = build_cvm_config params opts t {-nm-} e
+  let (env,st) = build_cvm_config params opts t e
 
   putStrLn $ "init state PAR with LOC " ++ (show loc) ++ ": " ++ (show st)
-  --print st 
-  res_rawev <- {-run_cvm_rawev-}run_cvm_loc t st env
+  res_rawev <- run_cvm_loc t st env
 
   atomically $ mod_rawev_map store_var loc res_rawev
 
@@ -124,7 +113,7 @@ handle_asp_attest msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = d
       sport = "" -- TODO: is this ever used?
       sType = CVM_SERV params
       opts = SA.Server_Options optSim optDebug sport sType
-      t = Coq_asp SIG --Coq_asp (ASPC (Coq_asp_paramsC 42 [] me 42)) -- TODO: is this dummy term ok?
+      t = Coq_asp SIG -- TODO: is this dummy term ok?
       initEv = last rawEv
       (env,st) = build_cvm_config params opts t {-nm-} [initEv]
 
@@ -135,13 +124,7 @@ handle_asp_attest msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = d
 
   putStrLn $ "AttestResult computed: " ++ (show att_res)
 
-
-  {-
-  let (bs::BS.BS) = head rawEv
-      lazy_bs = BL.fromStrict bs
-      (t::Term) = BIN.decode lazy_bs
--}
-  return $ AspResponseMessage resp_bs --BS.empty_bs
+  return $ AspResponseMessage resp_bs
 
 appraise_attest_result :: [BS] -> IO BS
 appraise_attest_result rawEv = do
@@ -170,17 +153,16 @@ appraise_attest_result rawEv = do
 handle_asp_appraise :: AspRequestMessage -> IO AspResponseMessage
 handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
 
-    if | ((args == EPA.app_bg_weak_args) || (args == EPA.app_bg_strong_args)) -> do
+  if | (length args > 0) -> do
            let nval = last rawEv
                them = 0
                init_ev_type = (Coq_nn 0)
-               t =
-                 case (args == EPA.app_bg_weak_args) of
-                   True -> CT.toExtractedTerm EPC.layered_bg_weak_prefix
-                   False -> CT.toExtractedTerm EPC.layered_bg_strong_prefix
+               arg = head args
+               (t' :: CT.CoplandTerm) = read arg
+               t = CT.toExtractedTerm t'
                (et_app :: Evidence) = eval t them init_ev_type
                appraise_comp = build_app_comp_evC et_app rawEv
-               amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
+               amst = AM_St (M.fromList [(0,nval)]) 1
 
            ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst
 
@@ -190,35 +172,13 @@ handle_asp_appraise msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) =
       
            return $ AspResponseMessage resp_bs
    
-       | otherwise -> do
-           putStrLn $ "starting OTHER appraisal (not app_bg_weak)"
+     | (length args == 0) -> do
+           putStrLn $ "starting primitive 'appraise' ASP (dual of 'attest' ASP)"
            resp_bs <- appraise_attest_result rawEv
-           putStrLn $ "returning from OTHER appraisal (not app_bg_weak)"
+           putStrLn $ "returning from 'appraise' ASP (dual of 'attest' ASP)"
            return $ AspResponseMessage resp_bs
 
-           {-
-  
-         let (bs::BS.BS)= head rawEv
-             lazy_bs = BL.fromStrict bs
-             (r@(AttestResult t res_rawev)::AttestResult) = BIN.decode lazy_bs
-             nval = last rawEv
-         putStrLn $ "Nonce GRABBEDD: " ++ (show nval)
-         --putStrLn $ "AttestResult grabbed: " ++ (show r)
-         let them = 0 -- TODO: no hardcode?
-             init_ev_type = (Coq_nn 0) -- TODO: ok?
-             (et_app::Evidence) = eval t them init_ev_type
-         --putStrLn $ "HERE" ++ (show et_app)
-         putStrLn $ "Evidence Type computed for appraise ASP: " ++ (show et_app)
-         let appraise_comp = build_app_comp_evC et_app res_rawev
-             amst = AM_St (M.fromList [(0,nval{-BS.empty_bs-})]) 1 -- TODO: need actual nonce value from attester/relying?
-
-         ((app_res, _)::(EvidenceC, AM_St)) <- runAM appraise_comp empty_AM_env amst
-
-         putStrLn $ "Appraisal EvidenceC structure computed: " ++ (show app_res)
-
-         let resp_bs = BL.toStrict $ BIN.encode app_res 
-      
-         return $ AspResponseMessage resp_bs -}
+     | otherwise -> error "ARGS list to 'appraise' ASP not supported"
 
 handle_asp_certify :: AspRequestMessage -> IO AspResponseMessage
 handle_asp_certify msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) rawEv) = do
@@ -248,49 +208,33 @@ handle_asp_cache cache_var msg@(AspRequestMessage (Coq_asp_paramsC _ args _ _) r
            mv <- readTVar cache_var
            case mv of
              Nothing -> do
-               --liftIO $ putStrLn $ "no cache_var val to read"
-               --return $ AspResponseMessage BS.empty_bs
-               --error "no cache_var val to read"
                retry
              Just v ->
-               --error "read cache_var sucessfully"
                return $ AspResponseMessage (BL.toStrict (DA.encode v))
    
      | otherwise -> error "Unrecocnized args for cache ASP!"
 
-handle_asp_default :: ASP_ID -> {-TVar (Maybe RawEv) -> SA.Server_Options ->-} AspRequestMessage -> IO AspResponseMessage
-handle_asp_default asp_id {-cache_var-} {-opts-} msg@(AspRequestMessage _ _) = do
-  {-
-  if | asp_id == EPA.cache_id -> do
-         {-
-         cache_var <- newTVarIO Nothing
-         putStrLn "created new TVar for cache store..."
--}
-         handle_asp_cache cache_var msg
-     | otherwise -> do
--}
+handle_asp_default :: ASP_ID -> AspRequestMessage -> IO AspResponseMessage
+handle_asp_default asp_id msg@(AspRequestMessage _ _) = do
          putStrLn "Running simulated ASP..."
-         -- TODO:  faking un-implemented ASPs for now...
          let sBits = empty_bs
          return (AspResponseMessage sBits)
 
-
-handle_remote :: CVM_SERV_Params -> SA.Server_Options -> {-Bool -> Bool -> -}
+handle_remote :: CVM_SERV_Params -> SA.Server_Options ->
                  RequestMessage -> IO ResponseMessage
-handle_remote params opts rreq@(RequestMessage pTo pFrom _ {-nm-} t e) = do
+handle_remote params opts rreq@(RequestMessage pTo pFrom _ t e) = do
 
   print "received RequestMessage: "
   print rreq
 
-  let (env,st) = build_cvm_config params opts t {-nm-} e
+  let (env,st) = build_cvm_config params opts t e
 
   print "init state: "
   print st 
-  res_rawev <- {-run_cvm_rawev-} run_cvm_loc t st env
+  res_rawev <- run_cvm_loc t st env
 
   let rm = (ResponseMessage pFrom pTo res_rawev)
   return rm
-
 
 handle_sig :: SA.Server_Options -> SigRequestMessage -> IO SigResponseMessage
 handle_sig opts msg@(SigRequestMessage eBits) = do
