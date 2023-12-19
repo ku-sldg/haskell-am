@@ -8,9 +8,9 @@ import MonadCop (COP)
 type St s = SL.StateT s COP
 
 ret :: a -> St s a
-ret = SL.return
+ret = Prelude.return
 
-bind m f = m SL.>>= f
+bind m f = m Prelude.>>= f
 
 modify :: (a1 -> a1) -> St a1 ()
 modify = SL.modify

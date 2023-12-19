@@ -2,7 +2,7 @@
 module OptMonad_Coq where
 
 import qualified Prelude
-import qualified Control.Monad.State.Lazy as SL
+--import qualified Control.Monad.State.Lazy as SL
 --import MonadCop (COP)
 import qualified MonadAM_Types (AM)
 
@@ -12,9 +12,9 @@ type AM = MonadAM_Types.AM
 type Opt = MonadAM_Types.AM
 
 ret :: a -> AM a
-ret = SL.return
+ret = Prelude.return
 
-bind m f = m SL.>>= f
+bind m f = m Prelude.>>= f
 
 failm = Prelude.error "ERRORRRR in AM Monad computation"
 

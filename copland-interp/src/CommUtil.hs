@@ -29,6 +29,7 @@ import qualified Network.Socket.ByteString as NBS (recv, sendAll)
 import qualified Data.ByteString.Lazy as BL (fromStrict, toStrict)
 import Numeric.Natural
 import Control.Monad.Trans(liftIO)
+import System.Posix.Internals (setCloseOnExec)
 
 
 gen_client_session :: BS -> NS.Socket -> IO BS
@@ -90,8 +91,8 @@ open addr = do
         bind sock (addrAddress addr)
         -- If the prefork technique is not used,
         -- set CloseOnExec for the security reasons.
-        let fd = fdSocket sock
-        setCloseOnExecIfNeeded fd
+        let fd = {- fdSocket -} withFdSocket sock setCloseOnExecIfNeeded
+        -- setCloseOnExecIfNeeded fd
         listen sock 10
         return sock
         

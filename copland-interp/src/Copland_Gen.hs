@@ -18,7 +18,7 @@ import Data.Maybe (fromJust)
 import Text.Read(readMaybe)
 import Control.Exception
 import System.IO.Error hiding (catch)
-import qualified Data.ByteString.Lazy as BL (appendFile, append, readFile, ByteString, writeFile, putStrLn, getContents)
+import qualified Data.ByteString.Lazy as BL (appendFile, append, readFile, ByteString, writeFile, getContents)
 import qualified System.Directory as SD (removeFile)
 import qualified Data.ByteString.Lazy.Char8 as C (putStrLn,lines)
 

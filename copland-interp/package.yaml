@@ -37,6 +37,7 @@ dependencies:
 - prettyprinter
 - optparse-applicative
 - QuickCheck
+- transformers
 
 library:
   source-dirs:

@@ -4,4 +4,4 @@ packages:
 extra-deps:
 - DRBG-0.5.5
 - crypto-rng-0.1.0.2
-resolver: nightly-2018-12-18
+resolver: lts-22.0
